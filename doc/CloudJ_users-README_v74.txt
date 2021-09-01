@@ -7,7 +7,15 @@ http://sourceforge.net/p/webrtcbench/code/ci/default/tree/COPYING
 
 Fast-J ftp site:   ftp://128.200.14.8/public/prather/Fast-J     (a.k.a.  halo.ess.uci.edu)
 
-Recommendation (as of 18 Jul 2015):
+Recommendation (as of 14 Sep 2015):
+
+        Implement ver 7.4 Cloud-J if you want compatibility with Solar-J versions to be released in 2016.
+              The F90 modules now allow for the full scattering calculation of the RRTMG superbins >778nm
+                    but there is an option to skip all the RRTMG bins and just do the 18 (or 12 or 08) FJ bins.
+              The data for liq and ice clouds and sulfuric acid aerosols has redone with true refractive indices!
+                    Stratospherice sulfate aerosols now use updated size distribution (changing the path => OD)
+                    THUS this version is inherently different in results from all previous (up to 6% in b.l.)
+                    because the clouds stratospheric surlfate layer are now more accurately simulated.
 
         Implement ver 7.3c Cloud-J, skip ver 7.2, use the new data formats.
               v7.3c can be run with only 1 call to Fast-J (CLDFLAG = 1,2,3) if you must.
@@ -24,10 +32,18 @@ Recommendation (as of 18 Jul 2015):
 
 History of versions:
 
-UCI_cloudJ73c-f90.zip
+UCI_cloudJ74c-f90.zip
+        Modules changed to be consistent with Solar-J calculation with RRTMG bins (19:27)
+        Solar-J code is running and undergoing test, release in 2016
+        Updates fjx_spec.dat and cloud and sulfuric-acid aerosols out to 10 microns.
+        Cloud changes (more realistic index of refration) make results different (1-6% level) from v7.3c
+        Have updated cross sections as for Cloud-J version 3x
+
+UCI_cloudJ73d-f90.zip
         Reduces the correlation of G6 layers separated by gaps.
         Updates fjx_spec.dat to version 7.3c: small, <% changes with new wavelength data.
         Results change at the <1% level; no change in the 2015 GMDD tables/figures.
+        With the 7.3d, larger changes in O3 and q(O1D), up to +4% in J(O1D).
 
 UCI_cloudJ73b-f90.zip
         Corrects indexing error that could cause segment fault.

@@ -1,4 +1,11 @@
-!>>>>>>>>cloud-JX code (includes fractional cloud treatments) ver 7.3 (2/2015)<<<<<<<<<<<<
+!>>>>>>>>cloud-JX code (includes fractional cloud treatments) ver 7.4 (8/2015)<<<<<<<<<<<<
+!           uses full Solar-J data sets, i.e., the FJX_---.dat data, not the RRTMG data
+!           calculates heating for FastJ bins (1:18) & RRTMG superbins (19:27) w/o gas abs.
+!           Solar heating >778nm for clouds and sulfuric acid aerosols is included
+!           option to turn off bins 19:27 since not used for J-values
+!   With Cloud-J v7.4, the Fast-J data sets & modules are consistent with the Solar-J code
+!   Version 7.4 can still be run in a trop-only mode (W_=8 old style) and WACCM mode (no J's <200nm)
+
       program standalone
 ! USES:
       USE FJX_CMN_MOD
@@ -30,7 +37,7 @@
       integer               :: CLDFLDS, CLDFLDX
 
 
-!--------------------key params sent to CLOUD_JX-------------------------
+!--------------------key params sent to CLOUD_J-------------------------
       real*8                     :: U0,SZA,REFLB,SOLF,  CLDCOR
       real*8                     :: FG0
       logical                    :: LPRTJ
@@ -81,11 +88,8 @@
 !---     else(=6) fixed correlated length max-overlap layers
 !---NICA = total number of ICAs
 
-!---fast-JX:  INIT_JX is called only once to read in & store all fast-JX data:
-!              also sets up random sequence for cloud-JX
-!-----------------------------------------------------------------------
-      call INIT_FJX (TITLJXX,JVN_,NJXX)
-!-----------------------------------------------------------------------
+      write(6,'(a)') '>>>begin Cloud-J Driver/Standalone version 7.4'
+
 !--Set up atmosphere for a single column and time for J-values calculation
 !--Nominally taken from CTM, but for standalone here is read in
       open (77,file='CTM_GrdCld.dat',status='old',err=91)
@@ -103,11 +107,12 @@
       read (77,'(f6.1)') ALBEDO
       read(77,'(2i5,f5.1)') LNRG,NRANDO,CLDCOR
       read(77,'(f5.2)') FG0
+      read(77,'(2i5)')  NWBIN,NSBIN
       read(77,'(2i5)') CLDFLDS,CLDFLDX
-        write(6,'(a,2i4,a,f7.4)') 'LNRG = ',LNRG,NRANDO,'Cloud-Corel',CLDCOR
+        write(6,'(a,2i4,a,f7.4)') 'LNRG = ',LNRG,NRANDO,'    Cloud-Corel',CLDCOR
         write(6,'(a,f10.4)') 'FG0 (assym for direct beam)', FG0
         write(6,'(a,2i5)') '#CLDFLDS(out of) = ',CLDFLDS, CLDFLDX
-        write(6,'(2i5,5x,a,i5)') LPAR,LWEPAR, 'LPAR / LWEPAR', L1_
+        write(6,'(a,2i5,5x,a,i5)') 'Atmosphere:',LPAR,LWEPAR, 'LPAR / LWEPAR', L1_
       read (77,*)
       do L = 1,LPAR+1
         read (77,'(i3,1x,2f11.7,2x,f5.1,f5.2,f11.2,2(f7.3,i4))') &
@@ -117,8 +122,18 @@
       do L = 1,L1_
        PPP(L) = ETAA(L) + ETAB(L)*PSURF
       enddo
+
+!---fast-JX:  INIT_JX is called only once to read in & store all fast-JX data:
+!              also sets up random sequence for cloud-JX
+!-----------------------------------------------------------------------
+      call INIT_FJX (TITLJXX,JVN_,NJXX)
+!-----------------------------------------------------------------------
+
 !---ACLIM_FJX sets climatologies for O3, T, D & Z - overwrite with CTM data
-      call ACLIM_FJX (YLAT, MONTH, PPP,TTT,ZZZ,DDD,OOO, L1_)
+!-----------------------------------------------------------------------
+      call ACLIM_FJX (YLAT,MONTH,PPP, TTT,OOO, L1_)
+!-----------------------------------------------------------------------
+
       do L = 1,L_
        TTT(L) = TI(L)
        RRR(L) = RI(L)
@@ -129,6 +144,7 @@
        SCALEH      = 1.3806d-19*MASFAC*TTT(L)
        ZZZ(L+1) = ZZZ(L) -( log(PPP(L+1)/PPP(L)) * SCALEH )
       enddo
+       DDD(L_+1) = PPP(L_+1)*MASFAC
        ZZZ(L1_+1) = ZZZ(L1_) + ZZHT
       REFLB = ALBEDO
       LPRTJ = .true.
@@ -260,8 +276,8 @@
           if (CLDFLAG .eq. 2) LPRTJ = .false.
 
         if (CLDFLAG .eq. 8) then
-          write(6,'(a40,3i8,f8.3)') ' cloud-JX v7.3c ALL ICAs: ICLD/LNRG/NICA',ICLD,LNRG,NICA,CLDCOR
-          write(8,'(a40,3i8,f8.3)') ' cloud-JX v7.3c ALL ICAs: ICLD/LNRG/NICA',ICLD,LNRG,NICA,CLDCOR
+          write(6,'(a,3i8,f8.3)') ' Cloud-J v7.4  ALL ICAs: ICLD/LNRG/NICAs',ICLD,LNRG,NICA,CLDCOR
+          write(8,'(a,3i8,f8.3)') ' Cloud-J v7.4  ALL ICAs: ICLD/LNRG/NICAs',ICLD,LNRG,NICA,CLDCOR
           do L=1,L_
           write(8,'(i4,1p,4e10.3)') L,VALJXX(L,JP04),VALJXX(L,JP09),VALJXX(L,JP11),VALJXX(L,JP15)
           enddo

@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-!          UCI fast-JX  cloud-JX v-7.3d (1/2016)                                        !
+!          UCI fast-JX  cloud-JX v-7.4d (11/2016)                                        !
 !------------------------------------------------------------------------------
 !
 ! !DESCRIPTION: decides what to do with cloud fraction,
@@ -8,8 +8,7 @@
 ! v 7.3b corrected an indexing/segmentation error in IG2 affecting L_CLR2
 !    no change in results, L_CLR2 = t or f does not affect top layer.
 ! v 7.3c added GLVL and reduced  cloud corr factor when there were gaps in levels
-! v 7.3d  minor change in sub ICA_NR() with ZZZ(L) ==> ZZZ(L)-ZZZ(1) for Zbin categories
-!             if (ZZZ(L)-ZZZ(1) .lt. Zbin(N)) then
+! v 7.4d minor fix to ZZZ(L)-ZZZ(1) in sub ICA_NR to avoid possible seg-fault.
 !
       MODULE CLD_SUB_MOD
 
@@ -172,7 +171,7 @@
 
 !----all above have only a single, simple call for fast_JX------------
          if(LPRTJ0) then
-         write(6,'(2a)') ' cloud_JX (7.3) Internal print: clouds = ',&
+         write(6,'(2a)') ' cloud_J v7.4 Internal print: clouds = ',&
                          TITCLD(CLDFLAG)
          endif
 !-----------------------------------------------------------------------
@@ -227,14 +226,14 @@
 
 
          if(LPRTJ0) then
-         write(6,*) ' cloud-JX (7.3) internal print:  #ICAs = ',NICA
+         write(6,*) ' cloud-J v7.4  internal print:  #ICAs = ',NICA
          endif
 
 !-----------------------------------------------------------------------
 ! 4 = average direct beam over all ICAs, est. isotropic equiv for liq/ice
        if (CLDFLAG .eq. 4) then
-        G0LIQ= min(0.96d0, FG0*PCC(2,3,3)/3.d0)
-        G0ICE= min(0.96d0, FG0*PCC(2,3,7)/3.d0)
+        G0LIQ= min(0.96d0, FG0*PCC(3,18,3)/3.d0)
+        G0ICE= min(0.96d0, FG0*PCC(3,18,6)/3.d0)
         call ICA_DIRECT(U0,CLDX,CLT,CLTL,CLTI, LTOP,CBIN_,ICA_,       &
                 CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,   &
                           WCOL,TCLD,TTCOL,SOLT,G0LIQ,G0ICE,TAUG)
@@ -540,10 +539,10 @@
 !-----------------------------------------------------------------------
       implicit none
 
-!---Cloud Cover parameters
+!---Cloud Cover parameters (in fjx_cmn_mod.f90)
 !      integer, parameter ::  NQD_  = 4
 !      integer, parameter ::  NRAN_ = 10007  ! dimension for random number
-!      integer, parameter ::  CBIN_ = 20     ! # of quantized cld fration bins
+!      integer, parameter ::  CBIN_ = 10     ! # of quantized cld fraction bins
 !  may need to reduce quantum number for LNRG6 to be CBIN_ = 10
 !      integer, parameter ::  ICA_  = 20000  ! # of Indep Colm Atmospheres
 !---Local Cloud Cover parameters
