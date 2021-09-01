@@ -1,29 +1,16 @@
-!<<<<<<<<<<<<<<<<<<fastJX codes<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!<<<<<<<<only access to external variable thru cmn_FJX.f and calls<<<<<<
-!<<<<<<<<<<<<<<<<<<<<version 7.4+  (8/2015, mjp)<<<<<<<<<<<<<<<<<<<<<<<<
+!<<<<<<<<<<<<<<<<<<fastJX initialization codes:  need to be called only once
+! Solar/Cloud/Fast-J v 7.7, minor edits, added !SJ! lines
 
-!
-! !MODULE: FJX_INIT
-!
-! !DESCRIPTION: FJX_INIT contains variables and routines to input fast-JX data
-!
-!
-! !INTERFACE:
-!
+! INTERFACE:
+
       MODULE FJX_INIT_MOD
-!
-! !USES:
-!
-      USE FJX_CMN_MOD
 
+      USE FJX_CMN_MOD
       USE FJX_SUB_MOD, ONLY : EXITC
+!SJ!  USE CMN_FJX_MOD
 
       IMPLICIT NONE
-      PRIVATE
 
-!
-! !PUBLIC SUBROUTINES:
-!
       PUBLIC  :: INIT_FJX
 
       CONTAINS
@@ -36,54 +23,161 @@
       integer, intent(in)  ::NJXU
       integer, intent(out) ::NJXX
       character*6, intent(out), dimension(NJXU) :: TITLEJXX
+      character*120  TIT_SPEC
+      integer  JXUNIT,I, J, K, KR, RANSEED, NUN
 
-      integer  JXUNIT,J, RANSEED
-
-      write(6,'(a)') 'Fast-J ver-7.4 initialization'
-
-      if (W_ .ne. 18) then
-        call EXITC(' INIT_JX: invalid no. wavelengths')
-      endif
-!
-!      if(LRRTMG)LRRTMG_INI=.true.
-!      if(LRRTMG_INI) call rrtmg_sw_ini(cpdir)
+      write(6,*) ' Solar/Cloud-J  ver-7.7 initialization'
 
 ! Use channel 8 to read fastJX data files:
       JXUNIT  = 8
 
-! Read in fast-J X-sections (spectral data)
-      call RD_XXX(JXUNIT,'FJX_spec.dat')
+      NUN = JXUNIT
+      open (NUN,FILE='tables\CJ77_inp.dat',status='old',form='formatted')
+!SJ!      open (NUN,FILE='tables/CJ77_inp.dat',status='old',form='formatted')
+      read (NUN,'(a120)',err=4) TIT_SPEC
+         write(6,'(a)') TIT_SPEC
+      read (NUN,'(e10.3)',err=4) RAD
+      read (NUN,'(e10.3)',err=4) ZZHT
+      read (NUN,'(e10.3)',err=4) ATAU
+      read (NUN,'(e10.3)',err=4) ATAU0
+      read (NUN,'(e10.3)',err=4) CLDCOR
+      read (NUN,'(i10  )',err=4) NWBIN
+      read (NUN,'(i10  )',err=4) NSBIN
+      read (NUN,'(i10  )',err=4) LNRG
+      read (NUN,'(i10  )',err=4) NRANDO
+      read (NUN,'(i10  )',err=4) ATM0
+      read (NUN,'(i10  )',err=4) CLDFLAG
+         write(6,'(a,3i5)') ' finish params LNRG ATM0 CLDFLAG',LNRG,ATM0,CLDFLAG
+      close (NUN)
+
+      NSJSUB(:) = 0
+      SJSUB(:,:) = 0.d0   ! default set up for wavelengths when no sub-bins
+      SJSUB(:,1) = 1.d0
+
+! Cloud-J default with added near IR bins (if S_ > W)) but no sub bins
+      LRRTMG = .false.
+      LCLIRAD =.false.
+      LGGLLNL =.false.
+      NSJSUB(1:S_)= NGC(1:S_)
+
+! while CLIRAD could be configured to run in Cloud-J, it cannot without custom fixes.
+!sJ!      if (W_rrtmg .gt. 0) then
+!sJ!! use RRTMG gas absorption/NGC is set at cmn_fjx_
+!sJ!         NSJSUB(1:SX_)= NGC(1:SX_)
+!sJ!         W_r=   W_rrtmg
+!sJ!         LRRTMG  =.true.
+!sJ!         LCLIRAD =.false.
+!sJ!         LGGLLNL =.false.
+!sJ!      elseif (W_clirad .gt. 0) then
+!sJ!! use CLIRAD gas absorption
+!sJ!         NSJSUB(1:W_)=1
+!sJ!         NSJSUB(W_+1:SX_)=10
+!sJ!         W_r = W_clirad
+!sJ!         LRRTMG  =.false.
+!sJ!         LCLIRAD =.true.
+!sJ!         LGGLLNL =.false.
+!sJ!      elseif (W_LLNL .gt. 0) then
+!sJ!! use GG-LLNL gas absorption
+!sJ!         NSJSUB(1:W_)=1
+!sJ!         NSJSUB(W_+1:SX_)= 7
+!sJ!         W_r = W_LLNL
+!sJ!         LRRTMG  =.false.
+!sJ!         LCLIRAD =.false.
+!sJ!         LGGLLNL =.true.
+!sJ!      endif
+      write(6,'(a,3l2)')'LRRTMG/LCLIRAD/LGGLLNL=', LRRTMG, LCLIRAD, LGGLLNL
+
+!  inital RRTMG setup is done in subrotine CHEM_IN of p-input.f
+!  note that (if(LRRTMG) call RRTMG_SW_INI(cpdair)) is in CHEM_in of p-input.f
+!  lock indexing of RRTMg superbins (1:W_+W_r) onto std bins fluxes (1:S_)
+      write(6,'(a,i3,a,i3,a,i3,a,i3)') 'W_rrtmg= ',W_rrtmg,'  S_=',S_,'  W_r=',W_r,'  W_+ W_r= ',W_+W_r
+      write(6,'(a,f8.4,a,f8.4,a,i2)') 'ATAU0=',ATAU0,'  ATAU=',ATAU,'   option(ATM0)= ', ATM0
+
+! with Cloud-J v7.6, NO wavelength truncation for trop only, internal fixes remain
+      if (W_ .ne. 18) then
+        call EXITC(' INIT_JX: invalid no. wavelengths')
+      endif
+
+! set up angles of diffuse radiance at ocean surface
+      ANGLES(1) = sngl(EMU(1))
+      ANGLES(2) = sngl(EMU(2))
+      ANGLES(3) = sngl(EMU(3))
+      ANGLES(4) = sngl(EMU(4))
+      ANGLES(5) = 0.e0 ! assgin U0 in photol_mod.f90
+
+! Read in Fast/Solar-J X-sections (spectral data)
+      call RD_XXX(JXUNIT,'tables/FJX_spec.dat')
+
+      if (.not.(LRRTMG .or. LCLIRAD .or. LGGLLNL)) then
+         do I = W_,  S_
+            SJSUB(I,1)   = 1.d0
+            SJSUB(I,2:16)= 0.d0
+         enddo
+      endif
+      KDOKR(:)=0
+      KR = 0
+      do K = 1,S_
+         do J = 1,NSJSUB(K)
+            KR = KR+1
+            KDOKR(KR) = K
+            write(6,'(A,2I5)')'KR/KDOKR(KR)',KR, KDOKR(KR)
+         enddo
+      enddo
+      if (KR .ne. W_+W_r) CALL EXITC('>>>error w/ RRTM sub bins: KDOKR')
+      do KR = 1, W_+W_r
+         K = KDOKR(KR)
+         if (FL(K) .gt. 0.d0) then ! FL is read in call RD_XXX
+            LDOKR(KR) = 1
+         else
+            LDOKR(KR) = 0
+         endif
+      enddo
 
 ! Read in cloud scattering data
-      call RD_CLD(JXUNIT,'FJX_scat-cld.dat')
+      call RD_CLD(JXUNIT,'tables/FJX_scat-cld.dat')
 
 ! Read in strat sulf aerosols scattering data
-      call RD_SSA(JXUNIT,'FJX_scat-ssa.dat')
+      call RD_SSA(JXUNIT,'tables/FJX_scat-ssa.dat')
 
 ! Read in aerosols scattering data
-      call RD_MIE(JXUNIT,'FJX_scat-aer.dat')
+      call RD_MIE(JXUNIT,'tables/FJX_scat-aer.dat')
 
 ! Read in UMich aerosol scattering data
-      call RD_UM (JXUNIT,'FJX_scat-UMa.dat')
+      call RD_UM (JXUNIT,'tables/FJX_scat-UMa.dat')
 
-! Read in T & O3 & CH4 & H2O climatology used to fill e.g. upper layers or if O3 not calc.
-      call RD_PROF(JXUNIT,'atmos_std.dat')
+! Read in GEOMIP aerosol scattering data
+      call RD_GEO (JXUNIT, 'tables/FJX_scat-geo.dat')
 
-      call RD_TRPROF(JXUNIT,'atmos_h2och4.dat')
+! Read in T & O3 climatology used to fill e.g. upper layers or if O3 not calc.
+      call RD_PROF(JXUNIT,'tables/atmos_std.dat')
 
-        NJXX = NJX
-      do J = 1,NJX
+! Read in H2O and CH4 profiles for Solar-J
+      call RD_TRPROF(JXUNIT,'tables/atmos_h2och4.dat')
+
+! Read in zonal mean Strat-Sulf-Aerosol monthly data
+      call RD_SSAPROF(JXUNIT,'tables/atmos_geomip.dat')
+
+      NJXX = NJX
+      do J = 1,NJXX
         TITLEJXX(J) = TITLEJX(J)
       enddo
 
 ! Read in photolysis rates used in chemistry code and mapping onto FJX J's
 !---CTM call:  read in J-values names and link to fast-JX names
-      call RD_JS_JX(JXUNIT,'FJX_j2j.dat', TITLEJXX,NJXX)
+      call RD_JS_JX(JXUNIT,'tables/FJX_j2j.dat', TITLEJXX,NJXX)
+
+!---for full ASAD:
+!     call RD_JS(JXUNIT,'tables/ratj.d', TITLEJXX,NJXX,TSPECI,JPSPEC  &
+!                ,MJVAL,TJVAL,MJX)
 
 !---setup the random number sequence RAN4
-        RANSEED = 66
+      RANSEED = 66
       call RANSET (NRAN_,RAN4,RANSEED)
 
+      goto 1
+    4 continue
+        call EXITC(' FJX_INIT: error in read')
+    1 continue
 
       END SUBROUTINE INIT_FJX
 
@@ -93,7 +187,8 @@
 !-----------------------------------------------------------------------
 !  Read in wavelength bins, solar fluxes, Rayleigh, T-dep X-sections.
 !
-!>>>>NEW v-7.4  added Solar-J bins, W_=18 is only option, use NWBIN to zero strat fluxes
+!>>>>NEW v-7.6+ added Solar-J bins for some to expand to S_
+!     NOTE:  W_=18, use NWBIN 8,12,18 to zero flux for wavelengths only in strat
 !>>>>NEW v-7.3  expanded input, full names & notes
 !>>>>NEW v-6.8  now allow 1 to 3 sets of X-sects for T or P
 !           LQQ = 1, 2, or 3 to determine interpolation with T or P
@@ -123,6 +218,7 @@
       character*120  TIT_SPEC, TIT_J1N
       character*16 TIT_J1L
       character*6  TIT_J1S,TIT_J2S
+      real*8  FWSUM
 
       TQQ(:,:) = 0.d0
 
@@ -133,24 +229,25 @@
        call EXITC(' no. wavelengths wrong: W_ .ne. 18')
       endif
 
-      open (NUN,FILE=NAMFIL,status='old',form='formatted')
+      open (NUN,FILE=trim(NAMFIL),status='old',form='formatted')
 
       read (NUN,'(a120)',err=4) TIT_SPEC
       read (NUN,*,err=4)
       read (NUN,'(i5,5x,i5)',err=4) NWWW, NSSS
-!print
-         write(6,'(a120)') TIT_SPEC
-         write(6,'(a,2i4)') 'NWWW NSSS =', NWWW,NSSS
-       if (NWWW.gt.W_ .or. NSSS.gt.S_) then
-        call EXITC(' W_ or S_ not large enough')
-       endif
 
-       NW1 = 1
-       NW2 = NWWW
-       NS1=1
-       NS2=NSSS
+      write(6,'(a120)') TIT_SPEC
+      write(6,'(i5,A20,i5,A20)')  NWWW, ' photo-chem wl bins ', NSSS, ' solar heating bins '
 
-!----w-params:  1=w-eff  2=w-bins, 3=solar(photons), 4=solar(W/m2), 4=Y-PAR,  5=Rayleigh, 6=SJ sub-bins
+      if (NWWW.gt.WX_ .or. NSSS.gt.SX_) then
+       call EXITC(' WX_ or SX_ not large enough')
+      endif
+
+      NW1 = 1
+      NW2 = NWWW
+      NS1 = 1
+      NS2 = NSSS
+
+!----w-params:  1=w-eff  2=w-bins, 3=solar(photons), 4=solar(W/m2), 5=Y-PAR,  6=Rayleigh, 7=SJ sub-bins
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
          write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
       read (NUN,'(5x,6e10.3)',err=4)    (WL(IW),IW=1,NSSS)
@@ -166,6 +263,11 @@
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
          write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
       read (NUN,'(5x,6e10.3)',err=4)    (FW(IW),IW=1,NSSS)
+         FWSUM=0.d0
+         do IW=1, NSSS
+            FWSUM= FWSUM + FW(IW)
+         enddo
+         write(6,*) 'total Solar flux=', FWSUM
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
          write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
@@ -175,21 +277,23 @@
          write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
       read (NUN,'(5x,6e10.3)',err=4)    (QRAYL(IW),IW=1,NSSS)
 
+!7 SJ-sub-bins
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
          write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
       do I = 1,NSSS
-        SJSUB(I, 1)=   1.0d0
-        SJSUB(I, 2:15)=0.0d0
+        SJSUB(I,1)    = 1.0d0
+        SJSUB(I,2:15) = 0.0d0
       enddo
-!      do I = NWWW,NSSS ! fraction of solar radiation for each sub-bin
-!      read (NUN,105,err=4) (SJSUB(I,IW),IW=1,15)
-!         write(6 ,105) (SJSUB(I,IW),IW=1,15)
-!      enddo
-!  105 format((5x, 5(1x,f10.5))/(5x, 5(1x,f10.5))/(5x, 5(1x,f10.5)))
+      if ((NSSS .eq. 27) .or. (NSSS .eq. 21)) then
+!SJ! this is different in SJ, allows for SJSBU(:,1:16)  ? RRTM
+         do I= NWWW, NSSS  ! fraction of solar radiation for each sub-bin
+            read  (NUN,'(5x,5f10.5)',err=4) (SJSUB(I,IW),IW=1,15)
+               write(6,'(5x,5f10.6)') (SJSUB(I,IW),IW=1,15)
+         enddo
+      endif
 
 !---Read O2 X-sects, O3 X-sects, O3=>O(1D) quant yields (each at 3 temps)
 !---NB the O3 and q-O3-O1D are at different temperatures and cannot be combined
-
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
       read (NUN,'(a1,f3.0,1x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
           SQQ(1),TQQ(1,1), (QO2(IW,1),IW=1,NWWW)
@@ -201,10 +305,10 @@
            if (TIT_J2s .ne. TIT_J1S) go to 4
       read (NUN,'(1x,f3.0,1x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
                  TQQ(3,1), (QO2(IW,3),IW=1,NWWW)
-        TITLEJX(1) = TIT_J1S
-        TITLEJL(1) = TIT_J1L
-        LQQ(1) = 3
-        write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         TITLEJX(1) = TIT_J1S
+         TITLEJL(1) = TIT_J1L
+         LQQ(1) = 3
+         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
       read (NUN,'(a1,f3.0,1x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
@@ -259,7 +363,6 @@
 !try to read a 2nd Temperature or Pressure
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
-
         if (TIT_J1S .eq. 'endofJ') goto 1
       if (TIT_J1S .eq. TITLEJX(JJ)) then
         LQ = 2
@@ -285,79 +388,67 @@
     4 continue
         call EXITC(' RD_XXX: error in read')
     1 continue
-       NJX = JJ
+      NJX = JJ
 
 !---read in complete, process Xsects for reduced wavelengths (Trop-Only)
 !---    possibly also for WACCM >200nm-only version.
 !---TROP-ONLY (W_ = 12 or 8) then drop the strat Xsects (labeled 'x')
-
       if (NWBIN .eq. 12 .or. NWBIN .eq. 8) then
-        write(6,'(a)')  &
-         ' >>>TROP-ONLY reduced wavelengths, drop strat X-sects'
-        JJ = 3
-        do J = 4,NJX
-         if (SQQ(J) .ne. 'x') then
-!---remove Xsects with 'x' label
-          JJ = JJ+1
-          if (JJ .lt. J) then
-             TITLEJX(JJ) = TITLEJX(J)
-             LQQ(JJ) = LQQ(J)
-             SQQ(JJ) = SQQ(J)
-           do LQ = 1,LQQ(J)
-             TQQ(LQ,JJ) = TQQ(LQ,J)
-            do IW = 1,NWWW
-             QQQ(IW,LQ,JJ) = QQQ(IW,LQ,J)
-            enddo
-           enddo
-          endif
-         endif
-        enddo
+         write(6,'(a)')  &
+              ' >>>TROP-ONLY reduced wavelengths, drop strat X-sects'
+         JJ = 3
+         do J = 4,NJX
+            if (SQQ(J) .ne. 'x') then
+!---collapse Xsects
+               JJ = JJ+1
+               if (JJ .lt. J) then
+                  TITLEJX(JJ) = TITLEJX(J)
+                  LQQ(JJ) = LQQ(J)
+                  SQQ(JJ) = SQQ(J)
+                  do LQ = 1,LQQ(J)
+                     TQQ(LQ,JJ) = TQQ(LQ,J)
+                     do IW = 1,NWWW
+                        QQQ(IW,LQ,JJ) = QQQ(IW,LQ,J)
+                     enddo
+                  enddo
+               endif
+            endif
+         enddo
          NJX = JJ
       endif
 
 !print-----
       do J = 1,NJX
-        write(6,'(a8,i5,2x,a6,2x,a16,2x,a1,i3,2x,3f6.1)') &
-          ' X-sects',J,TITLEJX(J),TITLEJL(J),SQQ(J),LQQ(J),(TQQ(I,J),I=1,LQQ(J))
+         write(6,'(a8,i5,2x,a6,2x,a16,2x,a1,i3,2x,3f6.1)') &
+           'X-sects', J,TITLEJX(J),TITLEJL(J), SQQ(J),LQQ(J),(TQQ(I,J),I=1,LQQ(J))
       enddo
-
 !---need to check that TQQ (= T(K) or p(hPa)) is monotonically increasing:
       do J = 1,NJX
-        if ((LQQ(J).eq.3) .and. (TQQ(2,J).ge.TQQ(3,J))) then
+         if ((LQQ(J) .eq. 3) .and. (TQQ(2,J) .ge. TQQ(3,J))) then
             call EXITC ('TQQ out of order')
-        endif
-        if ((LQQ(J).eq.2) .and. (TQQ(1,J).ge.TQQ(2,J))) then
+         endif
+         if ((LQQ(J) .eq. 2) .and. (TQQ(1,J) .ge. TQQ(2,J))) then
             call EXITC ('TQQ out of order')
-        endif
+         endif
       enddo
 
-!---zero strat SFluxes for TROP-ONLY (NWBIN = 12 or 8)
+!---if FL(K) =0, then scattering skipped, method for dropping to 8 or 12 trop-only bins
       if (NWBIN .eq. 12) then
-        do IW = 1,4
-          FL(IW) = 0.d0
-        enddo
-        do IW = 9,10
-          FL(IW) = 0.d0
-        enddo
+         do IW = 1,4
+            FL(IW) = 0.d0
+         enddo
+         do IW = 9,10
+            FL(IW) = 0.d0
+         enddo
       endif
       if (NWBIN .eq. 8) then
-        do IW = 1,4
-          FL(IW) = 0.d0
-        enddo
-          FL(5) = FL(5) * 2.d0
-        do IW = 6,11
-          FL(IW) = 0.d0
-        enddo
-      endif
-      if (NWBIN.eq.12 .or. NWBIN.eq.8) then
-         write(6,'(a)')  'Solar fluxes and Xsects for strat are dropped:'
-         write(6,'(i5,0p,f8.1,1p,e10.3)')  (IW,WL(IW),FL(IW), IW=1,NWWW)
-      endif
-      if (NSBIN .eq. 18) then
-        do IW = 19,27
-          FL(IW) = 0.d0
-        enddo
-        write(6,'(a)')  'Solar fluxes > 778 nm are dropped'
+         do IW = 1,4
+            FL(IW) = 0.d0
+         enddo
+         FL(5) = FL(5) * 2.d0
+         do IW = 6,11
+            FL(IW) = 0.d0
+         enddo
       endif
 
       close(NUN)
@@ -368,7 +459,7 @@
 !-----------------------------------------------------------------------
       subroutine RD_CLD(NUN,NAMFIL)
 !-----------------------------------------------------------------------
-!-------aerosols/cloud scattering data set for fast-JX ver 7.4
+!-------aerosols/cloud scattering data set for fast-JX ver 7.5
 !-----------------------------------------------------------------------
 !     NAMFIL   Name of scattering data file (e.g., FJX_scat-cld.dat)
 !     NUN      Channel number for reading data file
@@ -385,45 +476,53 @@
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
 
-      integer  I, J, K, JCC
+      integer  I,J,K,L, JCC
       character*120 TITLE0
-      real*8     WCCJ,RCCJ,GCCJ, XNDR,XNDI
+      real*8     GCCJ, XNDR,XNDI
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
 
-        read (NUN,'(a120)',err=4) TITLE0
-          write(6,'(a120)') TITLE0                              !print----
+        read (NUN,'(a80)',err=4) TITLE0
+          write(6,'(a80)') TITLE0                                  !print----
         read (NUN,'(i4)')  NCC
+        read (NUN,'(i4)')  MCC
+          write(6,'(3i6,a)') NCC,MCC,SX_,' types of clouds & #Reff'   !print----
         read (NUN,*)
-          write(6,'(i6,a)') NCC, ' types of clouds'             !print----
-
-      do K = 1,NCC
-        read(NUN,'(4x,2f6.4,1x,a12)') DCC(K),RCC(K),TITLCC(K)
-          write(6,'(i4,1x,a12,2f10.4)') K,TITLCC(K),RCC(K),DCC(K)
-      enddo
-
-      do J = 12,S_
         read (NUN,*)
-       do K = 1,NCC
-        read (NUN,'(i2,1x,3f5.3,f6.3,e8.1,f6.3,f8.5,7f6.3)',err=4) &
-         JCC,WCC(J,K),RCCJ,GCCJ,XNDR,XNDI,QCC(J,K),SCC(J,K),(PCC(I,J,K),I=2,8)
-         PCC(1,J,K) = 1.d0
-       enddo
-      enddo
+        read (NUN,*)
+        read (NUN,*)
+        read (NUN,*)
 
-! reproduce all cloud data for w < 295 nm from J=12 (= 295 nm), OK since trop clouds.
-      do K = 1,NCC
-        do J = 1,11
-          WCC(J,K) = WCC(12,K)
-          QCC(J,K) = QCC(12,K)
-          SCC(J,K) = SCC(12,K)
-         do I = 1,8
-          PCC(I,J,K) = PCC(I,12,K)
-         enddo
+        do K = 1, NCC
+           read (NUN,'(a12,f8.5)',err=4) TITLCC(K),DCC(K)
+           write(6,'(a,i4,1x,a12,f8.5)') 'Cloud#',K,TITLCC(K),DCC(K)  !print----
+           do J = 12, SX_
+              do I = 1,MCC
+                 read (NUN,'(i2, 1x, f5.2, f5.1, f7.1, f5.3, e8.1,f6.3,f8.5,7f6.3)',err=4) &
+                      JCC,WCC(J,K),RCC(I,K),GCC(I,K),XNDR,XNDI,                &
+                      QCC(J,I,K),SCC(J,I,K),(PCC(L,J,I,K),L=2,8)
+                 if (JCC .ne. J) goto 4
+                 PCC(1,J,I,K) = 1.d0
+              enddo
+              read (NUN,*)
+           enddo
         enddo
-      enddo
 
-          goto 2
+! replicate all cloud data for w < 295 nm from J=12 (= 295 nm), OK since mostly trop clouds.
+        do K = 1,NCC
+           do J = 1,11
+              WCC(J,K) = WCC(12,K)
+              do I = 1,MCC
+                 QCC(J,I,K) = QCC(12,I,K)
+                 SCC(J,I,K) = SCC(12,I,K)
+                 do L = 1,8
+                    PCC(L,J,I,K) = PCC(L,12,I,K)
+                 enddo
+              enddo
+           enddo
+        enddo
+
+        goto 2
 
     4 continue
         call EXITC(' RD_CLD: error in read')
@@ -431,12 +530,11 @@
     2 continue
         close(NUN)
 
-         write(6,'(a,2f9.5,i5)') ' ATAU/ATAU0/JMX',ATAU,ATAU0,JTAUMX   !print----
+         write(6,'(a,2f9.5,i5)') ' ATAU/ATAU0',ATAU,ATAU0   !print----
 
       END SUBROUTINE RD_CLD
 
 
-!-----------------------------------------------------------------------
       subroutine RD_SSA(NUN,NAMFIL)
 !-----------------------------------------------------------------------
 !-------aerosols/cloud scattering data set for fast-JX ver 7.4
@@ -457,43 +555,39 @@
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
 
-      integer  I, J, JSS, K, JCC
+      integer  I, J, JSS, K, JCC, NSX_
       character*120 TITLE0
       real*8     WJSS,XNDR,XNDI
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
-
-        read (NUN,'(a120)',err=4) TITLE0
-          write(6,'(a120)') TITLE0                              !print----
-        read (NUN,*)
-        read (NUN,'(i4)')  NSS
-        read (NUN,*)
-          write(6,'(i6,a)') NSS, ' types of strat sulf aerosols'             !print----
-
+      read (NUN,'(a120)',err=4) TITLE0
+      write(6,'(a120)') TITLE0                              !print----
+      read (NUN,*)
+      read (NUN,'(i4,i4)')  NSS, NSX_
+      read (NUN,*)
+      write(6,'(i6,a)') NSS, ' types of strat sulf aerosols'
       do K = 1,NSS
-        read (NUN,'(a12,5f8.2)')    &
-             TITLSS(K),RSS(K),GSS(K),DSS(K),TSS(K),WSS(K)
+!SJ! *** the SSA file for LCLIRAD in SJ has different format  '(a12, 3f8,4,...
+         read (NUN,'(a10, 3f8.4, 2f8.1)')    &
+              TITLSS(K),RSS(K),GSS(K),DSS(K),TSS(K),WSS(K)
          write(6,'(i4,1x,a12,2f10.4,2f8.1)') K,TITLSS(K),RSS(K),DSS(K),TSS(K),WSS(K)
-
-       do J = 5,S_
-         read(NUN,'(i2,2f8.4,e8.1,2f8.5,7f6.3)')      &
-            JSS,WJSS,XNDR,XNDI,QSS(J,K),SSS(J,K),(PSS(I,J,K), I=2,8)
-         PSS(1,J,K) = 1.d0
-       enddo
+         do J = 5, NSX_
+            read(NUN,'(i2,2f8.4,e8.1,2f8.5,7f6.3)')      &
+                 JSS,WJSS,XNDR,XNDI,QSS(J,K),SSS(J,K),(PSS(I,J,K), I=2,8)
+            PSS(1,J,K) = 1.d0
+         enddo
       enddo
-
 ! reproduce all SSA data for J=1:4 with J=5
       do K = 1,NSS
-        do J = 1,4
-          QSS(J,K) = QSS(5,K)
-          SSS(J,K) = SSS(5,K)
-         do I = 1,8
-          PSS(I,J,K) = PSS(I,5,K)
+         do J = 1,4
+            QSS(J,K) = QSS(5,K)
+            SSS(J,K) = SSS(5,K)
+            do I = 1,8
+               PSS(I,J,K) = PSS(I,5,K)
+            enddo
          enddo
-        enddo
       enddo
-
-          goto 2
+      goto 2
 
     4 continue
         call EXITC(' RD_SSA: error in read')
@@ -537,14 +631,14 @@
           write(6,'(a120)') TITLE0
         read (NUN,*)
         read (NUN,*)
-      do J = 1,A_
+      do J = 1, A_
         read (NUN,'(i4,1x,a12,1x,2f6.3,1x,a120)',err=4) &
          JAA,TITLAAJ,RAAJ,DAAJ,TITLE0
        if (JAA.gt.0) then
          TITLAA(J) = TITLAAJ
          RAA(J) = RAAJ
          DAA(J) = DAAJ
-        do K = 1,5
+        do K = 1, 5
          read (NUN,'(f4.0,f7.4,f7.4,7f6.3)',err=4) &
           WAA(K,J),QAA(K,J),SAA(K,J),(PAA(I,K,J),I=2,8)
           PAA(1,K,J) = 1.d0
@@ -581,48 +675,41 @@
       character(*), intent(in) ::  NAMFIL
 
       integer  I, J, K, L
-      character*120 TITLE0
+      character*78 TITLE0
       character*20 TITLUM(33)   ! TITLUM: Title for U Michigan aerosol data set
 
-      open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
+      open (NUN,FILE=NAMFIL,status='old',form='formatted')
 
-      read (NUN,'(a)',err=4) TITLE0
-!print----
-          write(6,'(a120)') TITLE0
-      read(NUN,'(5x,10f5.0)',err=4) WMM
+      read (NUN,'(a78)') TITLE0
+      write(6,*) 'UMichigan Aerosols', TITLE0
+      read(NUN,'(5x,10f5.0)') WMM
+      write(6,'(a,10f7.1)') ' UMIchigan aerosol wavelengths:',WMM
 
 !---33 Different UM Aerosol Types:  SULF, SS-1,-2,-3,-4, DD-1,-2,-3,-4,
 !---      FF00(0%BC), FF02, ...FF14(14%BC),  BB00, BB02, ...BB30(30%BC)
       do L=1,33
-          read(NUN,'(a4)',err=4) TITLUM(L)
+         read(NUN,'(a4)') TITLUM(L)
 !---21 Rel Hum:    K=1=0%, =2=5%, ... =20=95%, =21=99%
-        do K=1,21
+         do K=1,21
 !---6 wavelengths: J=1=200nm, 2=300nm, 3=400nm, (4'=550nm) 5=600nm, 6=1000nm
 !---3 optic vars:  I=1=SSAlbedo,  =2=g,  =3=k-ext
-          read(NUN,'(18f9.5)',err=4)  ((UMAER(I,J,K,L),I=1,3),J=1,6)
-        enddo
+            read(NUN,'(18f9.5)')  ((UMAER(I,J,K,L),I=1,3),J=1,6)
+         enddo
+      enddo
+      close(NUN)
+      write(6,'(a)') 'collapse UM wavelengths, drop 550 nm'
+      WMM(4) = WMM(5)
+      WMM(5) = WMM(6)
+      do L=1,33
+         do K=1,21
+            do I=1,3
+               UMAER(I,4,K,L) = UMAER(I,5,K,L)
+               UMAER(I,5,K,L) = UMAER(I,6,K,L)
+            enddo
+         enddo
       enddo
 
-      close(NUN)
-
-!  collapse UM wavelengths, drop 550 nm
-          WMM(4) = WMM(5)
-          WMM(5) = WMM(6)
-       do L=1,33
-       do K=1,21
-       do I=1,3
-          UMAER(I,4,K,L) = UMAER(I,5,K,L)
-          UMAER(I,5,K,L) = UMAER(I,6,K,L)
-       enddo
-       enddo
-       enddo
-
-!print----
-        write(6,'(7(i5,1x,a4))') (L,TITLUM(L), L=1,33)
-      goto 2
-    4 continue
-        call EXITC(' RD_UM: error in read')
-    2 continue
+      write(6,'(7(i5,1x,a4))') (L,TITLUM(L), L=1,33)
 
       END SUBROUTINE RD_UM
 
@@ -653,11 +740,13 @@
         M = min(12, max(1, MON))
         L = min(18, max(1, (LAT+95)/10))
         read (NJ2,'(3X,11F7.1)') (T_REF(I,L,M), I=1,41)
+! volume mixing ratio from 0km to 60 km for every 2km resolution in pressure altitude z*
         read (NJ2,'(3X,11F7.4)') (O_REF(I,L,M), I=1,31)
       enddo
       close (NJ2)
 
 !  Extend climatology to 100 km
+!  LREF =51 in cmn_fjx_mod.f90
       OFAC = exp(-2.d5/5.d5)
       do I = 32,LREF
         OFAK = OFAC**(I-31)
@@ -675,7 +764,9 @@
       enddo
       enddo
 
- 1000 format(1x,'std atmos profiles: T,O3',i3,' lat x ',i2,' mon')
+      close(NJ2)
+
+ 1000 format(1x,'std atmos profiles: ',i3,' lat x ',i2,' mon')
 
       END SUBROUTINE RD_PROF
 
@@ -709,6 +800,7 @@
         read (NJ2,'(3X,11F9.2)') (CH4_REF(I,L,M), I=1,31)
 !        write (6,'(3X,11E9.2)') (H2O_REF(I,L,M), I=1,31)
 !        write(6,'(3X,11F9.2)') (CH4REF(I,L,M), I=1,31)
+
       enddo
       close (NJ2)
 
@@ -722,7 +814,8 @@
       enddo
       enddo
 
- 1000 format(1x,'std atmos profiles: H2O,CH4',i3,' lat x ',i2,' mon')
+      close(NJ2)
+ 1000 format(1x,'std atmos profiles: ',i3,' lat x ',i2,' mon')
 
       END SUBROUTINE RD_TRPROF
 
@@ -803,7 +896,133 @@
        endif
       enddo
 
+      close(NUNIT)
       END SUBROUTINE RD_JS_JX
+
+
+!-----------------------------------------------------------------------
+      subroutine RD_GEO(NUN,NAMFIL)
+!-----------------------------------------------------------------------
+!-------GEOMIP SSA scattering data set for fast-JX ver 7.5 ONLY RRTMG 27 bins
+!-----------------------------------------------------------------------
+!     NAMFIL   Name of scattering data file (e.g., FJX_scat-geo.dat)
+!     NUN      Channel number for reading data file
+!     NGG      Number of sequentially increasing R-eff's for GEOMIP aerosols
+!     RGG      Effective radius associated with cloud type
+!     DGG      density (g/cm^3)
+!     QGG      ratio optical to geometric X-section
+!     SGG      Single scattering albedo
+!     PGG      Phase function: first 8 terms of expansion
+!-----------------------------------------------------------------------
+      implicit none
+      integer, intent(in) :: NUN
+      character(*), intent(in) ::  NAMFIL
+
+      integer  I, J, K
+      character*120 TITLE0
+      real*8     WGGJ,XNDR,XNDI,G1,G2,G3
+
+      open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
+
+      read (NUN,'(a120)',err=4) TITLE0
+      write(6,'(a120)') TITLE0                              !print----
+      read (NUN,'(i4)')  NGG
+      write(6,'(i6,a)')  NGG, ' Reff-s for GEO SSA'          !print----
+      read (NUN,*)
+      read (NUN,*)
+      do K = 1,NGG
+         read(NUN,'(10x,5f8.4)') RGG(K),G1,DGG(K),G2,G3
+         write(6,'(i4,1x,3f8.4,2f8.1)') K,RGG(K),DGG(K), G1,G2,G3
+         do J = 5, 27
+            read (NUN,'(2x,2f8.4,e8.1,2f8.5,7f6.3)',err=4) &
+                 WGGJ,XNDR,XNDI,QGG(J,K),SGG(J,K),(PGG(I,J,K),I=2,8)
+            PGG(1,J,K) = 1.d0
+         enddo
+      enddo
+! reproduce all GEO SSA data for w < 202 nm (J=1:4)
+      do K = 1,NGG
+         do J = 1,4
+            QGG(J,K) = QGG(5,K)
+            SGG(J,K) = SGG(5,K)
+            do I = 1,8
+               PGG(I,J,K) = PGG(I,5,K)
+            enddo
+         enddo
+      enddo
+      goto 2
+
+    4 continue
+      call EXITC(' RD_GEO: error in read')
+
+    2 continue
+      close(NUN)
+
+      END SUBROUTINE RD_GEO
+
+
+!-----------------------------------------------------------------------
+      subroutine RD_SSAPROF(NJ2,NAMFIL)
+!-----------------------------------------------------------------------
+!  Routine to input SSA-GEO reference profiles for 'atmos_geomip.dat'
+!      R_GEO = effective radius (microns)
+!      X_GEO = mass fraction (1e-9 kg-H2SO4/kg-air)
+!-----------------------------------------------------------------------
+      implicit none
+      integer, intent(in) ::  NJ2
+      character(*), intent(in) ::  NAMFIL
+!
+      integer J,L,M
+      character*78 TITLE0
+!
+      open (NJ2,file=NAMFIL,status='old',form='formatted')
+      read (NJ2,'(a)') TITLE0
+         write(6,'(1x,a)') TITLE0
+      read (NJ2,*)
+      read (NJ2,*)
+! only specify 19 pressure levels from 2.7 hPa to 340 hPa
+      read (NJ2,'(19f7.2)') (P_GREF(L),L=1,19)
+      write(6,'(19f7.2)')(P_GREF(L),L=1,19)
+      read (NJ2,*)
+      read (NJ2,*)
+      read (NJ2,*)
+! latitude bins 1:36 are Gauss, but approx 1.3953 + (J-33)*2.7906 deg
+      read (NJ2,'(32f5.1)') (Y_GREF(L),L=1,32)
+      write (6,'(32f5.1)') (Y_GREF(L),L=1,32)
+
+      read (NJ2,*)
+      read (NJ2,'(32f5.1)') (Y_GREF(L),L=64,33,-1)
+      write (6,'(32f5.1)') (Y_GREF(L),L=33,64)
+      read (NJ2,'(a)') TITLE0
+         write(6,'(1x,a)') TITLE0
+      do M = 1,12
+          read (NJ2,*)
+        do J = 1,64
+          read (NJ2,'(11x,18f6.3)') (R_GREF(J,L,M), L=1,18)
+                   R_GREF(J,19,M) = 0.d0
+        enddo
+      enddo
+      read (NJ2,'(a)') TITLE0
+         write(6,'(1x,a)') TITLE0
+      do M = 1,12
+          read (NJ2,*)
+        do J = 1,64
+          read (NJ2,'(11x,18f6.3)') (X_GREF(J,L,M), L=1,18)
+                   X_GREF(J,19,M) = 0.d0
+        enddo
+      enddo
+      read (NJ2,'(a)') TITLE0
+         write(6,'(1x,a)') TITLE0
+      do M = 1,12
+          read (NJ2,*)
+        do J = 1,64
+          read (NJ2,'(11x,18f6.3)') (A_GREF(J,L,M), L=1,18)
+                   A_GREF(J,19,M) = 0.d0
+        enddo
+      enddo
+
+      close(NJ2)
+
+      END SUBROUTINE RD_SSAPROF
 
 
 !-----------------------------------------------------------------------

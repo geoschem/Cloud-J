@@ -1,0 +1,135 @@
+Cloud-J version 7.7 notes (Feb 2020, Prather)
+
+Small cleanup from version 7.6 (see notes below)
+    some typos and non-std characters removed
+
+!    Variables in calling sequence expanded to get diagnotics out.
+!   'fjx_cmn_mod.f90' modified slightly to include variables for running SJ w/LLNL & CLIRAD
+!     v7.7  (02/2020) Final synch with Solar-J v7.7
+!        Corrects problem with MAX-RAN that was caused by MAX-COR fixes
+!        New calling sequence of FPs, added OD18
+!   'cld_sub_mod.f90' for Cloud-J v7.7 (02/2020) - last change = fixes for MAXRAN
+!---revised in v7.7 (02/2020) fixed MAX-RAN (#0 & #3) set CLDCOR=0 if need be
+!      SUBROUTINE ICA_DIRECT -- not used, finally removed in v7.7
+
+
+====Solar-J/Cloud-J core subroutines
+   47,086 cld_sub_mod.f90
+   12,424 fjx_cmn_mod.f90
+   37,531 fjx_init_mod.f90
+  123,435 fjx_sub_mod.f90
+   46,647 osa_sub_mod.f90
+
+====Cloud-J notes & standalone driver & output (units 6 & 7)
+    5,123 CloudJ_v77_notes.txt
+   10,510 CJ77.f90
+  807,163 CJ77_u6.out
+  460,250 CJ77_u7.out
+      275 run4chk.bat   compile sequence w/boundscheck
+
+====/tables  key data sets for Solar-J/Cloud-J
+    1,290 CJ77_inp.dat
+  284,228 atmos_geomip.dat
+  128,459 atmos_h2och4.dat
+    7,130 atmos_PTClds.dat
+    7,130 atmos_PTClds - for tests.dat
+  119,690 atmos_std.dat
+    5,192 FJX_j2j.dat
+    6,760 FJX_scat-aer.dat
+   27,051 FJX_scat-cld.dat
+   30,799 FJX_scat-geo.dat
+   36,798 FJX_scat-ssa.dat
+  114,084 FJX_scat-UMa.dat
+   39,487 FJX_spec.dat
+
+=====COMPILE sequence (order can matter because of the dependencies):
+    del *.obj
+    ifort -c fjx_cmn_mod.f90
+    ifort -c fjx_sub_mod.f90
+    ifort -c fjx_init_mod.f90
+    ifort -c cld_sub_mod.f90
+    ifort -c osa_sub_mod.f90
+    ifort    CJ77.f90 *.obj
+
+
+
+
+Cloud-J version v7.6c notes (Jul 2019, Prather)
+
+The last published version of Cloud-J was v7.3c (see Prather, 2015 GMD)
+Updates with minor fixes have been released: 7.3d, 7.3e, 7.4d, see
+    ftp site:  ftp://128.200.14.8/public/prather/Fast-J_&_Cloud-J
+
+This new version 7.6c goes along with the publication of the paper:
+    A round Earth for climate models, Prather & Hsu, PNAS, 2019.
+Cloud-J and Solar-J have many overlapping data sets and subroutines,
+    but Solar-J is more complex and has special needs.
+
+Major updates, many described in the 2019 publication include:
+    Spherical hydrostatic corrections for mass and geometry (new option)
+    Corrected calc of deposition of direct beam (FLXD) so that scattered
+        flux is now conserved to 2/e6, and the TOTAL incident is correct
+    A refractive ray-tracing code SPHERE1R is available, and a new cleaner
+         algorithm for SPHERE1N (straight rays) is included.  Also a
+         flat-Earth version SPHERE1F is available.
+    Major re-coding of the Feautrier lower boundary conditions to allow for
+         angle-dependent albedos, specifically the ALBEDO is now specified
+         for each wavelength at the 4 quad angles AND for the incident SZA.
+    New Ocean Surface Albedo (OSA) module depends on angle, wind, chlorophyl
+         based on Seferian++ code; XWRC corrected for <400 nm from 0 to 0.2
+    New simpler way of interpolating TAU and F for inserted cloud layers
+    Dropped adding mid-layer odd-points for J's to cut cost.
+    All the data tables needed to iniitalize are in a subdirectory /tables
+
+Three sample standalone drivers show: a range of solar zenith angles for
+cloudy vs clear, the effect of stratospheric (including GeoMIP) aerosols,
+and the range of different cloud-overlap parameterizations.
+
+Note:  the ACLIM_FJX module in fjx_sub_mod.f90 had to be corrected for Solar-J
+to do a smooth interpolation with latitude.  This corrected version is included
+here as fjx_sub_mod-corr.f90. It should replace the original version, but
+the standalone reference cases have NOT been redone, and the corrected
+version shifts the atmospheric profiles in T and O3.
+
+
+====Solar-J/Cloud-J core subroutines
+      47,517 cld_sub_mod.f90
+      12,256 fjx_cmn_mod.f90
+      36,730 fjx_init_mod.f90
+      46,647 osa_sub_mod.f90
+     119,439 fjx_sub_mod.f90
+
+====Cloud-J sample standalone codes
+       9,222 cj76.f90
+       9,972 cj76flg.f90
+      14,136 cj76ge.f90
+
+====output from the 3 standalone codes
+   1,521,373 cj76.out
+     568,070 cj76flg.out
+     324,401 cj76flg-7.out
+     252,365 cj76ge.out
+
+====/tables  key data sets for Solar-J/Cloud-J
+       1,290 CJ76_inp.dat
+       7,130 atmos_PTClds.dat
+     284,228 atmos_geomip.dat
+     128,459 atmos_h2och4.dat
+     119,690 atmos_std.dat
+       5,192 FJX_j2j.dat
+       6,760 FJX_scat-aer.dat
+      27,051 FJX_scat-cld.dat
+      30,799 FJX_scat-geo.dat
+      36,798 FJX_scat-ssa.dat
+     114,084 FJX_scat-UMa.dat
+      39,303 FJX_spec.dat
+
+
+COMPILE sequence (order can matter because of the dependencies):
+    del *.obj
+    ifort -c fjx_cmn_mod.f90
+    ifort -c fjx_sub_mod.f90
+    ifort -c fjx_init_mod.f90
+    ifort -c cld_sub_mod.f90
+    ifort -c osa_sub_mod.f90
+    ifort    cj76.f90 *.obj
