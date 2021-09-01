@@ -1,0 +1,102 @@
+﻿Cloud-J version 7.3c Notes
+Michael Prather 18 Jul 2015
+
+Fast-J began as 7-band, troposphere-only J-value code that could implement
+full cloud and aerosol scattering (Wild et al., 2000 JAC). Later, 11 bands in
+the ultraviolet were added as absorption-only to include stratospheric J-values
+and called Fast-J2 (Bian and Prather, 2002 JAC).  By version 5.3 (circa 2005)
+Fast-JX was created as a cross between the two codes and implemented full
+scattering in all 18 bands so that the impact of a Pinatubo-like aerosol on
+J-values could be calculated. With the implementation of Cloud-J version 7.3
+(Neu et al., 2007; Prather, 2015), and the expected implementation of a
+short-wave (solar) heating code, the X has been dropped from the Fast-J.
+
+
+# typical makefile sequence for stand-alone Cloud-J
+df -c fjx_cmn_mod.f90
+df -c fjx_sub_mod.f90
+df -c fjx_init_mod.f90
+df -c cld_sub_mod.f90
+df    cldj.f90 *.obj
+
+
+HISTORY of Fast-J
+
+Here is a short history of the Fast-J code as released, including its names
+and capabilities.  I apologize for the shifting names, they evolved naturally
+but it would have been much better to just have version numbers.
+
+
+Fast-J
+2000 (Wild, J.Atmos.Chem.) Fast-J code is invented, has 7 visible bands
+spanning 294 to 850 nm.  Fast-J is intended to produce ONLY tropospheric
+J-values.  The detailed paper shows the optimization over wavelength
+bands and the comparison of 1-D (plane parallel) scattering codes
+for cloud-sized particles carried out to 320 streams (angles)
+
+Fast-J2
+2002 (Bian, J.Atmos.Chem.) Requests to use Fast-J for stratospheric J-values
+required a more careful wavelength optimization and 11 new bins.  This
+wavelength binning has not been redone since Fast-J2 and thus all recent
+Fast-J versions have 18 wavelength bins.  To avoid the cost of multiple scattering,
+Fast-J2 used only attenuation by absorbing species in bins 1-11 (187 – 291 nm)
+and full aerosol-cloud-Rayleigh scattering in bins 12-18 (291 – 850 nm).
+It estimated that Rayleigh scattering could be approximated by taking 57% of
+the scattering cross sections as absorbing.
+
+Fast-JX
+(dates from 2005, no pub, but see Neu, 2007)  In order to treat stratospheric
+aerosol scattering (e.g., Mt. Pinatubo) It was necessary to do full scattering
+down to 200 nm to get J-O2. Thus, Fast-JX is a cross between Fast-J and Fast-J2
+that does full scattering at all wavelengths.
+The first major version of Fast-JX was 5.3 (Jun 2005).  Version of Fast-JX
+then proceeded through 5.7 and then 6.0 through 6.8 as .f (FORTRAN 77) versions.
+A range of improvements involved adding semi-log layers to the tops of clouds
+to improve the accuracy and conservation of cloud scattering, various attempts
+at speeding up Fast-JX (no major breakthroughs here), added scattering profile
+for clouds and aerosols at 200 nm, better interfaces with CTM, updated species
+and cross sections for JPL-2010 including 2 or 3 temperatures, treatment of J-VOCs
+via pressure-dependent yields, etc. (see Sovde et al, 2011 ACP)
+
+Fast-JX FORTRAN 90 versions
+(2013)  A .f90 module format of Fast-JX was developed for implementation in CESM CAM.
+Thus Fast-JX versions 7.0, 7.1, and 7.2 were developed.
+
+Fast-JX ver 7.2
+(2013-14) Version 7.2, including full stand-alone coding of the Neu 2007 cloud
+quadrature, is implemented in the UCI CTM. It also includes small code changes
+and a new fjx_spec.dat data set that calculates J's only for >200 nm to allow
+NCAR WACCM to use its lookup tables for <200 nm J's needed for altitudes >64 km.
+
+Cloud-J ver 7.3      (should not be used)
+(2015, Prather, GMDD) Cloud-J ver 7.3 is a stand-alone version of the cloud
+correlation overlap developed in 2015.  Henceforth, the ‘X’ is being dropped from
+Fast-J as it is unnecessary.  All new releases of the Fast-J core lying
+underneath Cloud-J or of Cloud-J itself will just use ‘-J’.
+
+
+Cloud-J ver 7.3b      (should not be used)
+While in GMD discussion, minor coding errors involving the use of zero index
+subscripts were discovered by colleagues and reviewers.  Also the compiler
+differences were found regarding character parameters (all had to be exactly
+the specified length) to avoid segmentation faults. These are now fixed with
+version 7.3b, July 3 edition. The numerical results did not change.
+A new version number was not assigned because this latter is a compiler issue.
+Version 7.3b adopts a new fjx_spec.dat files, version 7.3c in preparation
+for a merger of Cloud-J with the longer wavelength bins in RRTMG
+so that solar heating calculations can be made. The two changes are:
+    (i) The long wavelength bin #18 of Fast-J is now truncated at 778 nm
+        The cross-sections and photons have been scaled simply to give same J's.
+        When cross-sections are updated, the new range will be used (fjx_spec7.3b.dat).
+    (ii) The solar fluxes (photons and Watts) and the Rayleigh cross-sections
+        changed slightly with the new reference data sets and method of averaging.
+        Changes in J's and any of the Cloud-J stats are <1% and usually <<1%.
+
+Cloud-J ver 7.3c       (current best version)
+While in GMD revision, it was recognized that MAX-COR groups separated by a
+clear-sky group (each group is one decorrelation length) should have reduced
+correlation with the cloudy layer above by an additional factor of cc.
+This was implemented.  It changed the results by <0.1% rms difference and
+a maximum difference (single atmosphere out of 640) of of ~1%.
+The summary tables and figures in the submitted GMDD manuscript did not change.
+The use of fjx_spec.dat (ver 73c).with Cloud-J ver 7.3c is recommended.

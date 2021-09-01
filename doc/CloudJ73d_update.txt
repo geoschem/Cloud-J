@@ -1,0 +1,26 @@
+﻿Cloud-J version 7.3d Notes    (the 'x' means that this fix is only to a small section)
+              only one module is given, use v7.3c for the others.
+Michael Prather 12 Jan 2016
+
+Only the module "cld_sub_mod.f90" was changed, and only to ensure that
+the correlated max-overlap groups began from the bottom of layer 1.
+
+N.B.  Our CTM suffered segmentation faults (only in OpenMP mode) without this fix.
+      There is no change in the test files using the 640 tropical atmospheres.
+.
+
+! v 7.3d  minor change in sub ICA_NR() with ZZZ(L) ==> ZZZ(L)-ZZZ(1) for Zbin categories
+!             if (ZZZ(L)-ZZZ(1) .lt. Zbin(N)) then
+
+
+ALSO
+
+version 7.3d FJX_spec.dat has changes in XO3 and QO1D   (Michael Prather Feb 2016)
+        These used different Temperature tables based on the different ranges
+        of data (X & Q) in JPL-2010.  There was also an historical QO1D value
+        that was accidentally (and incorrectly) propagated.
+
+        Now these are clearly traceable to the JPL-2010 tables
+
+        Impact:  J-O3(total) is -1% over most of atmosphere
+                 J-O3(O1D)   os +2% (0-3 km) and +4% (6-20 km).
