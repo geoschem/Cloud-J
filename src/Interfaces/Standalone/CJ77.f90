@@ -68,7 +68,8 @@
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case
-      open (77,file='tables\atmos_PTClds.dat',status='old',err=91)
+      open (77,file='tables/atmos_PTClds.dat',status='old',err=91)
+!ewl!      open (77,file='tables\atmos_PTClds.dat',status='old',err=91)
         read (77,*)
         read (77,'(2i5)') MONTH, ILAT               ! for monthly 2D climatologies
           YLAT = ILAT
