@@ -32,7 +32,5 @@
 
 # Miscellaneous
 *.log
-tables/
-tables
 build/
 run/
