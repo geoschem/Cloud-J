@@ -1,0 +1,13 @@
+
+List of Developers for Cloud-J
+===============================================================================
+
+Oliver Wild (U. Lancaster)
+Xin Zhu (UCI)
+Michael Prather (UCI)
+Huisheng Bian (GSFC)
+Jessica Neu (JPL)
+Joyce Penner (U. Mich)
+Jonathon Guth (CNRM Meteo Fr.)
+Juno Hsu (UCI)
+Elizabeth Lundgren (Harvard)
