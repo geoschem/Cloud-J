@@ -1,0 +1,30 @@
+This code enables one to convert tabulated cross sections & quantum yields
+into Fast-J or Solar-J formatted X-section tables.  (Prather 1/2018)
+    Fast-J (FJ) bins are always #1:18
+    Solar-J (SJ) added bins begin with bin #19 and got to 21 or 27.
+
+Two fortran codes are given:
+    FJ_Add_XO3-v76.f    does XO3 & q1D for 3 temperatures
+    FJ_Add_XNO3-v76.f   does NO3 for 2 q's plus Rayleigh
+
+It is critical which SolarJ_bins##.dat you use (v76 or v75)
+    v75 has the last FJ bin (#18) end at 778 nm for RRTMG solar heating
+    v76 has the last FJ bin (#18) end at 700 nm for CLIRAD solar heating
+Rename one of these to be SolarJ_bins.dat to run.
+
+Both of these versions have moved the 17:18 boundary to 485 nm.
+Thus the cross sections for MANY species (those using bins 17&18)
+have been adjusted to the new fluxes in bins 17&18.
+
+The core data sets (*.dat files) and the std out files from running both
+programs with the SolarJ_bins76.dat file are given.
+
+You use a different solar flux data set, but the X-sections will not
+change much unless the new flux varies greatly within the FJ bins.
+
+Please use the new FJX_spec.dat files here, all have the same effective spectral data:
+    FJX_spec73E.dat should work with Cloud-J/Fast-J codes (consistent w/ Cloud-J paper)
+            It uses v76A's re-done wavelength bins (345-485-700 nm).
+    FJX_spec75A.dat is set for RRTMG superbins, but has last bin at 778 nm, so Xs(18) change.
+    FJX_spec76A.dat is for CLIRAD, the most recent, with new bins 17&18 (345-485-700 nm)
+            The 75A and 76A include extra lines at the start for wavelengths 19:27 or 19:21
