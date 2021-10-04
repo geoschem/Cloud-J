@@ -1,4 +1,4 @@
-Origins and brief history of Fast-J photolysis code (M. Prather, 2021/9/28)
+# Origins and brief history of Fast-J photolysis code
 
 The radiative transfer part of Fast-J and its successor Cloud-J are based on the Feautrier method (Feautrier 1964) for solving the scattered light in a plane-parallel atmosphere.  The method solves the multiple-scattering radiative transfer equations as a second-order finite difference boundary value problem with a block tridiagonal solution and was initially used in stellar atmospheres (Mihalas 1970).  The Feautrier method was adapted to polarized Rayleigh scattering in planetary atmospheres (Prather 1974).  The method solved the 8-stream scattering system (4 up angles and 4 down angles) readily, but was limited to symmetric scattering (e.g., isotropic, Rayleigh) because of the second-order finite difference Feautrier method.  Prather developed an anisotropic scattering code (required for aerosols and clouds) as a coupled pair of leap-frogged first-order difference equations that was first used in planetary atmospheres (Cochran; Trafton 1978).  The full set of equations and second-order boundary conditions are presented in the first Fast-J paper (Wild et al. 2000).  
 
@@ -27,3 +27,5 @@ Updates to Cloud-J versions 7.4-7.7 (current  2021/09) are described in the Sola
 Updates to the chemical species being photolyzed or the spectroscopic data base (e.g., cross sections and quantum yields) can be readily added to the Cloud-J data tables.  The inclusion of scattering/absorbing aerosols (extinction coefficient (m2/g), single scattering albedo, first 8 terms in the Legendre expansion of the scattering phase function) can likewise be tailored to the chemistry models aerosol modes.  Sample codes for integrating and averaging cross sections are supplied.  See ftp://128.200.14.8/public/prather, look under /Fast-J_&_Cloud-J;, and for publications, look under /papers-MJP.  
 Other uses of Fast-J include the GEOS-Chem model and the use of a customized Fast-J in that model is documented in their wiki pages:  
 http://wiki.seas.harvard.edu/geos-chem/index.php/Photolysis_mechanism
+
+~ M. Prather, 2021/9/28

@@ -6,13 +6,13 @@ We track bugs, user questions, and feature requests through GitHub issues. Pleas
 
 
 #### How to report a bug
-We use GitHub to track issues. To report a bug, [open a new issue](https://github.com/geoschem/cloud-j/issues/new/choose). Please include all the information that might be relevant, including instructions for reproducing the bug.  
+We use GitHub to track issues. To report a bug please [open a new GitHub issue](https://github.com/geoschem/cloud-j/issues/new/choose). Please include all the information that might be relevant, including instructions for reproducing the bug.  
 
 #### Where can I ask for help?
 We use GitHub issues to support user questions. To ask a question, [open a new issue](https://github.com/geoschem/cloud-j/issues/new/choose) and select the question template. 
 
 #### How to submit changes
-Please see "Contributing Guidelines".
+Please see the [Contributing Guidelines](https://github.com/geoschem/cloud-j/blob/main/CONTRIBUTING.md).
 
 #### How to request an enhancement
-Please see "Contributing Guidelines".
+Please see the [Contributing Guidelines](https://github.com/geoschem/cloud-j/blob/main/CONTRIBUTING.md).
