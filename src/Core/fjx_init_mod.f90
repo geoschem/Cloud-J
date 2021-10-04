@@ -33,8 +33,6 @@
 
       NUN = JXUNIT
       open (NUN,FILE='tables/CJ77_inp.dat',status='old',form='formatted')
-!ewl!      open (NUN,FILE='tables\CJ77_inp.dat',status='old',form='formatted')
-!SJ!      open (NUN,FILE='tables/CJ77_inp.dat',status='old',form='formatted')
       read (NUN,'(a120)',err=4) TIT_SPEC
          write(6,'(a)') TIT_SPEC
       read (NUN,'(e10.3)',err=4) RAD
