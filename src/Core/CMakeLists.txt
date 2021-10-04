@@ -2,6 +2,7 @@
 
 add_library(CloudJ_Core STATIC EXCLUDE_FROM_ALL
         cld_sub_mod.f90
+        fjx_error_mod.f90
         fjx_cmn_mod.f90
         fjx_sub_mod.f90
         fjx_init_mod.f90
