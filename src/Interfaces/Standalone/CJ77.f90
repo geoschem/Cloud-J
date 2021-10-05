@@ -94,7 +94,10 @@
        enddo
       close(77)
 
-      do L = 1,L1_
+      ETAA(L2_) = 0.d0
+      ETAB(L2_) = 0.d0
+
+      do L = 1,L2_
        PPP(L) = ETAA(L) + ETAB(L)*PSURF
       enddo
 ! just for print out and levels
