@@ -55,6 +55,7 @@
       MODULE FJX_SUB_MOD
 
       USE FJX_CMN_MOD
+      USE FJX_ERROR_MOD
 
 !SJ! note that Solar-J uses these
 !   USE CMN_FJX_MOD
@@ -748,6 +749,9 @@
       real*8, dimension(W_+W_r)           :: ZFLUX
       real*8, dimension(N_,W_+W_r)        :: FJ,FZ,ZTAU
       real*8, dimension(M2_,N_,W_+W_r)    :: POMEGA
+
+      ! ewl debug
+      real*8 :: NUMER, DENOM, TMP
 !
 ! fast-J Mie code for J_s, only uses 8-term expansion, 4-Gauss pts
 
@@ -1071,7 +1075,22 @@
          SUMJ =SUMJ+(4.d0*FJ(LZ,K)+FZ(LZ,K))*(ZTAU(LZ+1,K)-ZTAU(LZ-1,K))
          SUMT =SUMT + ZTAU(LZ+1,K)-ZTAU(LZ-1,K)
         enddo
+
+         ! --- Divide by zero error here if debug flags on (ewl) ---
+         ! trap
+         IF ( SUMT < TINY(1.d0) ) THEN
+            PRINT *, "WARNING: SUMT less than tiny num: ", SUMT
+            PRINT *, "         Resetting to 1e-30 for K, L = ", K, L
+            SUMT = 1.d-30
+         ENDIF
+
+         ! original:
          FJACT(L,K) = SUMJ/SUMT
+
+         ! potential method to fix. Need to determine value to use:
+         !FJACT(L,K) = SAFE_DIV(SUMJ,SUMT,TINY(1.d0))
+         ! ------
+
        enddo
 
 !---mean diffuse-only flux at the edge of the layer-L: 4<I*mu> (not solar)
@@ -1079,7 +1098,26 @@
 !--- does not do top or bottom
        do L = 2,L1U
         LZ  = ND+2 - 2*L2LEV(L)
-        FJFLX0 = (ZTAU(LZ+1,K)-ZTAU(LZ,K))/(ZTAU(LZ+1,K)-ZTAU(LZ-1,K))
+
+        ! --- Divide by zero error here if debug flags on (ewl) ---
+        ! trap:
+        TMP = ZTAU(LZ+1,K)-ZTAU(LZ-1,K)
+        IF ( TMP < TINY(1.d0) ) THEN
+           PRINT *, "WARNING: ZTAU(LX+1,K)-ZTAU(LZ-1,K) less than tiny num: ", TMP
+           PRINT *, "         Resetting to 1e-30 num for L, K = ", L, K
+           TMP = 1.d-30
+        ENDIF
+        FJFLX0 = (ZTAU(LZ+1,K)-ZTAU(LZ,K))/TMP
+
+        ! original:
+        !FJFLX0 = (ZTAU(LZ+1,K)-ZTAU(LZ,K))/(ZTAU(LZ+1,K)-ZTAU(LZ-1,K))
+
+        ! potential method to fix. Need to determine value to use:
+        !NUMER = ZTAU(LZ+1,K)-ZTAU(LZ,K)
+        !DENOM = ZTAU(LZ+1,K)-ZTAU(LZ-1,K)
+        !FJFLX0 = SAFE_DIV(NUMER,DENOM,0.d0)
+        ! ------
+
         FJFLX(L-1,K)=4.d0*(FJ(LZ-1,K)*FJFLX0 + FJ(LZ+1,K)*(1.d0-FJFLX0))
        enddo
 
@@ -1224,7 +1262,22 @@
          E(3,1) = -E(3,1)-E(3,2)*E(2,1)
          E(2,1) = -E(2,1)
 !---invert U
+
+         ! --- Divide by zero error here if debug flags on (ewl) ---
+         ! trap:
+         IF ( ABS(E(4,4)) < TINY(1.d0) ) THEN
+            PRINT *, "WARNING: E(4,4) less than tiny num: ", E(4,4)
+            PRINT *, "         Resetting to 1e-30 for K = ", K
+            E(4,4) = 1.d-30
+         ENDIF
+
+         ! original:
          E(4,4) = 1.d0/E(4,4)
+
+         ! potential method to fix. Need to determine value to use:
+         !E(4,4) = SAFE_DIV(1.d0,E(4,4),0.d0)
+         ! ------
+
          E(3,4) = -E(3,4)*E(4,4)/E(3,3)
          E(3,3) = 1.d0/E(3,3)
          E(2,4) = -(E(2,3)*E(3,4)+E(2,4)*E(4,4))/E(2,2)
@@ -1557,7 +1610,22 @@
        do LL=2,ND-1,2
         DELTAU = ZTAU(LL+1) - ZTAU(LL-1)
         do I = 1,M_
+
+          ! --- Divide by zero error here if debug flags on (ewl) ---
+          ! trap:
+          IF ( DELTAU < TINY(1.d0) ) THEN
+             PRINT *, "WARNING: DELTAU (mid-layer) less than tiny num: ", DELTAU
+             PRINT *, "         Resetting to 1e-30 for LL, I =", LL, I
+             DELTAU = 1.d-30
+          ENDIF
+
+          ! original:
           A(I,LL) = EMU(I)/DELTAU
+
+          ! potential method to fix. Need to determine value to use:
+          !A(I,LL) = SAFE_DIV(EMU(I),DELTAU,0.d0)
+          ! ------
+
           C(I,LL) = -A(I,LL)
           H(I,LL) = FZ(LL)*( &
            POMEGA(2,LL)*PM(I,2)*PM0(2) + POMEGA(4,LL)*PM(I,4)*PM0(4) &
@@ -1581,7 +1649,22 @@
        do LL=3,ND-2,2
         DELTAU = ZTAU(LL+1) - ZTAU(LL-1)
         do I = 1,M_
+
+          ! --- Divide by zero error here if debug flags on (ewl) ---
+          ! trap:
+          IF ( DELTAU < TINY(1.d0) ) THEN
+             PRINT *, "WARNING: DELTAU (odd-layer) less than tiny num: ", DELTAU
+             PRINT *, "         Resetting to 1e-30 for LL, I = ", LL, I
+             DELTAU = 1.d-30
+          ENDIF
+
+          ! original:
           A(I,LL) = EMU(I)/DELTAU
+
+          ! potential method to fix. Need to determine value to use:
+          !A(I,LL) = SAFE_DIV(EMU(I),DELTAU,0.d0)
+          ! ------
+
           C(I,LL) = -A(I,LL)
           H(I,LL) = FZ(LL)*( &
            POMEGA(1,LL)*PM(I,1)*PM0(1) + POMEGA(3,LL)*PM(I,3)*PM0(3) &
@@ -1689,7 +1772,22 @@
          SURFAC = 4.d0/(1.d0 + 2.d0*SUMRFL)
 
        do I = 1,M_
+
+          ! --- Divide by zero error here if debug flags on (ewl) ---
+          ! trap:
+          IF ( DELTAU < TINY(1.d0) ) THEN
+             PRINT *, "WARNING: DELTAU (lower boundary) less than tiny num: ", DELTAU
+             PRINT *, "         Resetting to 1e-30 for I = ", I
+             DELTAU = 1.d-30
+          ENDIF
+
+          ! original:
           D1 = EMU(I)/DELTAU
+
+          ! potential method to fix. Need to determine value to use:
+          !D1 = SAFE_DIV(EMU(I),DELTAU,0.d0)
+          ! ------
+
           SUM0 = D1 + D2*(W(I,1)+W(I,2)+W(I,3)+W(I,4))
         do J = 1,M_
          AA(I,J,L1) = - D2*U(I,J)
