@@ -15,16 +15,22 @@ make -j
 make install
 ```
 
+If you wish to build Cloud-J with compiler debug flags on simply run the following command in your build folder, and then rebuild and rerun after copying your new executable to your run directory.
+
+```
+cmake . -DCMAKE_BUILD_TYPE=Debug
+```
+
 You may run Cloud-J from wherever you place the executable cloudj_standalone. Cloud-J needs input data to run and this data is expected in a local subdirectory called tables. You may either copy the tables directory from the source code repository or symbolically link to it.
 
-Because running will produce output we recommend that you create a run directory for your run. Here is an example of how to create a run directory and run the model:
+Because running will produce output we recommend that you create a run directory for your run. Here is an example of how to create a run directory and run the model, sending both standard output and error messages to screen and a log file (cloudj.log):
 
 ```
 mkdir run
 cd run
 cp /path/to/cloud-j/build/bin/cloudj_standalone .
 ln -s /path/to/cloud-j/tables
-./cloudj_standalone > cloudj.log
+./cloudj_standalone | tee cloudj.log 2>&1
 ```
 
 ## Contributing
