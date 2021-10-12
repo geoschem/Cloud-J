@@ -32,6 +32,6 @@
 
 # Miscellaneous
 *.log
-build/
-run/
+build*/
+run*/
 *~
