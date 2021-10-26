@@ -18,18 +18,38 @@
       integer, parameter :: &  !  these must e set to exact atmospheric dimensions
             LPAR = 57,      &  !  # layers in model (one layer is added to go to ZTOP+ZZHT)
             LWEPAR = 34        !  # layers that have clouds (LWEtPAR < LPAR)
-      integer, parameter :: L_ = LPAR, L1_=L_+1, L2_ = L_+2
-!  L_ = # of CTM layers, L1_=L_+1 = # of CTM layer edges (radii)
-!  L2_ = L_+2 = total # of layer edges counting top (TAU=0)
+
+      !  L_  :  # of CTM layers
+      !  L1_ :  L_+1 = # of CTM layer edges (radii)
+      !  L2_ :  L_+2 = total # of layer edges counting top (TAU=0)
+#ifdef MODEL_GCCLASSIC
+      integer, parameter :: L_ = 72
+#else
+      integer, parameter :: L_ = LPAR
+#endif
+      integer, parameter :: L1_=L_+1, L2_ = L_+2
 
 !----------these below should be set by the calling program
-      integer, parameter :: JVL_ = LPAR  ! vertical(levels) dim for J-values sent to CTM
-      integer, parameter :: JVN_ = 101   ! max # of J-values
-      integer, parameter :: AN_=25       ! max # FJX aerosols in layer (needs NDX for each)
-
+      ! JVL_ :  vertical(levels) dim for J-values sent to CTM
+      ! JVN_ :  max # of J-values
+      ! mAN_ :  max # FJX aerosols in layer (needs NDX for each)
+#ifdef MODEL_GCCLASSIC
+      integer, parameter :: JVL_ = L_
+      integer, parameter :: JVN_ = 166
+      integer, parameter :: AN_=37
+#else
+      integer, parameter :: JVL_ = LPAR
+      integer, parameter :: JVN_ = 101
+      integer, parameter :: AN_=25
+#endif
 !--------------------------------------------------------------------------
       ! JXL_: vertical(levels) dim for J-values computed within fast-JX
-      integer, parameter ::  JXL_=100, JXL1_=JXL_+1
+#ifdef MODEL_GCCLASSIC
+      integer, parameter ::  JXL_=L_ 
+#else
+      integer, parameter ::  JXL_=100
+#endif
+      integer, parameter ::  JXL1_=JXL_+1
       ! JXL2_: 2*JXL_ + 2 = mx no.levels in basic FJX grid (mid-level)
       integer, parameter ::  JXL2_=2*JXL_+2
 
@@ -55,9 +75,15 @@
 ! SJ          10,10, 8, 8,12, 6,12/)
 !
       ! X_   = dim = max no. of X-section data sets (input data)
+      ! A_   = dim = max no. of Aerosol Mie sets (input data) not including
+      !        clouds and SSA
+#ifdef MODEL_GCCLASSIC
+      integer, parameter ::  X_=123
+      integer, parameter ::  A_=56
+#else
       integer, parameter ::  X_=72
-      ! A_   = dim = max no. of Aerosol Mie sets (input data) not including clouds and SSA
       integer, parameter ::  A_=40
+#endif
       ! SSA_ & GGA_ = dim = no. of strat sulfate aerosol types (input data)
       integer, parameter ::  SSA_=18, GGA_=15
       ! C_   = dim = no. of cld-data sets (input data):  liquid-water,irregular-ice, hexagonal ice
