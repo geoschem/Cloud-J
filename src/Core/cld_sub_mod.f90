@@ -5,7 +5,7 @@
 
       MODULE CLD_SUB_MOD
 
-      USE FJX_CMN_MOD
+      USE CLDJ_CMN_MOD
       USE FJX_SUB_MOD,  ONLY: PHOTO_JX, EXITC
 
       IMPLICIT NONE
@@ -539,7 +539,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
-!---Cloud Cover parameters (in fjx_cmn_mod.f90)
+!---Cloud Cover parameters (in cldj_cmn_mod.f90)
 !      integer, parameter ::  NQD_  = 4
 !      integer, parameter ::  NRAN_ = 10007  ! dimension for random number
 !      integer, parameter ::  CBIN_ = 10     ! # of quantized cld fraction bins

@@ -12,9 +12,9 @@
 
       program standalone
 
-      USE FJX_CMN_MOD
+      USE CLDJ_CMN_MOD
+      USE CLDJ_INIT_MOD
       USE FJX_SUB_MOD
-      USE FJX_INIT_MOD
       USE CLD_SUB_MOD, ONLY : CLOUD_JX
       USE OSA_SUB_MOD
 
@@ -64,7 +64,7 @@
       L1U = L1_
 !---read in & store all fast-JX data:   single call at set up
 !-----------------------------------------------------------------------
-      call INIT_FJX (TITLJXX,JVNU,NJXX)
+      call INIT_CLDJ (TITLJXX,JVNU,NJXX)
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case

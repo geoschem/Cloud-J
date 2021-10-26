@@ -1,6 +1,6 @@
 ! INTERFACE:
 
-      MODULE FJX_ERROR_MOD
+      MODULE CLDJ_ERROR_MOD
 
       IMPLICIT NONE
 
@@ -63,4 +63,4 @@
 
       end function SAFE_DIV
 
-      END MODULE FJX_ERROR_MOD
+      END MODULE CLDJ_ERROR_MOD

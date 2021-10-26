@@ -1,9 +1,10 @@
 !------------------------------------------------------------------------------
 !    'fjx_cmn_mod.f90'  for Solar/Cloud/Fast-J code v 7.7 (prather 02/2020)
 !           enable LLNL heating code, fix SJSUB dim's
+!    Renamed to 'cldj_cmn_mod.f90' (Lundgren 10/26/2021)
 !------------------------------------------------------------------------------
 
-      MODULE FJX_CMN_MOD
+      MODULE CLDJ_CMN_MOD
 
 
 
@@ -11,7 +12,7 @@
       public
 
 !------------------------------------------------------------------------------
-      logical  LRRTMG, LCLIRAD, LGGLLNL  ! set in fjx_init_mod based on W_rrtmg
+      logical  LRRTMG, LCLIRAD, LGGLLNL  ! set in cldj_init_mod based on W_rrtmg
       integer  NWBIN, NSBIN     ! dimensions of readin spec - NWBIN can zero out strat-wavels
 !-------------basic vertical grid----------these can be changed as needed, needed for dimensions
       integer, parameter :: &  !  these must e set to exact atmospheric dimensions
@@ -41,7 +42,7 @@
       integer, parameter ::  S_=27
 
       integer, parameter ::  W_r = S_-W_  ! # of bins that is added on top of W_
-!SJ! this is defined in fjx_init_mod      integer :: W_r
+!SJ! this is defined in cldj_init_mod      integer :: W_r
       integer, parameter ::  W_RRTMG = 0  !  = 82 for std RRTMG
       integer, parameter ::  W_CLIRAD = 0
       integer, parameter ::  W_LLNL = 0
@@ -262,4 +263,4 @@
 !----extras for Cloud-J
       integer, parameter::  mxlay = L1_, ngptsw = S_+1
 
-      END MODULE FJX_CMN_MOD
+      END MODULE CLDJ_CMN_MOD

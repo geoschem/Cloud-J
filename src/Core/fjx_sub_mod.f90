@@ -54,8 +54,7 @@
 
       MODULE FJX_SUB_MOD
 
-      USE FJX_CMN_MOD
-      USE FJX_ERROR_MOD
+      USE CLDJ_CMN_MOD
 
 !SJ! note that Solar-J uses these
 !   USE CMN_FJX_MOD

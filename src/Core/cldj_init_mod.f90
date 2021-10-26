@@ -3,20 +3,20 @@
 
 ! INTERFACE:
 
-      MODULE FJX_INIT_MOD
+      MODULE CLDJ_INIT_MOD
 
-      USE FJX_CMN_MOD
+      USE CLDJ_CMN_MOD
       USE FJX_SUB_MOD, ONLY : EXITC
-!SJ!  USE CMN_FJX_MOD
+!SJ!  USE CLDJ_FJX_MOD
 
       IMPLICIT NONE
 
-      PUBLIC  :: INIT_FJX
+      PUBLIC  :: INIT_CLDJ
 
       CONTAINS
 
 !-----------------------------------------------------------------------
-      subroutine INIT_FJX (TITLEJXX,NJXU,NJXX)
+      subroutine INIT_CLDJ (TITLEJXX,NJXU,NJXX)
 !-----------------------------------------------------------------------
       implicit none
 
@@ -175,10 +175,10 @@
 
       goto 1
     4 continue
-        call EXITC(' FJX_INIT: error in read')
+        call EXITC(' CLDJ_INIT: error in read')
     1 continue
 
-      END SUBROUTINE INIT_FJX
+      END SUBROUTINE INIT_CLDJ
 
 
 !-----------------------------------------------------------------------
@@ -1078,4 +1078,4 @@
       END SUBROUTINE RANSET
 
 
-      END MODULE FJX_INIT_MOD
+      END MODULE CLDJ_INIT_MOD

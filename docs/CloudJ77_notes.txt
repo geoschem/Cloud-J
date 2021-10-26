@@ -1,4 +1,4 @@
-Cloud-J version 7.7 notes (Feb 2020, Prather)
+Original Cloud-J version 7.7 notes (Feb 2020, Prather)
 
 Small cleanup from version 7.6 (see notes below)
     some typos and non-std characters removed
