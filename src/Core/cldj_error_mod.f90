@@ -4,9 +4,51 @@
 
       IMPLICIT NONE
 
+      PUBLIC  :: CLOUDJ_ERROR_STOP
       PUBLIC  :: SAFE_DIV
 
       CONTAINS
+
+!-----------------------------------------------------------------------
+      subroutine CLOUDJ_ERROR_STOP( msg, loc )
+      ! This subroutine...
+
+      ! This subroutine is based on the equivalent function in GEOS-Chem
+      ! (https://github.com/geoschem/geos-chem).
+!-----------------------------------------------------------------------
+#if defined( ESMF_ )
+      ! if using GCHP or GEOS
+      USE MAPL_Mod
+#     include "MAPL_Generic.h"
+#elif defined( MODEL_CESM )
+      ! if using cesm
+      USE CAM_ABORTUTILS,     ONLY : ENDRUN
+#endif
+
+      character(len=*), intent(in)           :: msg
+      character(len=*), intent(in), optional :: loc
+
+      character(len=512) :: tmpmsg
+
+      if ( present(loc) ) then
+         tmpmsg = 'Cloud-J error at '//trim(loc)//': '//trim(msg)
+      else
+         tmpmsg = 'Cloud-J error: '//trim(msg)
+      endif
+      write(6, '(a)' ) tmpmsg
+      call flush(6)
+
+#if defined( ESMF_ )
+      __Iam__('CLOUDJ_ERROR_STOP')
+#elif defined( MODEL_CESM )
+      call endrun('Cloud-J failure!')
+#elif defined( MODEL_GCCLASSIC )
+      call exit( 99999 )
+#else
+      stop
+#endif
+
+      end subroutine CLOUDJ_ERROR_STOP
 
 !-----------------------------------------------------------------------
       function SAFE_DIV( numer, denom, alt_nan, alt_overflow, alt_underflow ) &

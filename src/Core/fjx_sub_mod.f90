@@ -55,6 +55,7 @@
       MODULE FJX_SUB_MOD
 
       USE CLDJ_CMN_MOD
+      USE CLDJ_ERROR_MOD
 
 !SJ! note that Solar-J uses these
 !   USE CMN_FJX_MOD
@@ -2979,8 +2980,8 @@
       subroutine EXITC(T_EXIT)
 !-----------------------------------------------------------------------
       character(len=*), intent(in) ::  T_EXIT
-      write(6,'(a)') T_EXIT
-      stop
+
+      call cloudj_error_stop(T_EXIT)
 
       END SUBROUTINE EXITC
 
