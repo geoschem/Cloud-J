@@ -17,7 +17,7 @@
       SUBROUTINE CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,  &
              RRR,OOO,CCC, LWP,IWP,REFFL,REFFI, CLDF,CLDCOR,CLDIW,      &
              AERSP,NDXAER,L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18,      &
-             CLDFLAG,NRANDO,IRAN,LNRG,NICA, JCOUNT,LDARK,WTQCA)
+             IRAN,NICA, JCOUNT,LDARK,WTQCA)
 
 !---Current recommendation for best average J's is
 !     1) cloud decorellation w/ max-overlap blocks:  LNRG = 6 and CLDCOR = 0.33
@@ -51,7 +51,8 @@
 !    needs P, T, O3, clds, aersls; adds top-of-atmos layer from climatology
 !    needs day-of-year for sun distance, SZA (does not directly use lat or long)
 !
-!--CLOUD_JX:   different cloud schemes (4:8 require max-ran overlap algorithm)
+!--CLOUD_JX:   different cloud schemes (4:8 require max-ran overlap algorithm).
+!              CLDFLAG is set as global variable during initialization.
 !       CLDFLAG = 1  :  Clear sky J's
 !       CLDFLAG = 2  :  Averaged cloud cover
 !       CLDFLAG = 3  :  cloud-fract**3/2, then average cloud cover
@@ -69,26 +70,41 @@
 !-----------------------------------------------------------------------
       implicit none
 !---calling sequence variables
-      integer, intent(in)                    :: L1U,ANU,NJXU, CLDFLAG,IRAN,NRANDO,LNRG
-      real*8,  intent(in)                    :: U0,SZA,SOLF  !v7.7
-      real*8,  intent(inout)                 :: CLDCOR       !v7.7
-      real*8,  intent(in), dimension(5,W_+W_r) :: RFL
+      integer, intent(in)                    :: L1U
+      integer, intent(in)                    :: ANU
+      integer, intent(in)                    :: NJXU
+      integer, intent(in)                    :: IRAN
+      real*8,  intent(in)                    :: U0     !v7.7
+      real*8,  intent(in)                    :: SZA    !v7.7
+      real*8,  intent(in)                    :: SOLF   !v7.7
+      real*8,  intent(inout)                 :: CLDCOR !v7.7
+      real*8,intent(in), dimension(5,W_+W_r) :: RFL
       logical, intent(in)                    :: LPRTJ
-      real*8,  intent(in), dimension(L1U+1)  :: PPP,ZZZ
-      real*8,  intent(in), dimension(L1U  )  :: TTT,HHH,DDD,RRR,OOO,CCC
-      real*8,  intent(in), dimension(L1U  )  :: LWP,IWP,REFFL,REFFI
+      real*8,  intent(in), dimension(L1U+1)  :: PPP
+      real*8,  intent(in), dimension(L1U+1)  :: ZZZ
+      real*8,  intent(in), dimension(L1U  )  :: TTT
+      real*8,  intent(in), dimension(L1U  )  :: HHH
+      real*8,  intent(in), dimension(L1U  )  :: DDD
+      real*8,  intent(in), dimension(L1U  )  :: RRR
+      real*8,  intent(in), dimension(L1U  )  :: OOO
+      real*8,  intent(in), dimension(L1U  )  :: CCC
+      real*8,  intent(in), dimension(L1U  )  :: LWP
+      real*8,  intent(in), dimension(L1U  )  :: IWP
+      real*8,  intent(in), dimension(L1U  )  :: REFFL
+      real*8,  intent(in), dimension(L1U  )  :: REFFI
       real*8,  intent(in), dimension(L1U,ANU):: AERSP
       integer, intent(in), dimension(L1U,ANU):: NDXAER
       real*8,  intent(in), dimension(L1U  )  :: CLDF
       integer, intent(in), dimension(L1U  )  :: CLDIW
 ! reports out the JX J-values, upper level program converts to CTM chemistry J's
-      real*8,  intent(out), dimension(L1U-1,NJXU):: VALJXX
-      real*8,  intent(out), dimension(S_+2,L1U)  :: SKPERD
-      real*8,  intent(out), dimension(6)         :: SWMSQ
-      real*8,  intent(out), dimension(L1U)       :: OD18
-      real*8,  intent(out), dimension(NQD_)      :: WTQCA
-      integer, intent(out)                       :: NICA,JCOUNT
-      logical, intent(out)                       :: LDARK
+      real*8,intent(out), dimension(L1U-1,NJXU):: VALJXX
+      real*8,  intent(out), dimension(S_+2,L1U):: SKPERD
+      real*8,  intent(out), dimension(6)       :: SWMSQ
+      real*8,  intent(out), dimension(L1U)     :: OD18
+      real*8,  intent(out), dimension(NQD_)    :: WTQCA
+      integer, intent(out)                     :: NICA
+      integer, intent(out)                     :: JCOUNT
+      logical, intent(out)                     :: LDARK
 !-----------------------------------------------------------------------
       logical  LPRTJ0
       integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX
@@ -215,7 +231,7 @@
 !---Generate max-ran cloud overlap groups used for CLDFLAG = 4:8
 !---CLT(cloud ice+liq OD) & IWPX & LWPX adjusted to quantized cld fr
 !-------------------------------------------------------------------------
-         call ICA_NR(CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,LNRG,CBIN_,ICA_, &
+         call ICA_NR(CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,CBIN_,ICA_, &
              CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
 
 !---call ICA_ALL to generate the weight and cloud total OD of each ICA
@@ -509,7 +525,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_NR(CLDF,CLTAU,IWPX,LWPX,ZZZ,CLDIW,LTOP,LNRG,CBIN_, &
+      SUBROUTINE ICA_NR(CLDF,CLTAU,IWPX,LWPX,ZZZ,CLDIW,LTOP,CBIN_, &
             ICA_,CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
 !-----------------------------------------------------------------------
 !---revised in v7.7 (02/2020) fixed MAX-RAN (#0 & #3) set CLDCOR=0 if need be
@@ -554,7 +570,7 @@
       real*8, dimension(NRG6_), parameter:: Zbin =                 &
           [0.d5, 1.5d5, 3.5d5, 6.0d5, 9.0d5, 13.d5]
 
-      integer,intent(in) :: LTOP, LNRG, CBIN_, ICA_
+      integer,intent(in) :: LTOP, CBIN_, ICA_
       integer,intent(in),dimension(LTOP) :: CLDIW
       real*8, intent(in),dimension(LTOP) :: CLDF, ZZZ
       real*8, intent(inout)                 :: CLDCOR     !v7.7

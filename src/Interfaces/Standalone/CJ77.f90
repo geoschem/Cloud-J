@@ -247,7 +247,7 @@
        call CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,       &
                RRR,OOO,CCC,  LWP,IWP,REFFL,REFFI, CLF,CLDCOR,CLDIW,    &
                AERSP,NDXAER,L1U,ANU,JVNU, VALJXX,SKPERD,SWMSQ,OD18,    &
-               CLDFLAG,NRANDO,IRAN,LNRG,NICA, JCOUNT,LDARK,WTQCA)
+               IRAN,NICA, JCOUNT,LDARK,WTQCA)
 !=======================================================================
 
 
