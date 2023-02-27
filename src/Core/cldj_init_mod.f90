@@ -35,7 +35,7 @@
       NUN = JXUNIT
       open (NUN,FILE=TRIM(DATADIR)//'CJ77_inp.dat',status='old',form='formatted')
       read (NUN,'(a120)',err=4) TIT_SPEC
-         write(6,'(a)') TIT_SPEC
+         write(6,'(a)') trim(TIT_SPEC)
       read (NUN,'(e10.3)',err=4) RAD
       read (NUN,'(e10.3)',err=4) ZZHT
       read (NUN,'(e10.3)',err=4) ATAU
@@ -235,7 +235,7 @@
       read (NUN,*,err=4)
       read (NUN,'(i5,5x,i5)',err=4) NWWW, NSSS
 
-      write(6,'(a120)') TIT_SPEC
+      write(6,'(a)') adjustl(trim(TIT_SPEC))
       write(6,'(i5,A20,i5,A20)')  NWWW, ' photo-chem wl bins ', NSSS, ' solar heating bins '
 
       if (NWWW.gt.WX_ .or. NSSS.gt.SX_) then
@@ -249,19 +249,23 @@
 
 !----w-params:  1=w-eff  2=w-bins, 3=solar(photons), 4=solar(W/m2), 5=Y-PAR,  6=Rayleigh, 7=SJ sub-bins
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                           ' notes: ',adjustl(trim(TIT_J1N))   !print
       read (NUN,'(5x,6e10.3)',err=4)    (WL(IW),IW=1,NSSS)
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                           ' notes: ',adjustl(trim(TIT_J1N))   !print
       read (NUN,'(5x,6e10.3)',err=4)    (WBIN(IW),IW=1,NSSS)
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                           ' notes: ',adjustl(trim(TIT_J1N))   !print
       read (NUN,'(5x,6e10.3)',err=4)    (FL(IW),IW=1,NSSS)
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                           ' notes: ',adjustl(trim(TIT_J1N))   !print
       read (NUN,'(5x,6e10.3)',err=4)    (FW(IW),IW=1,NSSS)
          FWSUM=0.d0
          do IW=1, NSSS
@@ -270,16 +274,19 @@
          write(6,*) 'total Solar flux=', FWSUM
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
-      read (NUN,'(5x,6e10.3)',err=4)    (FP(IW),IW=1,NSSS)
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                           ' notes: ',adjustl(trim(TIT_J1N))   !print
+      read (NUN,'(5x,6e10.3)',err=4)    (FPAR(IW),IW=1,NSSS)
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                        ' notes: ', adjustl(trim(TIT_J1N))   !print
       read (NUN,'(5x,6e10.3)',err=4)    (QRAYL(IW),IW=1,NSSS)
 
 !7 SJ-sub-bins
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                           ' notes: ',adjustl(trim(TIT_J1N))   !print
       do I = 1,NSSS
         SJSUB(I,1)    = 1.0d0
         SJSUB(I,2:15) = 0.0d0
@@ -308,7 +315,8 @@
          TITLEJX(1) = TIT_J1S
          TITLEJL(1) = TIT_J1L
          LQQ(1) = 3
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                           ' notes: ',adjustl(trim(TIT_J1N))   !print
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
       read (NUN,'(a1,f3.0,1x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
@@ -324,7 +332,8 @@
         TITLEJX(2) = TIT_J1S
         TITLEJL(2) = TIT_J1L
         LQQ(2) = 3
-        write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+        write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                          ' notes: ',adjustl(trim(TIT_J1N))   !print
 
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
       read (NUN,'(a1,f3.0,1x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
@@ -340,7 +349,8 @@
         TITLEJX(3) = TIT_J1S
         TITLEJL(3) = TIT_J1L
         LQQ(3) = 3
-        write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+        write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                          ' notes: ',adjustl(trim(TIT_J1N))   !print
 
 !---Read remaining species:  X-sections at 1-2-3 T_s
 !---read in 1 to 3 X-sects per J-value (JJ)
@@ -348,7 +358,8 @@
 !-- read new Xsection block
     3 continue
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-        write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+        write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                          ' notes: ',adjustl(trim(TIT_J1N))   !print
         if (TIT_J1S .eq. 'endofJ') goto 1
 !---try to add a new Xsect
     2 continue
@@ -362,7 +373,8 @@
         LQQ(JJ) = LQ
 !try to read a 2nd Temperature or Pressure
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-        write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+        write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                          ' notes: ',adjustl(trim(TIT_J1N))   !print
         if (TIT_J1S .eq. 'endofJ') goto 1
       if (TIT_J1S .eq. TITLEJX(JJ)) then
         LQ = 2
@@ -371,7 +383,8 @@
         LQQ(JJ) = LQ
 !try to read a 3rd Temperature or Pressure
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
-         write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+         write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
+                                           ' notes: ',adjustl(trim(TIT_J1N))   !print
          if (TIT_J1S .eq. 'endofJ') goto 1
        if (TIT_J1S .eq. TITLEJX(JJ)) then
         LQ = 3
@@ -420,7 +433,7 @@
 !print-----
       do J = 1,NJX
          write(6,'(a8,i5,2x,a6,2x,a16,2x,a1,i3,2x,3f6.1)') &
-           'X-sects', J,TITLEJX(J),TITLEJL(J), SQQ(J),LQQ(J),(TQQ(I,J),I=1,LQQ(J))
+           'X-sects', J,trim(TITLEJX(J)),trim(TITLEJL(J)), SQQ(J),LQQ(J),(TQQ(I,J),I=1,LQQ(J))
       enddo
 !---need to check that TQQ (= T(K) or p(hPa)) is monotonically increasing:
       do J = 1,NJX
@@ -483,7 +496,7 @@
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
 
         read (NUN,'(a80)',err=4) TITLE0
-          write(6,'(a80)') TITLE0                                  !print----
+          write(6,'(a)') trim(TITLE0)                                  !print----
         read (NUN,'(i4)')  NCC
         read (NUN,'(i4)')  MCC
           write(6,'(3i6,a)') NCC,MCC,SX_,' types of clouds & #Reff'   !print----
@@ -495,7 +508,7 @@
 
         do K = 1, NCC
            read (NUN,'(a12,f8.5)',err=4) TITLCC(K),DCC(K)
-           write(6,'(a,i4,1x,a12,f8.5)') 'Cloud#',K,TITLCC(K),DCC(K)  !print----
+           write(6,'(a,i4,1x,a12,f8.5)') 'Cloud#',K,trim(TITLCC(K)),DCC(K)  !print----
            do J = 12, SX_
               do I = 1,MCC
                  read (NUN,'(i2, 1x, f5.2, f5.1, f7.1, f5.3, e8.1,f6.3,f8.5,7f6.3)',err=4) &
@@ -561,7 +574,7 @@
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
       read (NUN,'(a120)',err=4) TITLE0
-      write(6,'(a120)') TITLE0                              !print----
+      write(6,'(a)') adjustl(trim(TITLE0))                              !print----
       read (NUN,*)
       read (NUN,'(i4,i4)')  NSS, NSX_
       read (NUN,*)
@@ -624,11 +637,14 @@
       Character*12 TITLAAJ
       real*8   RAAJ, DAAJ
 
+      write(6,'(i5,a)') NUN,trim(NAMFIL)
+
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
 
       read (NUN,'(a120)',err=4) TITLE0
+
 !print----
-          write(6,'(a120)') TITLE0
+      write(6,'(a)') adjustl(trim(TITLE0))
         read (NUN,*)
         read (NUN,*)
       do J = 1, A_
@@ -681,7 +697,7 @@
       open (NUN,FILE=NAMFIL,status='old',form='formatted')
 
       read (NUN,'(a78)') TITLE0
-      write(6,*) 'UMichigan Aerosols', TITLE0
+      write(6,*) 'UMichigan Aerosols ', adjustl(trim(TITLE0))
       read(NUN,'(5x,10f5.0)') WMM
       write(6,'(a,10f7.1)') ' UMIchigan aerosol wavelengths:',WMM
 
@@ -887,10 +903,10 @@
        if (JVMAP(K) .ne. '------' ) then
         J = JIND(K)
         if (J.eq.0) then
-         write(6,'(i5,a50,f6.3,a,1x,a6)') K,JLABEL(K),JFACTA(K), &
+         write(6,'(i5,1x,a50,f6.3,a,1x,a6)') K,JLABEL(K),JFACTA(K), &
                ' no mapping onto fast-JX',JVMAP(K)
         else
-         write(6,'(i5,a50,f6.3,a,i4,1x,a6)') K,JLABEL(K),JFACTA(K), &
+         write(6,'(i5,1x,a50,f6.3,a,i4,1x,a6)') K,JLABEL(K),JFACTA(K), &
                ' mapped to FJX:',J,TITLEJX(J)
         endif
        endif
@@ -925,7 +941,7 @@
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
 
       read (NUN,'(a120)',err=4) TITLE0
-      write(6,'(a120)') TITLE0                              !print----
+      write(6,'(a)') trim(TITLE0)                            !print----
       read (NUN,'(i4)')  NGG
       write(6,'(i6,a)')  NGG, ' Reff-s for GEO SSA'          !print----
       read (NUN,*)
