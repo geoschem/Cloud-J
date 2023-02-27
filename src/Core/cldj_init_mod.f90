@@ -648,7 +648,10 @@
         read (NUN,*)
         read (NUN,*)
       do J = 1, A_
-        read (NUN,'(i4,1x,a12,1x,2f6.3,1x,a120)',err=4) &
+         ! Change width of RAAJ and DAAJ from 6 to 7 to accomodate larger values
+         ! (ewl, 2/27/23)
+         !read (NUN,'(i4,1x,a12,1x,2f6.3,1x,a120)',err=4) &
+         read (NUN,'(i4,1x,a12,1x,2f7.3,1x,a120)',err=4) &
          JAA,TITLAAJ,RAAJ,DAAJ,TITLE0
        if (JAA.gt.0) then
          TITLAA(J) = TITLAAJ
