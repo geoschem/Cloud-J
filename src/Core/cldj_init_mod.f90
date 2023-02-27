@@ -652,17 +652,20 @@
          ! (ewl, 2/27/23)
          !read (NUN,'(i4,1x,a12,1x,2f6.3,1x,a120)',err=4) &
          read (NUN,'(i4,1x,a12,1x,2f7.3,1x,a120)',err=4) &
-         JAA,TITLAAJ,RAAJ,DAAJ,TITLE0
-       if (JAA.gt.0) then
-         TITLAA(J) = TITLAAJ
-         RAA(J) = RAAJ
-         DAA(J) = DAAJ
-        do K = 1, 5
-         read (NUN,'(f4.0,f7.4,f7.4,7f6.3)',err=4) &
-          WAA(K,J),QAA(K,J),SAA(K,J),(PAA(I,K,J),I=2,8)
-          PAA(1,K,J) = 1.d0
-        enddo
-         NAA = J
+              JAA,TITLAAJ,RAAJ,DAAJ,TITLE0
+         if (JAA.gt.0) then
+            TITLAA(J) = TITLAAJ
+            RAA(J) = RAAJ
+            DAA(J) = DAAJ
+            do K = 1, 5
+               ! Change width of QAA from 7 to 9, and each PAA from 6 to 7
+               ! to accomodate larger values (ewl, 2/27/23)
+               !read (NUN,'(f4.0,f7.4,f7.4,7f6.3)',err=4) &
+               read (NUN,'(f4.0,f9.4,f7.4,7f7.3)',err=4) &
+                    WAA(K,J),QAA(K,J),SAA(K,J),(PAA(I,K,J),I=2,8)
+               PAA(1,K,J) = 1.d0
+            enddo
+            NAA = J
 !print----
           write(6,'(i5,1x,a12,1x,7f7.3,1x,a80)')   &
            J,TITLAAJ,RAAJ,DAAJ,(QAA(K,J),K=1,5),TITLE0
