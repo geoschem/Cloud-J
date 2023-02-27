@@ -884,6 +884,21 @@
         JFACTA(JJ) = F_FJX
         JVMAP(JJ) = T_FJX
         NRATJ = JJ
+
+       ! ewl: new for GEOS-Chem
+       ! SDE 03/31/13: Check number of branches
+       ! Note that the order of the branches in
+       ! globchem.dat must match the order in
+       ! FJX_j2j.dat
+       READ (T_REACT(1:10),"(a10)") RNAMES(JJ)
+       RNAMES(JJ) = TRIM(RNAMES(JJ))
+       BRANCH(JJ) = 1
+       DO K=1,(JJ-1)
+          IF (RNAMES(JJ) == RNAMES(K)) THEN
+             BRANCH(JJ) = BRANCH(K) + 1
+          ENDIF
+       ENDDO
+
       enddo
 
       close(NUNIT)
