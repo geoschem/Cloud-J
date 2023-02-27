@@ -66,7 +66,45 @@
 
       IMPLICIT NONE
 
-      PUBLIC :: PHOTO_JX, SOLAR_JX, JP_ATM0, ACLIM_FJX, ACLIM_GEO, ACLIM_RH, EXITC
+      PRIVATE
+
+      PUBLIC :: PHOTO_JX
+      PUBLIC :: SOLAR_JX
+      PUBLIC :: JP_ATM0
+      PUBLIC :: ACLIM_FJX  ! Load fast-JX climatology - T & O3
+      PUBLIC :: ACLIM_GEO  ! Compute RH profile given P, T, Q
+      PUBLIC :: ACLIM_RH   ! Load GEOMIP SSA climatology (vs P)
+      PUBLIC :: EXITC
+
+      PRIVATE :: OPMIE    ! Called in Photo_JX
+      PRIVATE :: MIESCT   ! Called in OPMIE
+      PRIVATE :: LEGND0   ! Called in MIESCT
+      PRIVATE :: BLKSLV   ! Called in MIESCT
+      PRIVATE :: GEN_ID   ! Called in BLKSLV
+      PRIVATE :: JRATET   ! Called in Photo_JX
+      PRIVATE :: X_INTERP ! Called in Photo_JX and JRATET
+      PRIVATE :: EXTRAL1  ! Called in Photo_JX
+
+      ! Other private subroutines called in Photo_JX
+
+      ! Compute layer optical depth, single-scattering albedo, scattering phase
+      PRIVATE :: OPTICL   ! For liquid water clouds
+      PRIVATE :: OPTICI   ! Parallel with liquid water, two types of ice-water
+      PRIVATE :: OPTICS   ! For UCI SSA (strat sulfate aerosol)
+      PRIVATE :: OPTICG   ! For GEOMIP SSA (strat sulfate aerosol)
+      PRIVATE :: OPTICA   ! No strat sulfate aerosol
+      PRIVATE :: OPTICM   ! U Michigan aerosol data sets
+
+      PRIVATE :: SPHERE1R ! Adds refraction (complex ray tracing)
+      PRIVATE :: SPHERE1N ! Drops mid-layer
+      PRIVATE :: SPHERE1F ! Needed for testing flat-disk errors
+
+      ! Prints only
+      PRIVATE :: JP_ATM   ! Called in Photo_JX
+
+      ! Not used
+      PRIVATE :: FJX_CLIRAD_H2O ! For Solar-J
+      PRIVATE :: FJX_GGLLNL_H2O ! For Solar-J
 
       CONTAINS
 
