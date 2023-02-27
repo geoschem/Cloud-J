@@ -612,8 +612,8 @@
          SWMSQ(4) = SWMSQ(4) + FFXNET(K,6)*SOLF*FW(K)
       enddo
       do K=1, W_
-         SWMSQ(5) = SWMSQ(5) + FFXNET(K,7)*FL(K)*FP(K)*SOLF
-         SWMSQ(6) = SWMSQ(6) + FFXNET(K,8)*FL(K)*FP(K)*SOLF
+         SWMSQ(5) = SWMSQ(5) + FFXNET(K,7)*FL(K)*FPAR(K)*SOLF
+         SWMSQ(6) = SWMSQ(6) + FFXNET(K,8)*FL(K)*FPAR(K)*SOLF
       enddo
 
 !---diagnostics/variables below are JUST for PRINT and NOT returned to the CTM code

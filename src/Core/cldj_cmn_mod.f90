@@ -147,7 +147,7 @@
       ! FL: Solar flux incident on top of atmosphere (cm-2.s-1)
       ! FW: Solar flux in W/m2
       ! FP: PAR quantum action spectrum
-      real*8  FL(S_),FW(S_),FP(S_)
+      real*8  FL(S_),FW(S_),FPAR(S_)
       ! QRAYL: Rayleigh parameters (effective cross-section) (cm2)
       real*8  QRAYL(S_)       ! ????? SJ had this set ant S_+1, it should not needed
       ! SJSUB:  intended for breakdown of the super-bins (1:27) into smaller sub-bins.
