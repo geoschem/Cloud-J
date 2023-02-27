@@ -261,7 +261,7 @@ endif()
 #-----------------------------------------------------------------------------
 if(CLOUDJ_EXTERNAL_CONFIG AND GCCLASSIC_WRAPPER)
     target_compile_definitions(CloudJBuildProperties
-        INTERFACE MODEL_GCCLASSIC
+        INTERFACE MODEL_GEOSCHEM
     )
 endif()
 

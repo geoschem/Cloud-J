@@ -22,7 +22,7 @@
       !  L_  :  # of CTM layers
       !  L1_ :  L_+1 = # of CTM layer edges (radii)
       !  L2_ :  L_+2 = total # of layer edges counting top (TAU=0)
-#ifdef MODEL_GCCLASSIC
+#ifdef MODEL_GEOSCHEM
       integer, parameter :: L_ = 72
 #else
       integer, parameter :: L_ = LPAR
@@ -33,7 +33,7 @@
       ! JVL_ :  vertical(levels) dim for J-values sent to CTM
       ! JVN_ :  max # of J-values
       ! mAN_ :  max # FJX aerosols in layer (needs NDX for each)
-#ifdef MODEL_GCCLASSIC
+#ifdef MODEL_GEOSCHEM
       integer, parameter :: JVL_ = L_
       integer, parameter :: JVN_ = 166
       integer, parameter :: AN_=37
@@ -44,7 +44,7 @@
 #endif
 !--------------------------------------------------------------------------
       ! JXL_: vertical(levels) dim for J-values computed within fast-JX
-#ifdef MODEL_GCCLASSIC
+#ifdef MODEL_GEOSCHEM
       integer, parameter ::  JXL_=L_ 
 #else
       integer, parameter ::  JXL_=100
@@ -77,7 +77,7 @@
       ! X_   = dim = max no. of X-section data sets (input data)
       ! A_   = dim = max no. of Aerosol Mie sets (input data) not including
       !        clouds and SSA
-#ifdef MODEL_GCCLASSIC
+#ifdef MODEL_GEOSCHEM
       integer, parameter ::  X_=123
       integer, parameter ::  A_=56
 #else

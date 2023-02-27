@@ -42,7 +42,7 @@
       __Iam__('CLOUDJ_ERROR_STOP')
 #elif defined( MODEL_CESM )
       call endrun('Cloud-J failure!')
-#elif defined( MODEL_GCCLASSIC )
+#elif defined( MODEL_GEOSCHEM )
       call exit( 99999 )
 #else
       stop
