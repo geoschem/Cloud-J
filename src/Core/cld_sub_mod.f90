@@ -12,6 +12,12 @@
 
       PUBLIC  :: CLOUD_JX
 
+      PRIVATE :: ICA_NR
+      PRIVATE :: ICA_ALL
+      PRIVATE :: ICA_III
+      PRIVATE :: ICA_QUD
+      PRIVATE :: HEAPSORT_A
+
       CONTAINS
 
       SUBROUTINE CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,  &
@@ -23,28 +29,35 @@
 !     1) cloud decorellation w/ max-overlap blocks:  LNRG = 6 and CLDCOR = 0.33
 !     2) cloud quadrature w/ average over eqch QCA:   CLDFALG = 7
 !
-!   Problem with correlation is that each new cloud layer generates 2x combinations
-!      Thus the possibilities are for 2**Lcloudtop ICAs - that is too many (2**35)
-!   Using  correlation lengths (3 km for tropical and high clouds, 1.5 km for stratus)
+!   Problem with correlation is that each new cloud layer generates 2x
+!   combinations
+!      Thus the possibilities are for 2**Lcloudtop ICAs - that is too many
+!      (2**35)
+!   Using  correlation lengths (3 km for tropical and high clouds, 1.5 km for
+!   stratus)
 !      Choose 6 bins (of thickness = correl length) as Max-Overlap, then have
 !      these bins be randomly or correlated with bins above
-!   For now just assume these are random as with the other 2 max-ran groups above.
+!   For now just assume these are random as with the other 2 max-ran groups
+!   above.
 !
 ! GRP1 = 0 - 1.5km,  GRP2 = 1.5 - 3.5km,  GRP3 = 3.5 - 6km
-! GRP4 =  6 - 9km,   GRP5 = 9 - 13km,     GRP6 = 13km+   (GRP7 = separate cirrus shields)
+! GRP4 =  6 - 9km,   GRP5 = 9 - 13km,     GRP6 = 13km+   (GRP7 = separate
+! cirrus shields)
 !
 !Key Refs
-! Kato, S., et al (2010), Relationships among cloud occurrence frequency, overlap,
-!        and effective thickness derived from CALIPSO and CloudSat merged cloud vertical
-!        profiles, J. Geophys. Res., 115, D00H28, doi:10.1029/2009JD012277.
-! Pincus, R., et al. (2005), Overlap assumptions for assumed probability distribution
-!        function cloud schemes in large-scale models, J. Geophys. Res., 110, D15S09,
-!        doi:10.1029/2004JD005100.
-! Oreopoulos, L., et al (2012) Radiative impacts of cloud heterogeneity and overlap
-!        in an atmospheric General Circulation Model,  Atmos. Chem. Phys., 12, 9097-9111,
-!        doi:10.5194/acp-12-9097-2012
-! Naud, C., & A. D.  DelGenio (2006) Cloud Overlap Dependence on Atmospheric Dynamics,
-!        16th ARM Science Team Meeting Proceedings, Albuquerque, NM, March 27 - 31, 2006.
+! Kato, S., et al (2010), Relationships among cloud occurrence frequency,
+!   overlap, and effective thickness derived from CALIPSO and CloudSat merged
+!   cloud vertical profiles, J. Geophys. Res., 115, D00H28,
+!   doi:10.1029/2009JD012277.
+! Pincus, R., et al. (2005), Overlap assumptions for assumed probability
+!   distribution function cloud schemes in large-scale models, J. Geophys.
+!   Res., 110, D15S09, doi:10.1029/2004JD005100.
+! Oreopoulos, L., et al (2012) Radiative impacts of cloud heterogeneity and
+!   overlap in an atmospheric General Circulation Model,  Atmos. Chem. Phys.,
+!   12, 9097-9111, doi:10.5194/acp-12-9097-2012
+! Naud, C., & A. D.  DelGenio (2006) Cloud Overlap Dependence on Atmospheric
+!   Dynamics, 16th ARM Science Team Meeting Proceedings, Albuquerque, NM,
+!   March 27 - 31, 2006.
 !
 !  CLOUD_JX is fractional cloud cover driver for subroutine PHOTO_JX
 !    calc J's for a single column atmosphere (aka Indep Colm Atmos or ICA)
@@ -57,9 +70,12 @@
 !       CLDFLAG = 2  :  Averaged cloud cover
 !       CLDFLAG = 3  :  cloud-fract**3/2, then average cloud cover
 !       CLDFLAG = 4  :  NO LONGER VALID
-!       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent Column Atmos.)
-!       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs (mid-pts of bin)
-!       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds within each Q-bin) ***recommended
+!       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent
+!                       Column Atmos.)
+!       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs
+!                       (mid-pts of bin)
+!       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds within each
+!                       Q-bin) ***recommended
 !       CLDFLAG = 8  :  Calcluate J's for ALL ICAs (up to 20,000 per cell!)
 
 !--CLDIW = index for each lcoud layer:
@@ -112,7 +128,8 @@
       real*8,  dimension(L1U)     :: LWPX,IWPX,REFFLX,REFFIX
       real*8,  dimension(LWEPAR)  :: CLTL,CLTI, CLT,CLDX
       integer, dimension(LWEPAR)  :: NCLDF
-      integer, dimension(9)       :: GBOT,GTOP,GLVL,GNR,GCMX  ! # max-verlap groups set at 9
+      ! # max-verlap groups set at 9
+      integer, dimension(9)       :: GBOT,GTOP,GLVL,GNR,GCMX
       integer, dimension(9,CBIN_+1) :: GFNR
       real*8,  dimension(CBIN_)   ::  CFBIN
       real*8,  dimension(ICA_)    ::    WCOL,OCOL, OCDFS
@@ -407,12 +424,13 @@
                      do II = NQ1(N),NQ2(N)
                         I = ISORT(II)
 
-                        call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, CLDCOR,NCLDF, &
-                           GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+                        call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, CLDCOR, &
+                           NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
 
                         if (LPRTJ0) then
-                           write(6,'(a,3i5,2f8.4,f9.3)') ' N(QCA)/II/I WCOL,OCOL',  &
-                           N,II,I,WCOL(I),WTQCA(N),OCOL(I)
+                           write(6,'(a,3i5,2f8.4,f9.3)') &
+                                 ' N(QCA)/II/I WCOL,OCOL',  &
+                                 N,II,I,WCOL(I),WTQCA(N),OCOL(I)
                         endif
                         do L = 1,LTOP
                            if (TTCOL(L) .gt. 1.d-8) then
@@ -747,28 +765,34 @@
       else
 !-----------------------------------------------------------------------------
 !---Newest recommended approach (v7.3) to use cloud correlation lengths
-!   Problem with correlation is that each new cloud layer generates 2x combinations
-!      Thus the possibilities are for 2**Lcloudtop ICAs - that is too many (2**35)
-!   Using  correlation lengths (3 km for tropical and high clouds, 1.5 km for stratus)
+!   Problem with correlation is that each new cloud layer generates 2x
+!   combinations
+!      Thus the possibilities are for 2**Lcloudtop ICAs - that is too many
+!      (2**35)
+!   Using  correlation lengths (3 km for tropical and high clouds, 1.5 km for
+!   stratus)
 !      Choose 6 bins (of thickness = correl length) as Max-Overlap, then have
 !      these bins be randomly or correlated with bins above
-!   For now just assume these are random as with the other 2 max-ran groups above.
+!   For now just assume these are random as with the other 2 max-ran groups
+!   above.
 !
 ! GRP1 = 0 - 1.5km,  GRP2 = 1.5 - 3.5km,  GRP3 = 3.5 - 6km
 ! GRP4 =  6 - 9km,   GRP5 = 9 - 13km,     GRP6 = 13km+
 !
 !Key Refs
-!  Kato, S., et al (2010), Relationships among cloud occurrence frequency, overlap,
-!        and effective thickness derived from CALIPSO and CloudSat merged cloud vertical
-!        profiles, J. Geophys. Res., 115, D00H28, doi:10.1029/2009JD012277.
-! Pincus, R., et al. (2005), Overlap assumptions for assumed probability distribution
-!        function cloud schemes in large-scale models, J. Geophys. Res., 110, D15S09,
-!        doi:10.1029/2004JD005100.
-! Oreopoulos, L., et al (2012) Radiative impacts of cloud heterogeneity and overlap
-!        in an atmospheric General Circulation Model,  Atmos. Chem. Phys., 12, 9097-9111,
-!        doi:10.5194/acp-12-9097-2012
-! Naud, C., & A. D.  DelGenio (2006) Cloud Overlap Dependence on Atmospheric Dynamics,
-!        16th ARM Science Team Meeting Proceedings, Albuquerque, NM, March 27 - 31, 2006.
+!  Kato, S., et al (2010), Relationships among cloud occurrence frequency,
+!    overlap, and effective thickness derived from CALIPSO and CloudSat merged
+!    cloud vertical profiles, J. Geophys. Res., 115, D00H28,
+!    doi:10.1029/2009JD012277.
+!  Pincus, R., et al. (2005), Overlap assumptions for assumed probability
+!    distribution function cloud schemes in large-scale models, J. Geophys.
+!    Res., 110, D15S09, doi:10.1029/2004JD005100.
+!  Oreopoulos, L., et al (2012) Radiative impacts of cloud heterogeneity
+!    and overlap in an atmospheric General Circulation Model,  Atmos. Chem.
+!    Phys., 12, 9097-9111, doi:10.5194/acp-12-9097-2012
+!  Naud, C., & A. D.  DelGenio (2006) Cloud Overlap Dependence on
+!    Atmospheric Dynamics, 16th ARM Science Team Meeting Proceedings,
+!    Albuquerque, NM, March 27 - 31, 2006.
 !
 !---Find the levels in each of the NRG6_  altitude-defined groups
        do L = 1,LCLTOP
@@ -948,22 +972,30 @@
       enddo
         FCMX(NRG+1) = 0.d0
 
-!  pre-calculate correl factors here:  no change if G = 100% cloud or G+1 = 100% cloud or clear
+!  pre-calculate correl factors here:  no change if G = 100% cloud or
+!  G+1 = 100% cloud or clear
 !   also no correlation fix for top MAX-GRP
       do G = 1,NRG-1
        LSKIP =   GCMX(G+1).eq.0 .or. GCMX(G+1).eq.CBINU   &
-           .or.  GCMX(G).eq.0 .or. GCMX(G).eq.CBINU     !must have cloudy&clear in both MAX-GRPs
+           .or.  GCMX(G).eq.0 .or. GCMX(G).eq.CBINU  ! must have cloudy&clear
+                                                     ! in both MAX-GRPs
        if (.not.LSKIP) then
           FIG2 = FCMX(G+1)       ! cloudy fract of MAX-GRP just above (G+1)
           GRP2 = GLVL(G+1)       ! upper G6 group for NRG # G+1
-          FIG1 = FCMX(G)         ! cloudy fract of current MAX-GRP (sum of cloudy fracts)
+          FIG1 = FCMX(G)         ! cloudy fract of current MAX-GRP (sum of
+                                 ! cloudy fracts)
           GRP1 = GLVL(G)         ! current G6 group for NRG # G
-          CORRFAC = CLDCOR**(GRP2-GRP1)  ! Cloud Correl Factor decreases with gap in G6 groups
-! correlation factor: increase fract-area of cloudy member under cloudy section of upper layer (FIG2)
-! Note that limits to increase depend on fract of cloud area above and the layer being increased
-          GCORR = min(1.d0 + CORRFAC*(1.d0/FIG2 - 1.d0), 1.d0/FIG2, 1.d0/FIG1)   !v7.7 taken out of loop below
+          CORRFAC = CLDCOR**(GRP2-GRP1)  ! Cloud Correl Factor decreases with
+                                         ! gap in G6 groups
+! correlation factor: increase fract-area of cloudy member under cloudy
+! section of upper layer (FIG2)
+! Note that limits to increase depend on fract of cloud area above and
+! the layer being increased
+          GCORR = min(1.d0 + CORRFAC*(1.d0/FIG2 - 1.d0), 1.d0/FIG2, 1.d0/FIG1)
+          !v7.7 taken out of loop below
         do I = 2,GNR(G)
-! enhance weighting for cloudy members below a cloud, reduce weighting below clear sky
+! enhance weighting for cloudy members below a cloud, reduce weighting
+! below clear sky
          FWTC(G,I) = GCORR * FWT(G,I)
          FWTCC(G,I) = FWT(G,I)*(1.d0-GCORR*FIG2)/(1.d0-FIG2)
         enddo
@@ -984,13 +1016,15 @@
         do G = 1,NRG
            IG1 = IGNR(G)          ! working on MAX-GRP = G, member IG1
            L_CLR1 = GFNR(G,  IG1) .gt. GCMX(G)      ! member IG1 is clear
-         if (G .eq. NRG) then     ! fix of indexing error in Cloud-J 7.3 did not affect results
+         if (G .eq. NRG) then     ! fix of indexing error in Cloud-J 7.3 did
+                                  ! not affect results
            L_CLR2 = .true.
          else
            IG2 = IGNR(G+1)        ! member of MAX-GRP = G+1 for this ICA
-           L_CLR2 = GFNR(G+1,IG2) .gt. GCMX(G+1)    ! member above (IG2) is clear
+           L_CLR2 = GFNR(G+1,IG2) .gt. GCMX(G+1)  ! member above (IG2) is clear
          endif
-! all of these combinations should preserve the total weighting for layer member IG1
+! all of these combinations should preserve the total weighting for layer
+! member IG1
           if (.not.L_CLR2) then
 ! upper layer GRP member IG2 is a cloud layer (maybe one of several)
             if (.not.L_CLR1) then
