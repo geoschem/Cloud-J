@@ -270,6 +270,10 @@
       integer NRATJ         ! number of Photolysis reactions in CTM chemistry, NRATJ <= JVN_
       character*6 JVMAP(JVN_) !label of J-value used to match w/FJX J's
       character*50 JLABEL(JVN_) ! label of J-value used in the chem model
+#ifdef MODEL_GEOSCHEM
+      integer BRANCH(JVN_)      ! Branches for photolysis species
+      character*10 RNAMES(JVN_) ! Names of photolysis species
+#endif
 
 ! Cloud overlap parameters
 !-----------------------------------------------------------------------
