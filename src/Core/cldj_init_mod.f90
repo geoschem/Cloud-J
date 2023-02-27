@@ -16,10 +16,11 @@
       CONTAINS
 
 !-----------------------------------------------------------------------
-      subroutine INIT_CLDJ (TITLEJXX,NJXU,NJXX)
+      subroutine INIT_CLDJ (DATADIR,TITLEJXX,NJXU,NJXX)
 !-----------------------------------------------------------------------
       implicit none
 
+      character(LEN=*), intent(in) :: DATADIR
       integer, intent(in)  ::NJXU
       integer, intent(out) ::NJXX
       character*6, intent(out), dimension(NJXU) :: TITLEJXX
@@ -32,7 +33,7 @@
       JXUNIT  = 8
 
       NUN = JXUNIT
-      open (NUN,FILE='tables/CJ77_inp.dat',status='old',form='formatted')
+      open (NUN,FILE=TRIM(DATADIR)//'CJ77_inp.dat',status='old',form='formatted')
       read (NUN,'(a120)',err=4) TIT_SPEC
          write(6,'(a)') TIT_SPEC
       read (NUN,'(e10.3)',err=4) RAD
@@ -105,7 +106,7 @@
       ANGLES(5) = 0.e0 ! assgin U0 in photol_mod.f90
 
 ! Read in Fast/Solar-J X-sections (spectral data)
-      call RD_XXX(JXUNIT,'tables/FJX_spec.dat')
+      call RD_XXX(JXUNIT,TRIM(DATADIR)//'FJX_spec.dat')
 
       if (.not.(LRRTMG .or. LCLIRAD .or. LGGLLNL)) then
          do I = W_,  S_
@@ -133,28 +134,28 @@
       enddo
 
 ! Read in cloud scattering data
-      call RD_CLD(JXUNIT,'tables/FJX_scat-cld.dat')
+      call RD_CLD(JXUNIT,TRIM(DATADIR)//'FJX_scat-cld.dat')
 
 ! Read in strat sulf aerosols scattering data
-      call RD_SSA(JXUNIT,'tables/FJX_scat-ssa.dat')
+      call RD_SSA(JXUNIT,TRIM(DATADIR)//'FJX_scat-ssa.dat')
 
 ! Read in aerosols scattering data
-      call RD_MIE(JXUNIT,'tables/FJX_scat-aer.dat')
+      call RD_MIE(JXUNIT,TRIM(DATADIR)//'FJX_scat-aer.dat')
 
 ! Read in UMich aerosol scattering data
-      call RD_UM (JXUNIT,'tables/FJX_scat-UMa.dat')
+      call RD_UM (JXUNIT,TRIM(DATADIR)//'FJX_scat-UMa.dat')
 
 ! Read in GEOMIP aerosol scattering data
-      call RD_GEO (JXUNIT, 'tables/FJX_scat-geo.dat')
+      call RD_GEO (JXUNIT,TRIM(DATADIR)//'FJX_scat-geo.dat')
 
 ! Read in T & O3 climatology used to fill e.g. upper layers or if O3 not calc.
-      call RD_PROF(JXUNIT,'tables/atmos_std.dat')
+      call RD_PROF(JXUNIT,TRIM(DATADIR)//'atmos_std.dat')
 
 ! Read in H2O and CH4 profiles for Solar-J
-      call RD_TRPROF(JXUNIT,'tables/atmos_h2och4.dat')
+      call RD_TRPROF(JXUNIT,TRIM(DATADIR)//'atmos_h2och4.dat')
 
 ! Read in zonal mean Strat-Sulf-Aerosol monthly data
-      call RD_SSAPROF(JXUNIT,'tables/atmos_geomip.dat')
+      call RD_SSAPROF(JXUNIT,TRIM(DATADIR)//'atmos_geomip.dat')
 
       NJXX = NJX
       do J = 1,NJXX
@@ -163,10 +164,10 @@
 
 ! Read in photolysis rates used in chemistry code and mapping onto FJX J's
 !---CTM call:  read in J-values names and link to fast-JX names
-      call RD_JS_JX(JXUNIT,'tables/FJX_j2j.dat', TITLEJXX,NJXX)
+      call RD_JS_JX(JXUNIT,TRIM(DATADIR)//'FJX_j2j.dat', TITLEJXX,NJXX)
 
 !---for full ASAD:
-!     call RD_JS(JXUNIT,'tables/ratj.d', TITLEJXX,NJXX,TSPECI,JPSPEC  &
+!     call RD_JS(JXUNIT,TRIM(DATADIR)//'ratj.d', TITLEJXX,NJXX,TSPECI,JPSPEC  &
 !                ,MJVAL,TJVAL,MJX)
 
 !---setup the random number sequence RAN4

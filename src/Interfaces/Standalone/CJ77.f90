@@ -64,7 +64,7 @@
       L1U = L1_
 !---read in & store all fast-JX data:   single call at set up
 !-----------------------------------------------------------------------
-      call INIT_CLDJ (TITLJXX,JVNU,NJXX)
+      call INIT_CLDJ ('./tables/',TITLJXX,JVNU,NJXX)
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case
