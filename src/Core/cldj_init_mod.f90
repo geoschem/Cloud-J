@@ -196,6 +196,8 @@
         call EXITC(' CLDJ_INIT: error in read')
     1 continue
 
+      write(6,*) ' end of Solar/Cloud-J initialization'
+
       END SUBROUTINE INIT_CLDJ
 
 

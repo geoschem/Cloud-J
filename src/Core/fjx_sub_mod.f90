@@ -842,7 +842,9 @@
             write(6,'(a)') ' Fast-J  v7.6 ----J-values----'
             write(6,'(1x,a,72(a6,3x))') 'L=  ',(TITLEJX(K), K=1,NJX)
             do L = LU,1,-1
-               write(6,'(i3,1p, 72e9.2)') L,(VALJXX(L,K),K=1,NJX)
+               ! Adjust NJX (# J-values per level) in write statement for GEOS-Chem
+               !write(6,'(i3,1p, 72e9.2)') L,(VALJXX(L,K),K=1,NJX)
+               write(6,'(i3,1p,104e9.2)') L,(VALJXX(L,K),K=1,NJX)
             enddo
        endif  ! end of CLOUDJ print
       endif   ! end of LPRTJ if

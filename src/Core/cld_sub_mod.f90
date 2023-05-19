@@ -374,7 +374,7 @@
                      endif
                   enddo
 !-----------------------------------------------------------------------
-              call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH, &
+                  call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH, &
                    DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,     &
                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK)
                   if (.not.LDARK) then
