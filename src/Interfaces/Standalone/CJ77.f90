@@ -169,7 +169,7 @@
         if (WIC(L) .gt. 1.d-12) then
             PDEL = PPP(L) - PPP(L+1)
             ZDEL = (ZZZ(L+1) - ZZZ(L))*0.01d0  ! m
-          IWP(L) = 1000.d0*WIC(L)*PDEL*G100 /CLF(L)   ! g/m2
+          IWP(L) = 1000.d0*WIC(L)*PDEL*G100    ! g/m2
           ICWC =        IWP(L) / ZDEL          ! g/m3
           REFFI(L) = 164.d0 * (ICWC**0.23d0)
         else
