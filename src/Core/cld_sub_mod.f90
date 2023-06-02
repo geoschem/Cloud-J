@@ -250,12 +250,12 @@
 !---Generate max-ran cloud overlap groups used for CLDFLAG = 4:8
 !---CLT(cloud ice+liq OD) & IWPX & LWPX adjusted to quantized cld fr
 !-------------------------------------------------------------------------
-         call ICA_NR(CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,CBIN_,ICA_, &
+         call ICA_NR(LPRTJ0,CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,CBIN_,ICA_, &
              CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
 
 !---call ICA_ALL to generate the weight and cloud total OD of each ICA
 !-------------------------------------------------------------------------
-         call ICA_ALL(CLDX,CLT,LTOP,CBIN_,ICA_, CFBIN,     &
+         call ICA_ALL(LPRTJ0,CLDX,CLT,LTOP,CBIN_,ICA_, CFBIN,     &
             CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
 
          if(LPRTJ0) then
@@ -288,8 +288,8 @@
                   I = I+1
                enddo
 
-               call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, &
-                  CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+               call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
+                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
@@ -343,7 +343,7 @@
 ! 6 = calculate quadrature QCAs, use up to 4 mid points
          if (CLDFLAG .eq. 6) then
 
-            call ICA_QUD(WCOL,OCOL,LTOP,ICA_,NQD_,NICA, &
+            call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
                          WTQCA, ISORT,NQ1,NQ2,NDXQS)
 
             if (LPRTJ0) then
@@ -359,8 +359,8 @@
                if (WTQCA(N) .gt. 0.d0) then
                   I = ISORT(NDXQS(N))
 
-                  call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, CLDCOR,NCLDF, &
-                     GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+                  call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
+                                GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 
 !---zero out cloud water paths which are not in the selected QCA
                   do L = 1, LTOP
@@ -406,7 +406,7 @@
 ! 7 = calculate quadrature atmosphere - average cloud within each QCA bin.
          if (CLDFLAG .eq. 7) then
 
-            call ICA_QUD(WCOL,OCOL,LTOP,ICA_,NQD_,NICA, &
+            call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
                          WTQCA, ISORT,NQ1,NQ2,NDXQS)
 
             if (LPRTJ0) then
@@ -424,8 +424,8 @@
                      do II = NQ1(N),NQ2(N)
                         I = ISORT(II)
 
-                        call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, CLDCOR, &
-                           NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+                        call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
+                                      GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 
                         if (LPRTJ0) then
                            write(6,'(a,3i5,2f8.4,f9.3)') &
@@ -497,8 +497,8 @@
                   write(6,'(i5,2f9.4)') NICA,OCOL(NICA),WCOL(NICA)
             endif
             do I = 1, NICA
-               call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, CLDCOR,NCLDF, &
-                  GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+               call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
+                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
                   LWPX(L) = LWP(L)
@@ -545,7 +545,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_NR(CLDF,CLTAU,IWPX,LWPX,ZZZ,CLDIW,LTOP,CBIN_, &
+      SUBROUTINE ICA_NR(LPRTJ0,CLDF,CLTAU,IWPX,LWPX,ZZZ,CLDIW,LTOP,CBIN_, &
             ICA_,CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
 !-----------------------------------------------------------------------
 !---revised in v7.7 (02/2020) fixed MAX-RAN (#0 & #3) set CLDCOR=0 if need be
@@ -590,6 +590,7 @@
       real*8, dimension(NRG6_), parameter:: Zbin =                 &
           [0.d5, 1.5d5, 3.5d5, 6.0d5, 9.0d5, 13.d5]
 
+      logical, intent(in) :: LPRTJ0
       integer,intent(in) :: LTOP, CBIN_, ICA_
       integer,intent(in),dimension(LTOP) :: CLDIW
       real*8, intent(in),dimension(LTOP) :: CLDF, ZZZ
@@ -916,7 +917,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_ALL(CLF,CLT,LTOP,CBINU,ICAU, CFBIN,CLDCOR,NCLDF,  &
+      SUBROUTINE ICA_ALL(LPRTJ0,CLF,CLT,LTOP,CBINU,ICAU, CFBIN,CLDCOR,NCLDF,  &
            GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
 !-----------------------------------------------------------------------
 !    OCOL() = cloud optical depth (total) in each ICA
@@ -934,6 +935,7 @@
 !      Integrating over fractional cloud cover,J. Geophys. Res., 112, D11306,
 !       doi:10.1029/2006JD008007
       implicit none
+      logical, intent(in) :: LPRTJ0
       integer, intent(in) :: LTOP, CBINU, ICAU, NRG, NICA
       integer, intent(in), dimension(LTOP)  :: NCLDF
       integer, intent(in), dimension(9)     :: GBOT,GTOP,GLVL,GNR,GCMX
@@ -1060,18 +1062,18 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_III(CLF,CLT,LTOP,CBINU,ICAU, III, &
-               CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+      SUBROUTINE ICA_III(LPRTJ0, CLT,  LTOP, CBINU, III,  NCLDF, GFNR, &
+                         GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 !-----------------------------------------------------------------------
 !    see ICA_ALL, this subroutine picks out the ICA atmosphere #III
 !      and loads the REFF/WPs for a FAST_JX calculation.
       implicit none
-      integer, intent(in) :: LTOP, CBINU, ICAU, NRG, NICA, III
+      logical, intent(in) :: LPRTJ0
+      integer, intent(in) :: LTOP, CBINU, NRG, NICA, III
       integer, intent(in), dimension(LTOP)  :: NCLDF
-      integer, intent(in), dimension(9)     :: GBOT,GTOP,GLVL,GNR,GCMX
+      integer, intent(in), dimension(9)     :: GBOT,GTOP,GNR
       integer, intent(in), dimension(9,CBINU+1) :: GFNR
-      real*8,  intent(in), dimension(LTOP)  :: CLF,CLT
-      real*8,  intent(in)                   :: CLDCOR
+      real*8,  intent(in), dimension(LTOP)  :: CLT
       real*8,  intent(out),dimension(LTOP)  :: TTCOL
 
       integer II, IG, G, L
@@ -1092,7 +1094,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_QUD(WCOL,OCOL, LTOP,ICAU,NQDU,NICA, &
+      SUBROUTINE ICA_QUD(WCOL,OCOL, ICAU,NQDU,NICA, &
                          WTQCA, ISORT,NQ1,NQ2,NDXQS)
 !-----------------------------------------------------------------------
 !---Take the full set of ICAs and group into the NQD_ ranges of total OD
@@ -1100,7 +1102,7 @@
 !---The Quad atmospheres have weights WTQCA
 !-----------------------------------------------------------------------
       implicit none
-      integer, intent(in)        :: LTOP,ICAU,NQDU,NICA
+      integer, intent(in)        :: ICAU,NQDU,NICA
       real*8,  intent(in), dimension(ICAU)      :: WCOL,OCOL
 
       real*8, intent(out), dimension(NQDU)      :: WTQCA
