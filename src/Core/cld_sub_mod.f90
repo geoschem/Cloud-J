@@ -10,12 +10,18 @@
 
       IMPLICIT NONE
 
+      ! Public driver
       PUBLIC  :: CLOUD_JX
 
+      ! Used locally for cloud flags 5, 6, 7, 8
       PRIVATE :: ICA_NR
       PRIVATE :: ICA_ALL
       PRIVATE :: ICA_III
+
+      ! Use locally for cloud flags 6 and 7
       PRIVATE :: ICA_QUD
+
+      ! Not used
       PRIVATE :: HEAPSORT_A
 
       CONTAINS
