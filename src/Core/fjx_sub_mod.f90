@@ -212,8 +212,15 @@
       real*8   XQO3,XQO2,TTTX, ODKL,DPKL
       real*8   ODRRTM,FRRTM
       real*8   ZMID
+
+      ! Debugging logicals
+      logical :: run_liqcld
+      logical :: run_icecld
 !-----------------------------------------------------------------------
 
+      ! Debugging logicals to turn on/off components
+      run_liqcld   = .true.
+      run_icecld   = .true.
       LU = L1U - 1
       VALJXX(:,:) = 0.d0
       FFXTAU(:,:) = 0.d0
@@ -322,8 +329,8 @@
                  'Rayl',L,PPP(L),PPP(L+1),TTT(L),OD(18,L)
          endif
 
-!---Liquid Water Cloud
-         if (LWP(L) .gt. 1.d-5 .and. REFFL(L) .gt. 0.1d0) then
+!---Liquid Water Cloud - uses data in FJX_scat-cld.dat
+         if (LWP(L) .gt. 1.d-5 .and. REFFL(L) .gt. 0.1d0 .and. run_liqcld) then
             RE_LIQ = REFFL(L)
             TE_ICE = TTT(L)
 
@@ -349,9 +356,8 @@
                   REFFL(L),OD(18,L)
             endif
          endif
-
-!---Ice Water Cloud
-         if (IWP(L) .gt. 1.d-5 .and. REFFI(L) .gt. 0.1d0) then
+!---Ice Water Cloud - uses data in FJX_scat-cld.dat
+         if (IWP(L) .gt. 1.d-5 .and. REFFI(L) .gt. 0.1d0 .and. run_icecld) then
             RE_ICE = REFFI(L)
             TE_ICE = TTT(L)
 
@@ -377,7 +383,7 @@
                   REFFI(L),OD(18,L)
             endif
          endif
-!---Strat Sulfate Aerosol Cloud: first aerosol index = 1 (bkgrd) or 2 (volcanic)
+!---Strat Sulfate Aerosol Cloud: use index = 1 (bkgrd) or 2 (volcanic)
          do M = 1,ANU
             NAER = NDXAER(L,M)
             if ((NAER.eq.1) .or. (NAER.eq.2)) then
@@ -403,7 +409,7 @@
                endif
             endif
          enddo
-!---GEOMIP enhanced Strat Sulfate Aerosols:  index = 1001 to 1000+NGG
+!---GEOMIP enhanced Strat Sulfate Aerosols: use index = 1001 to 1000+NGG
          do M = 1,ANU
             NAER = NDXAER(L,M)
             if (NAER .gt. 1000) then
@@ -429,7 +435,7 @@
                endif
             endif
          enddo
-!---OTHER aerosols in layer: check aerosol index
+!---OTHER aerosols in layer:  use index = 3 to 999
 !---this uses data from climatology OR from current CTM (STT of aerosols)
 !---subroutines OPTICA & OPTICM return the same information:
 !---  PATH is the g/m2 in the layer, NAER in the cloud/aerosol index
@@ -457,6 +463,7 @@
                endif
             endif
          enddo
+!---U Michigan aerosol data sets - use index < 0
          do M = 1,ANU
             NAER = NDXAER(L,M)
             PATH = AERSP(L,M)
@@ -1944,9 +1951,9 @@
       real*8  FNR
 
         if (TEFF .ge. 233.15d0) then
-      K = 2  ! ice irreg (warm)
+           K = 2  ! ice irreg (warm)
         else
-      K = 3  ! ice hexag (cold)
+           K = 3  ! ice hexag (cold)
         endif
       DDENS = DCC(K)
           I = 1      !must have at least 2 Reff bins, interpolate in Reff
