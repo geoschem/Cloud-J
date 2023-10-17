@@ -63,6 +63,8 @@
          write(6,'(a,3i5)') ' finish params LNRG ATM0 CLDFLAG',LNRG,ATM0,CLDFLAG
       close (NUN)
 
+      ! Uncomment below to set cloud scheme to clear sky for testing
+      !CLDFLAG = 1
       NSJSUB(:) = 0
       SJSUB(:,:) = 0.d0   ! default set up for wavelengths when no sub-bins
       SJSUB(:,1) = 1.d0
