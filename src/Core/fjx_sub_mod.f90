@@ -213,14 +213,8 @@
       real*8   ODRRTM,FRRTM
       real*8   ZMID
 
-      ! Debugging logicals
-      logical :: run_liqcld
-      logical :: run_icecld
 !-----------------------------------------------------------------------
 
-      ! Debugging logicals to turn on/off components
-      run_liqcld   = .true.
-      run_icecld   = .true.
       LU = L1U - 1
       VALJXX(:,:) = 0.d0
       FFXTAU(:,:) = 0.d0
@@ -330,7 +324,7 @@
          endif
 
 !---Liquid Water Cloud - uses data in FJX_scat-cld.dat
-         if (LWP(L) .gt. 1.d-5 .and. REFFL(L) .gt. 0.1d0 .and. run_liqcld) then
+         if (LWP(L) .gt. 1.d-5 .and. REFFL(L) .gt. 0.1d0) then
             RE_LIQ = REFFL(L)
             TE_ICE = TTT(L)
 
@@ -357,7 +351,7 @@
             endif
          endif
 !---Ice Water Cloud - uses data in FJX_scat-cld.dat
-         if (IWP(L) .gt. 1.d-5 .and. REFFI(L) .gt. 0.1d0 .and. run_icecld) then
+         if (IWP(L) .gt. 1.d-5 .and. REFFI(L) .gt. 0.1d0) then
             RE_ICE = REFFI(L)
             TE_ICE = TTT(L)
 
@@ -385,6 +379,7 @@
          endif
 !---Strat Sulfate Aerosol Cloud: use index = 1 (bkgrd) or 2 (volcanic)
          do M = 1,ANU
+
             NAER = NDXAER(L,M)
             if ((NAER.eq.1) .or. (NAER.eq.2)) then
 
