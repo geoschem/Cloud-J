@@ -276,7 +276,7 @@ if(CLOUDJ_EXTERNAL_CONFIG AND MAPL_ESMF)
         INTERFACE $<TARGET_PROPERTY:MAPL.base,INTERFACE_INCLUDE_DIRECTORIES>
     )
     target_compile_definitions(CloudJBuildProperties
-        INTERFACE ESMF_
+        INTERFACE ESMF_ MODEL_GEOSCHEM
     )
 endif()
 
