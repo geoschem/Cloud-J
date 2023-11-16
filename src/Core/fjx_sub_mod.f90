@@ -158,10 +158,10 @@
       real*8,  intent(in), dimension(L1U  )  :: IWP   ! cloud-j input
       real*8,  intent(in), dimension(L1U  )  :: REFFL ! cloud-j input
       real*8,  intent(in), dimension(L1U  )  :: REFFI ! cloud-j input
+      integer, intent(in)                    :: ANU   ! cloud-j input
       real*8,  intent(in), dimension(L1U,ANU):: AERSP ! cloud-j input
       integer, intent(in), dimension(L1U,ANU):: NDXAER! cloud-j input
       integer, intent(in)                    :: L1U   ! cloud-j input
-      integer, intent(in)                    :: ANU   ! cloud-j input
       integer, intent(in)                    :: NJXU  ! cloud-j input
 ! reports out the JX J-values, upper level program converts to CTM chemistry J's
       real*8,intent(out), dimension(L1U-1,NJXU):: VALJXX ! cloud-j output
