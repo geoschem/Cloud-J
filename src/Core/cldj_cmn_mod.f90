@@ -55,18 +55,6 @@
       integer, parameter :: AN_=25
 #endif
 
-      ! JXL_: vertical(levels) dim for J-values computed within fast-JX
-#ifdef MODEL_GEOSCHEM
-      integer, parameter ::  JXL_=L_ 
-#else
-      integer, parameter ::  JXL_=100
-#endif
-
-      integer, parameter ::  JXL1_=JXL_+1
-
-      ! JXL2_: 2*JXL_ + 2 = mx no.levels in basic FJX grid (mid-level)
-      integer, parameter ::  JXL2_=2*JXL_+2
-
       !  Case 1 RRTMG super bins
 
       ! used for table dimensions
