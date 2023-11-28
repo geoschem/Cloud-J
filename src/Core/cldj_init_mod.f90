@@ -28,18 +28,27 @@
       CONTAINS
 
 !-----------------------------------------------------------------------
-      subroutine INIT_CLDJ (DATADIR,TITLEJXX,NJXU,NJXX)
+      subroutine INIT_CLDJ (DATADIR,NLEVELS,TITLEJXX,NJXU,NJXX)
 !-----------------------------------------------------------------------
       implicit none
 
       character(LEN=*), intent(in) :: DATADIR
-      integer, intent(in)  ::NJXU
-      integer, intent(out) ::NJXX
+      integer, intent(in)          :: NLEVELS
+      integer, intent(in)          :: NJXU
+      integer, intent(out)         :: NJXX
       character*6, intent(out), dimension(NJXU) :: TITLEJXX
+
       character*120  TIT_SPEC
       integer  JXUNIT,I, J, K, KR, RANSEED, NUN
 
       write(6,*) ' Solar/Cloud-J  ver-7.7 initialization'
+
+      ! Set cldj_cmn_mod variables based on input numbers of levels
+      L_    = NLEVELS
+      L1_   = L_ + 1
+      L2_   = L_ + 2
+      JVL_  = L_
+      mxlay = L1_
 
       ! Use channel 8 to read fastJX data files:
       JXUNIT  = 8

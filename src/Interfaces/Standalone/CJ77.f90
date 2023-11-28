@@ -49,7 +49,7 @@
       real*8, dimension(LWEPAR) :: CLDFRW,CLDIWCW,CLDLWCW
       real*8  SCALEH,CF,PMID,PDEL,ZDEL,ICWC,F1
       integer I,J,K,L,N
-      integer LTOP, NJXX,JP04,JP09
+      integer LTOP, NJXX,JP04,JP09, NLEVELS
       character*6,  dimension(JVN_)  ::  TITLJXX
       character*11, dimension(4)     ::  TITJX
       real*8 VJOSA(L2_,2),VJSTD(L2_,2)
@@ -59,12 +59,13 @@
 
       write(6,'(a)') '>>>begin Cloud-J v7.7 Standalone'
 
+      NLEVELS = 57
       ANU = AN_
       JVNU = JVN_
       L1U = L1_
 !---read in & store all fast-JX data:   single call at set up
 !-----------------------------------------------------------------------
-      call INIT_CLDJ ('./tables/',TITLJXX,JVNU,NJXX)
+      call INIT_CLDJ ('./tables/',NLEVELS,TITLJXX,JVNU,NJXX)
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case

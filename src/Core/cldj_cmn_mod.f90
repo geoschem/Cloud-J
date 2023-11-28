@@ -27,35 +27,19 @@
 
       ! Can be changed as needed. Must be exact atmospheric dimensions.
 
-      !  # layers in model (one layer is added to go to ZTOP+ZZHT)
-      integer, parameter :: LPAR = 57  
+      integer :: L_    !  # of CTM layers
+      integer :: L1_   !  L_+1 = # of CTM layer edges (radii)
+      integer :: L2_   !  L_+2 = total # of layer edges counting top (TAU=0)
 
-      !  # layers that have clouds (LWEtPAR < LPAR)
+      !  # layers that have clouds (LWEPAR < L_)
       integer, parameter :: LWEPAR = 34        
-
-      !  L_  :  # of CTM layers
-#ifdef MODEL_GEOSCHEM
-      integer, parameter :: L_ = 72
-#else
-      integer, parameter :: L_ = LPAR
-#endif
-
-      !  L1_ :  L_+1 = # of CTM layer edges (radii)
-      integer, parameter :: L1_=L_+1
-
-      !  L2_ :  L_+2 = total # of layer edges counting top (TAU=0)
-      integer, parameter :: L2_ = L_+2
 
 !------------------------------------------------------------------------------
 ! Additional parameters
 !------------------------------------------------------------------------------
 
       ! JVL_ :  vertical(levels) dim for J-values sent to CTM
-#ifdef MODEL_GEOSCHEM
-      integer, parameter :: JVL_ = L_
-#else
-      integer, parameter :: JVL_ = LPAR
-#endif
+      integer :: JVL_
 
       ! JVN_ :  max # of J-values
 #ifdef MODEL_GEOSCHEM
@@ -184,7 +168,7 @@
 ! Key parameters read in at initialization and not locked in at compile
 !-----------------------------------------------------------------------
 
-      ! ZZHT: scale height (cm) used above top of CTM ZHL(LPAR+1)
+      ! ZZHT: scale height (cm) used above top of CTM ZHL(L_+1)
       !real*8, parameter   :: ZZHT = 5.d5
       real*8 ZZHT
 
@@ -524,7 +508,7 @@
 ! Extras for Cloud-J
 !------------------------------------------------------------------------------
 
-      integer, parameter::  mxlay = L1_
+      integer ::  mxlay
 
       integer, parameter::  ngptsw = S_+1
 
