@@ -70,7 +70,7 @@
 !          Extended to v7.4 to allow for Solar-J
 !          v7.4d fixed the deposition of sunlight for SAZ>90, J's are unchanged.
 
-      MODULE FJX_SUB_MOD
+      MODULE CLDJ_FJX_SUB_MOD
 
       USE CLDJ_CMN_MOD
       USE CLDJ_ERROR_MOD
@@ -3226,4 +3226,4 @@
       END SUBROUTINE EXITC
 
 
-      END MODULE FJX_SUB_MOD
+      END MODULE CLDJ_FJX_SUB_MOD

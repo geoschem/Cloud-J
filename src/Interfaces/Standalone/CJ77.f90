@@ -14,9 +14,9 @@
 
       USE CLDJ_CMN_MOD
       USE CLDJ_INIT_MOD
-      USE FJX_SUB_MOD
-      USE CLD_SUB_MOD, ONLY : CLOUD_JX
-      USE OSA_SUB_MOD
+      USE CLDJ_FJX_SUB_MOD
+      USE CLDJ_SUB_MOD, ONLY : CLOUD_JX
+      USE CLDJ_OSA_SUB_MOD
 
       implicit none
 !---------------key params in/out of CLOUD_J-------------------------

@@ -16,7 +16,7 @@
       ! This subroutine is based on the equivalent function in GEOS-Chem
       ! (https://github.com/geoschem/geos-chem).
 !-----------------------------------------------------------------------
-#if defined( ESMF_ )
+#if defined( MAPL_ESMF )
 #include "MAPL_Generic.h"
       USE MAPLBase_Mod
 #elif defined( MODEL_CESM )
@@ -29,7 +29,7 @@
 
       character(len=512) :: tmpmsg
 
-#if defined( ESMF_ )
+#if defined( MAPL_ESMF )
       __Iam__('CLOUDJ_ERROR_STOP')
 #elif defined( MODEL_CESM )
       call endrun('Cloud-J failure!')

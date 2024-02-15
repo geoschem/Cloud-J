@@ -1,4 +1,4 @@
-MODULE OSA_SUB_MOD
+MODULE CLDJ_OSA_SUB_MOD
    ! for Cloud-J and Solar-J v7.6+
 
    !SFX_LIC Copyright 1994-2014 CNRS, Meteo-France and Universite Paul Sabatier
@@ -668,4 +668,4 @@ enddo
 
 END SUBROUTINE OSA
 
-END MODULE OSA_SUB_MOD
+END MODULE CLDJ_OSA_SUB_MOD

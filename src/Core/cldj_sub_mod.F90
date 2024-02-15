@@ -1,12 +1,12 @@
 !------------------------------------------------------------------------------
-!   'cld_sub_mod.f90' for Cloud-J v7.7 (02/2020) - last change = fixes for MAXRAN
+!   'cldj_sub_mod.f90' for Cloud-J v7.7 (02/2020) - last change = fixes for MAXRAN
 !------------------------------------------------------------------------------
 ! Determines how to treat clouds, fractional overlap, etc.
 
-      MODULE CLD_SUB_MOD
+      MODULE CLDJ_SUB_MOD
 
       USE CLDJ_CMN_MOD
-      USE FJX_SUB_MOD,  ONLY: PHOTO_JX, EXITC
+      USE CLDJ_FJX_SUB_MOD,  ONLY: PHOTO_JX, EXITC
 
       IMPLICIT NONE
 
@@ -1238,4 +1238,4 @@
       END SUBROUTINE HEAPSORT_A
 
 
-      END MODULE CLD_SUB_MOD
+      END MODULE CLDJ_SUB_MOD
