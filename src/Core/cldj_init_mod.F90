@@ -984,7 +984,6 @@
        endif
       enddo
 
-      close(NUNIT)
       END SUBROUTINE RD_JS_JX
 
 
