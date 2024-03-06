@@ -28,4 +28,4 @@ jobs:
         run: cmake -S . -B build -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }}
 
       - name: Build
-        run: cmake --build build --parallel 10
+        run: cmake --build build  --verbose
