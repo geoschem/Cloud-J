@@ -24,8 +24,20 @@ jobs:
           platform: ${{ matrix.architecture }}
           version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
 
+      - name: Install vcpkg
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          ./bootstrap-vcpkg.bat
+          ./vcpkg integrate install
+
+      - name: Install dependencies
+        run: |
+          cd vcpkg
+          ./vcpkg install netcdf-c netcdf-fortran
+
       - name: Run Cmake 
-        run: cmake -S . -B build -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }}
+        run: cmake -S . -B build -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build build  --verbose
