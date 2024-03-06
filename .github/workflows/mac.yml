@@ -12,8 +12,9 @@ jobs:
     strategy:
       matrix:
         build_type: [Debug, Release]
+        compiler: [gfrotran-11, gfortran-12, gfortran-13]
     env:
-      FC: gfortran
+      FC: ${{ matrix.compiler }}
 
     steps:
       - name: Checkout code
