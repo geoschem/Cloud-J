@@ -44,10 +44,13 @@
 
       if (AMIROOT) write(6,*) ' Solar/Cloud-J  ver-7.7 initialization'
 
+#if defined ( MODEL_GEOSCHEM )
       ! Set cldj_cmn_mod variables based on input numbers of levels
       L_    = NLEVELS
       L1_   = L_ + 1
       L2_   = L_ + 2
+#endif
+
       JVL_  = L_
       mxlay = L1_
 

@@ -1,7 +1,7 @@
 # Cloud-J/src/CMakeLists.txt
 
 add_library(CloudJ_Standalone STATIC EXCLUDE_FROM_ALL
-	CJ77.f90
+	CJ77.F90
 )
 target_link_libraries(CloudJ_Standalone
 	PUBLIC CloudJ_Core
@@ -17,7 +17,7 @@ target_compile_options(CloudJ_Standalone
 
 #if("cloudj_standalone" IN_LIST CLOUDJ_EXE_TARGETS)
         add_executable(cloudj_standalone
-                CJ77.f90
+                CJ77.F90
         )
         target_link_libraries(cloudj_standalone
                 PUBLIC CloudJ_Standalone

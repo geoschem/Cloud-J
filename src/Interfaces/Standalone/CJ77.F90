@@ -53,6 +53,7 @@
       character*6,  dimension(JVN_)  ::  TITLJXX
       character*11, dimension(4)     ::  TITJX
       real*8 VJOSA(L2_,2),VJSTD(L2_,2)
+      logical :: amIRoot
 
       integer, dimension(10) ::  &
         SZAscan = [ 0, 30, 60, 80, 86, 88, 90, 92, 94, 96]
@@ -63,9 +64,10 @@
       ANU = AN_
       JVNU = JVN_
       L1U = L1_
+      amIRoot = .true.
 !---read in & store all fast-JX data:   single call at set up
-!-----------------------------------------------------------------------
-      call INIT_CLDJ ('./tables/',NLEVELS,TITLJXX,JVNU,NJXX)
+!-----------------------------------------------------------------------      
+      call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,TITLJXX,JVNU,NJXX)
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case
@@ -77,13 +79,13 @@
         read (77,'(f5.2)') ALBEDO(5)
         read (77,'(4f5.2)') ALBEDO(1),ALBEDO(2),ALBEDO(3),ALBEDO(4)
         read (77,'(4f5.2)') WIND,CHLR
-          write(6,'(a,2i5,5x,a,i5)') 'Atmosphere:',LPAR,LWEPAR, 'LPAR / LWEPAR', L1_
+          write(6,'(a,2i5,5x,a,i5)') 'Atmosphere:', L_, LWEPAR, 'L_ / LWEPAR', L1_
           write(6,'(a,f10.4)') 'P surface', PSURF
           write(6,'(a,3i4)') 'MONTH/ LAT',MONTH,ILAT
           write(6,'(a,5f8.4)') 'Albedos 1:4 & 5=SZA', ALBEDO
           write(6,'(a,2f8.3)') 'OSA: wind & chlor-a',WIND,CHLR
         read (77,*)
-       do L = 1,LPAR+1
+       do L = 1,L1_
         read (77,'(i3,1x,2f11.7,2x,f5.1,f5.2,f11.2,2(f7.3,i4))') &
                       J,ETAA(L),ETAB(L),TI(L),RI(L),ZOFL(L) &
                      ,AER1(L),NAA1(L),AER2(L),NAA2(L)
