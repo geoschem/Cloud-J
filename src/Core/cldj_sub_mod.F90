@@ -1123,6 +1123,7 @@
       ISORT(:) = 0
       WTQCA(:)  = 0.d0
       NDXQS(:) = 0
+      OCOLS(:) = 0.d0
 
 !---sort all the Indep Column Atmos (ICAs) in order of increasing column OD
 !--- ISORT is the key, giving the ICA number from smallest to largest column OD
