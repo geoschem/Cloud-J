@@ -16,10 +16,9 @@
       ! This subroutine is based on the equivalent function in GEOS-Chem
       ! (https://github.com/geoschem/geos-chem).
 !-----------------------------------------------------------------------
-#if defined( ESMF_ )
-      ! if using GCHP or GEOS
-      USE MAPL_Mod
-#     include "MAPL_Generic.h"
+#if defined( MAPL_ESMF )
+#include "MAPL_Generic.h"
+      USE MAPLBase_Mod
 #elif defined( MODEL_CESM )
       ! if using cesm
       USE CAM_ABORTUTILS,     ONLY : ENDRUN
@@ -30,19 +29,11 @@
 
       character(len=512) :: tmpmsg
 
-      if ( present(loc) ) then
-         tmpmsg = 'Cloud-J error at '//trim(loc)//': '//trim(msg)
-      else
-         tmpmsg = 'Cloud-J error: '//trim(msg)
-      endif
-      write(6, '(a)' ) tmpmsg
-      call flush(6)
-
-#if defined( ESMF_ )
+#if defined( MAPL_ESMF )
       __Iam__('CLOUDJ_ERROR_STOP')
 #elif defined( MODEL_CESM )
       call endrun('Cloud-J failure!')
-#elif defined( MODEL_GCCLASSIC )
+#elif defined( MODEL_GEOSCHEM )
       call exit( 99999 )
 #else
       stop

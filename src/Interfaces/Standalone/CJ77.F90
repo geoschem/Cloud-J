@@ -14,9 +14,9 @@
 
       USE CLDJ_CMN_MOD
       USE CLDJ_INIT_MOD
-      USE FJX_SUB_MOD
-      USE CLD_SUB_MOD, ONLY : CLOUD_JX
-      USE OSA_SUB_MOD
+      USE CLDJ_FJX_SUB_MOD
+      USE CLDJ_SUB_MOD, ONLY : CLOUD_JX
+      USE CLDJ_OSA_SUB_MOD
 
       implicit none
 !---------------key params in/out of CLOUD_J-------------------------
@@ -49,22 +49,25 @@
       real*8, dimension(LWEPAR) :: CLDFRW,CLDIWCW,CLDLWCW
       real*8  SCALEH,CF,PMID,PDEL,ZDEL,ICWC,F1
       integer I,J,K,L,N
-      integer LTOP, NJXX,JP04,JP09
+      integer LTOP, NJXX,JP04,JP09, NLEVELS
       character*6,  dimension(JVN_)  ::  TITLJXX
       character*11, dimension(4)     ::  TITJX
       real*8 VJOSA(L2_,2),VJSTD(L2_,2)
+      logical :: amIRoot
 
       integer, dimension(10) ::  &
         SZAscan = [ 0, 30, 60, 80, 86, 88, 90, 92, 94, 96]
 
       write(6,'(a)') '>>>begin Cloud-J v7.7 Standalone'
 
+      NLEVELS = 57
       ANU = AN_
       JVNU = JVN_
       L1U = L1_
+      amIRoot = .true.
 !---read in & store all fast-JX data:   single call at set up
-!-----------------------------------------------------------------------
-      call INIT_CLDJ (TITLJXX,JVNU,NJXX)
+!-----------------------------------------------------------------------      
+      call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,TITLJXX,JVNU,NJXX)
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case
@@ -76,13 +79,13 @@
         read (77,'(f5.2)') ALBEDO(5)
         read (77,'(4f5.2)') ALBEDO(1),ALBEDO(2),ALBEDO(3),ALBEDO(4)
         read (77,'(4f5.2)') WIND,CHLR
-          write(6,'(a,2i5,5x,a,i5)') 'Atmosphere:',LPAR,LWEPAR, 'LPAR / LWEPAR', L1_
+          write(6,'(a,2i5,5x,a,i5)') 'Atmosphere:', L_, LWEPAR, 'L_ / LWEPAR', L1_
           write(6,'(a,f10.4)') 'P surface', PSURF
           write(6,'(a,3i4)') 'MONTH/ LAT',MONTH,ILAT
           write(6,'(a,5f8.4)') 'Albedos 1:4 & 5=SZA', ALBEDO
           write(6,'(a,2f8.3)') 'OSA: wind & chlor-a',WIND,CHLR
         read (77,*)
-       do L = 1,LPAR+1
+       do L = 1,L1_
         read (77,'(i3,1x,2f11.7,2x,f5.1,f5.2,f11.2,2(f7.3,i4))') &
                       J,ETAA(L),ETAB(L),TI(L),RI(L),ZOFL(L) &
                      ,AER1(L),NAA1(L),AER2(L),NAA2(L)
@@ -169,7 +172,7 @@
         if (WIC(L) .gt. 1.d-12) then
             PDEL = PPP(L) - PPP(L+1)
             ZDEL = (ZZZ(L+1) - ZZZ(L))*0.01d0  ! m
-          IWP(L) = 1000.d0*WIC(L)*PDEL*G100 /CLF(L)   ! g/m2
+          IWP(L) = 1000.d0*WIC(L)*PDEL*G100    ! g/m2
           ICWC =        IWP(L) / ZDEL          ! g/m3
           REFFI(L) = 164.d0 * (ICWC**0.23d0)
         else
@@ -247,7 +250,7 @@
        call CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,       &
                RRR,OOO,CCC,  LWP,IWP,REFFL,REFFI, CLF,CLDCOR,CLDIW,    &
                AERSP,NDXAER,L1U,ANU,JVNU, VALJXX,SKPERD,SWMSQ,OD18,    &
-               CLDFLAG,NRANDO,IRAN,LNRG,NICA, JCOUNT,LDARK,WTQCA)
+               IRAN,NICA, JCOUNT,LDARK,WTQCA)
 !=======================================================================
 
 

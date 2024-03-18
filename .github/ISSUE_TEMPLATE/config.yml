@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Cloud-J README
+    url: https://github.com/geoschem/cloud-j
+    about: Please see the Cloud-J README and docs subdirectory on GitHub for more information

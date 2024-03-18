@@ -261,7 +261,16 @@ endif()
 #-----------------------------------------------------------------------------
 if(CLOUDJ_EXTERNAL_CONFIG AND GCCLASSIC_WRAPPER)
     target_compile_definitions(CloudJBuildProperties
-        INTERFACE MODEL_GCCLASSIC
+        INTERFACE MODEL_GEOSCHEM
+    )
+endif()
+
+#-----------------------------------------------------------------------------
+# For Cloud-J as submodule in GEOS-Chem "High Performance" (GCHP) superproject
+#-----------------------------------------------------------------------------
+if(CLOUDJ_EXTERNAL_CONFIG AND GCHP_WRAPPER)
+    target_compile_definitions(CloudJBuildProperties
+        INTERFACE MODEL_GEOSCHEM
     )
 endif()
 
@@ -271,12 +280,14 @@ endif()
 if(CLOUDJ_EXTERNAL_CONFIG AND MAPL_ESMF)
     target_link_libraries(CloudJBuildProperties
         INTERFACE $<LINK_ONLY:MAPL.base>
+	INTERFACE $<LINK_ONLY:MAPL.generic>
     )
     target_include_directories(CloudJBuildProperties 
         INTERFACE $<TARGET_PROPERTY:MAPL.base,INTERFACE_INCLUDE_DIRECTORIES>
+	INTERFACE $<TARGET_PROPERTY:MAPL.generic,INTERFACE_INCLUDE_DIRECTORIES>
     )
     target_compile_definitions(CloudJBuildProperties
-        INTERFACE ESMF_
+        INTERFACE MAPL_ESMF
     )
 endif()
 

@@ -1,64 +1,87 @@
 !------------------------------------------------------------------------------
-!   'cld_sub_mod.f90' for Cloud-J v7.7 (02/2020) - last change = fixes for MAXRAN
+!   'cldj_sub_mod.f90' for Cloud-J v7.7 (02/2020) - last change = fixes for MAXRAN
 !------------------------------------------------------------------------------
 ! Determines how to treat clouds, fractional overlap, etc.
 
-      MODULE CLD_SUB_MOD
+      MODULE CLDJ_SUB_MOD
 
       USE CLDJ_CMN_MOD
-      USE FJX_SUB_MOD,  ONLY: PHOTO_JX, EXITC
+      USE CLDJ_FJX_SUB_MOD,  ONLY: PHOTO_JX, EXITC
 
       IMPLICIT NONE
 
+      ! Public driver
       PUBLIC  :: CLOUD_JX
+
+      ! Used locally for cloud flags 5, 6, 7, 8
+      PRIVATE :: ICA_NR
+      PRIVATE :: ICA_ALL
+      PRIVATE :: ICA_III
+
+      ! Use locally for cloud flags 6 and 7
+      PRIVATE :: ICA_QUD
+
+      ! Not used
+      PRIVATE :: HEAPSORT_A
 
       CONTAINS
 
       SUBROUTINE CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,  &
              RRR,OOO,CCC, LWP,IWP,REFFL,REFFI, CLDF,CLDCOR,CLDIW,      &
              AERSP,NDXAER,L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18,      &
-             CLDFLAG,NRANDO,IRAN,LNRG,NICA, JCOUNT,LDARK,WTQCA)
+             IRAN,NICA, JCOUNT,LDARK,WTQCA)
 
 !---Current recommendation for best average J's is
 !     1) cloud decorellation w/ max-overlap blocks:  LNRG = 6 and CLDCOR = 0.33
 !     2) cloud quadrature w/ average over eqch QCA:   CLDFALG = 7
 !
-!   Problem with correlation is that each new cloud layer generates 2x combinations
-!      Thus the possibilities are for 2**Lcloudtop ICAs - that is too many (2**35)
-!   Using  correlation lengths (3 km for tropical and high clouds, 1.5 km for stratus)
+!   Problem with correlation is that each new cloud layer generates 2x
+!   combinations
+!      Thus the possibilities are for 2**Lcloudtop ICAs - that is too many
+!      (2**35)
+!   Using  correlation lengths (3 km for tropical and high clouds, 1.5 km for
+!   stratus)
 !      Choose 6 bins (of thickness = correl length) as Max-Overlap, then have
 !      these bins be randomly or correlated with bins above
-!   For now just assume these are random as with the other 2 max-ran groups above.
+!   For now just assume these are random as with the other 2 max-ran groups
+!   above.
 !
 ! GRP1 = 0 - 1.5km,  GRP2 = 1.5 - 3.5km,  GRP3 = 3.5 - 6km
-! GRP4 =  6 - 9km,   GRP5 = 9 - 13km,     GRP6 = 13km+   (GRP7 = separate cirrus shields)
+! GRP4 =  6 - 9km,   GRP5 = 9 - 13km,     GRP6 = 13km+   (GRP7 = separate
+! cirrus shields)
 !
 !Key Refs
-! Kato, S., et al (2010), Relationships among cloud occurrence frequency, overlap,
-!        and effective thickness derived from CALIPSO and CloudSat merged cloud vertical
-!        profiles, J. Geophys. Res., 115, D00H28, doi:10.1029/2009JD012277.
-! Pincus, R., et al. (2005), Overlap assumptions for assumed probability distribution
-!        function cloud schemes in large-scale models, J. Geophys. Res., 110, D15S09,
-!        doi:10.1029/2004JD005100.
-! Oreopoulos, L., et al (2012) Radiative impacts of cloud heterogeneity and overlap
-!        in an atmospheric General Circulation Model,  Atmos. Chem. Phys., 12, 9097-9111,
-!        doi:10.5194/acp-12-9097-2012
-! Naud, C., & A. D.  DelGenio (2006) Cloud Overlap Dependence on Atmospheric Dynamics,
-!        16th ARM Science Team Meeting Proceedings, Albuquerque, NM, March 27 - 31, 2006.
+! Kato, S., et al (2010), Relationships among cloud occurrence frequency,
+!   overlap, and effective thickness derived from CALIPSO and CloudSat merged
+!   cloud vertical profiles, J. Geophys. Res., 115, D00H28,
+!   doi:10.1029/2009JD012277.
+! Pincus, R., et al. (2005), Overlap assumptions for assumed probability
+!   distribution function cloud schemes in large-scale models, J. Geophys.
+!   Res., 110, D15S09, doi:10.1029/2004JD005100.
+! Oreopoulos, L., et al (2012) Radiative impacts of cloud heterogeneity and
+!   overlap in an atmospheric General Circulation Model,  Atmos. Chem. Phys.,
+!   12, 9097-9111, doi:10.5194/acp-12-9097-2012
+! Naud, C., & A. D.  DelGenio (2006) Cloud Overlap Dependence on Atmospheric
+!   Dynamics, 16th ARM Science Team Meeting Proceedings, Albuquerque, NM,
+!   March 27 - 31, 2006.
 !
 !  CLOUD_JX is fractional cloud cover driver for subroutine PHOTO_JX
 !    calc J's for a single column atmosphere (aka Indep Colm Atmos or ICA)
 !    needs P, T, O3, clds, aersls; adds top-of-atmos layer from climatology
 !    needs day-of-year for sun distance, SZA (does not directly use lat or long)
 !
-!--CLOUD_JX:   different cloud schemes (4:8 require max-ran overlap algorithm)
+!--CLOUD_JX:   different cloud schemes (4:8 require max-ran overlap algorithm).
+!              CLDFLAG is set as global variable during initialization.
 !       CLDFLAG = 1  :  Clear sky J's
 !       CLDFLAG = 2  :  Averaged cloud cover
 !       CLDFLAG = 3  :  cloud-fract**3/2, then average cloud cover
 !       CLDFLAG = 4  :  NO LONGER VALID
-!       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent Column Atmos.)
-!       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs (mid-pts of bin)
-!       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds within each Q-bin) ***recommended
+!       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent
+!                       Column Atmos.)
+!       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs
+!                       (mid-pts of bin)
+!       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds within each
+!                       Q-bin) ***recommended
 !       CLDFLAG = 8  :  Calcluate J's for ALL ICAs (up to 20,000 per cell!)
 
 !--CLDIW = index for each lcoud layer:
@@ -69,26 +92,41 @@
 !-----------------------------------------------------------------------
       implicit none
 !---calling sequence variables
-      integer, intent(in)                    :: L1U,ANU,NJXU, CLDFLAG,IRAN,NRANDO,LNRG
-      real*8,  intent(in)                    :: U0,SZA,SOLF  !v7.7
-      real*8,  intent(inout)                 :: CLDCOR       !v7.7
-      real*8,  intent(in), dimension(5,W_+W_r) :: RFL
+      integer, intent(in)                    :: L1U
+      integer, intent(in)                    :: ANU
+      integer, intent(in)                    :: NJXU
+      integer, intent(in)                    :: IRAN
+      real*8,  intent(in)                    :: U0     !v7.7
+      real*8,  intent(in)                    :: SZA    !v7.7
+      real*8,  intent(in)                    :: SOLF   !v7.7
+      real*8,  intent(inout)                 :: CLDCOR !v7.7
+      real*8,intent(in), dimension(5,W_+W_r) :: RFL
       logical, intent(in)                    :: LPRTJ
-      real*8,  intent(in), dimension(L1U+1)  :: PPP,ZZZ
-      real*8,  intent(in), dimension(L1U  )  :: TTT,HHH,DDD,RRR,OOO,CCC
-      real*8,  intent(in), dimension(L1U  )  :: LWP,IWP,REFFL,REFFI
+      real*8,  intent(in), dimension(L1U+1)  :: PPP
+      real*8,  intent(in), dimension(L1U+1)  :: ZZZ
+      real*8,  intent(in), dimension(L1U  )  :: TTT
+      real*8,  intent(in), dimension(L1U  )  :: HHH
+      real*8,  intent(in), dimension(L1U  )  :: DDD
+      real*8,  intent(in), dimension(L1U  )  :: RRR
+      real*8,  intent(in), dimension(L1U  )  :: OOO
+      real*8,  intent(in), dimension(L1U  )  :: CCC
+      real*8,  intent(in), dimension(L1U  )  :: LWP
+      real*8,  intent(in), dimension(L1U  )  :: IWP
+      real*8,  intent(in), dimension(L1U  )  :: REFFL
+      real*8,  intent(in), dimension(L1U  )  :: REFFI
       real*8,  intent(in), dimension(L1U,ANU):: AERSP
       integer, intent(in), dimension(L1U,ANU):: NDXAER
       real*8,  intent(in), dimension(L1U  )  :: CLDF
       integer, intent(in), dimension(L1U  )  :: CLDIW
 ! reports out the JX J-values, upper level program converts to CTM chemistry J's
-      real*8,  intent(out), dimension(L1U-1,NJXU):: VALJXX
-      real*8,  intent(out), dimension(S_+2,L1U)  :: SKPERD
-      real*8,  intent(out), dimension(6)         :: SWMSQ
-      real*8,  intent(out), dimension(L1U)       :: OD18
-      real*8,  intent(out), dimension(NQD_)      :: WTQCA
-      integer, intent(out)                       :: NICA,JCOUNT
-      logical, intent(out)                       :: LDARK
+      real*8,intent(out), dimension(L1U-1,NJXU):: VALJXX
+      real*8,  intent(out), dimension(S_+2,L1U):: SKPERD
+      real*8,  intent(out), dimension(6)       :: SWMSQ
+      real*8,  intent(out), dimension(L1U)     :: OD18
+      real*8,  intent(out), dimension(NQD_)    :: WTQCA
+      integer, intent(out)                     :: NICA
+      integer, intent(out)                     :: JCOUNT
+      logical, intent(out)                     :: LDARK
 !-----------------------------------------------------------------------
       logical  LPRTJ0
       integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX
@@ -96,7 +134,8 @@
       real*8,  dimension(L1U)     :: LWPX,IWPX,REFFLX,REFFIX
       real*8,  dimension(LWEPAR)  :: CLTL,CLTI, CLT,CLDX
       integer, dimension(LWEPAR)  :: NCLDF
-      integer, dimension(9)       :: GBOT,GTOP,GLVL,GNR,GCMX  ! # max-verlap groups set at 9
+      ! # max-verlap groups set at 9
+      integer, dimension(9)       :: GBOT,GTOP,GLVL,GNR,GCMX
       integer, dimension(9,CBIN_+1) :: GFNR
       real*8,  dimension(CBIN_)   ::  CFBIN
       real*8,  dimension(ICA_)    ::    WCOL,OCOL, OCDFS
@@ -162,6 +201,8 @@
             do L = 1, LWEPAR
                LWPX(L) = 0.d0
                IWPX(L) = 0.d0
+               REFFLX(L) = 0.d0
+               REFFIX(L) = 0.d0
             enddo
          endif
 !-----------------------------------------------------------------------
@@ -215,12 +256,12 @@
 !---Generate max-ran cloud overlap groups used for CLDFLAG = 4:8
 !---CLT(cloud ice+liq OD) & IWPX & LWPX adjusted to quantized cld fr
 !-------------------------------------------------------------------------
-         call ICA_NR(CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,LNRG,CBIN_,ICA_, &
+         call ICA_NR(LPRTJ0,CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,CBIN_,ICA_, &
              CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
 
 !---call ICA_ALL to generate the weight and cloud total OD of each ICA
 !-------------------------------------------------------------------------
-         call ICA_ALL(CLDX,CLT,LTOP,CBIN_,ICA_, CFBIN,     &
+         call ICA_ALL(LPRTJ0,CLDX,CLT,LTOP,CBIN_,ICA_, CFBIN,     &
             CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
 
          if(LPRTJ0) then
@@ -253,8 +294,8 @@
                   I = I+1
                enddo
 
-               call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, &
-                  CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+               call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
+                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
@@ -308,7 +349,7 @@
 ! 6 = calculate quadrature QCAs, use up to 4 mid points
          if (CLDFLAG .eq. 6) then
 
-            call ICA_QUD(WCOL,OCOL,LTOP,ICA_,NQD_,NICA, &
+            call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
                          WTQCA, ISORT,NQ1,NQ2,NDXQS)
 
             if (LPRTJ0) then
@@ -324,8 +365,8 @@
                if (WTQCA(N) .gt. 0.d0) then
                   I = ISORT(NDXQS(N))
 
-                  call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, CLDCOR,NCLDF, &
-                     GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+                  call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
+                                GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 
 !---zero out cloud water paths which are not in the selected QCA
                   do L = 1, LTOP
@@ -339,7 +380,7 @@
                      endif
                   enddo
 !-----------------------------------------------------------------------
-              call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH, &
+                  call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH, &
                    DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,     &
                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK)
                   if (.not.LDARK) then
@@ -371,7 +412,7 @@
 ! 7 = calculate quadrature atmosphere - average cloud within each QCA bin.
          if (CLDFLAG .eq. 7) then
 
-            call ICA_QUD(WCOL,OCOL,LTOP,ICA_,NQD_,NICA, &
+            call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
                          WTQCA, ISORT,NQ1,NQ2,NDXQS)
 
             if (LPRTJ0) then
@@ -389,12 +430,13 @@
                      do II = NQ1(N),NQ2(N)
                         I = ISORT(II)
 
-                        call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, CLDCOR,NCLDF, &
-                           GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+                        call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
+                                      GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 
                         if (LPRTJ0) then
-                           write(6,'(a,3i5,2f8.4,f9.3)') ' N(QCA)/II/I WCOL,OCOL',  &
-                           N,II,I,WCOL(I),WTQCA(N),OCOL(I)
+                           write(6,'(a,3i5,2f8.4,f9.3)') &
+                                 ' N(QCA)/II/I WCOL,OCOL',  &
+                                 N,II,I,WCOL(I),WTQCA(N),OCOL(I)
                         endif
                         do L = 1,LTOP
                            if (TTCOL(L) .gt. 1.d-8) then
@@ -461,8 +503,8 @@
                   write(6,'(i5,2f9.4)') NICA,OCOL(NICA),WCOL(NICA)
             endif
             do I = 1, NICA
-               call ICA_III(CLDX,CLT,LTOP,CBIN_,ICA_, I, CLDCOR,NCLDF, &
-                  GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+               call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
+                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
                   LWPX(L) = LWP(L)
@@ -509,7 +551,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_NR(CLDF,CLTAU,IWPX,LWPX,ZZZ,CLDIW,LTOP,LNRG,CBIN_, &
+      SUBROUTINE ICA_NR(LPRTJ0,CLDF,CLTAU,IWPX,LWPX,ZZZ,CLDIW,LTOP,CBIN_, &
             ICA_,CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
 !-----------------------------------------------------------------------
 !---revised in v7.7 (02/2020) fixed MAX-RAN (#0 & #3) set CLDCOR=0 if need be
@@ -554,7 +596,8 @@
       real*8, dimension(NRG6_), parameter:: Zbin =                 &
           [0.d5, 1.5d5, 3.5d5, 6.0d5, 9.0d5, 13.d5]
 
-      integer,intent(in) :: LTOP, LNRG, CBIN_, ICA_
+      logical, intent(in) :: LPRTJ0
+      integer,intent(in) :: LTOP, CBIN_, ICA_
       integer,intent(in),dimension(LTOP) :: CLDIW
       real*8, intent(in),dimension(LTOP) :: CLDF, ZZZ
       real*8, intent(inout)                 :: CLDCOR     !v7.7
@@ -729,28 +772,34 @@
       else
 !-----------------------------------------------------------------------------
 !---Newest recommended approach (v7.3) to use cloud correlation lengths
-!   Problem with correlation is that each new cloud layer generates 2x combinations
-!      Thus the possibilities are for 2**Lcloudtop ICAs - that is too many (2**35)
-!   Using  correlation lengths (3 km for tropical and high clouds, 1.5 km for stratus)
+!   Problem with correlation is that each new cloud layer generates 2x
+!   combinations
+!      Thus the possibilities are for 2**Lcloudtop ICAs - that is too many
+!      (2**35)
+!   Using  correlation lengths (3 km for tropical and high clouds, 1.5 km for
+!   stratus)
 !      Choose 6 bins (of thickness = correl length) as Max-Overlap, then have
 !      these bins be randomly or correlated with bins above
-!   For now just assume these are random as with the other 2 max-ran groups above.
+!   For now just assume these are random as with the other 2 max-ran groups
+!   above.
 !
 ! GRP1 = 0 - 1.5km,  GRP2 = 1.5 - 3.5km,  GRP3 = 3.5 - 6km
 ! GRP4 =  6 - 9km,   GRP5 = 9 - 13km,     GRP6 = 13km+
 !
 !Key Refs
-!  Kato, S., et al (2010), Relationships among cloud occurrence frequency, overlap,
-!        and effective thickness derived from CALIPSO and CloudSat merged cloud vertical
-!        profiles, J. Geophys. Res., 115, D00H28, doi:10.1029/2009JD012277.
-! Pincus, R., et al. (2005), Overlap assumptions for assumed probability distribution
-!        function cloud schemes in large-scale models, J. Geophys. Res., 110, D15S09,
-!        doi:10.1029/2004JD005100.
-! Oreopoulos, L., et al (2012) Radiative impacts of cloud heterogeneity and overlap
-!        in an atmospheric General Circulation Model,  Atmos. Chem. Phys., 12, 9097-9111,
-!        doi:10.5194/acp-12-9097-2012
-! Naud, C., & A. D.  DelGenio (2006) Cloud Overlap Dependence on Atmospheric Dynamics,
-!        16th ARM Science Team Meeting Proceedings, Albuquerque, NM, March 27 - 31, 2006.
+!  Kato, S., et al (2010), Relationships among cloud occurrence frequency,
+!    overlap, and effective thickness derived from CALIPSO and CloudSat merged
+!    cloud vertical profiles, J. Geophys. Res., 115, D00H28,
+!    doi:10.1029/2009JD012277.
+!  Pincus, R., et al. (2005), Overlap assumptions for assumed probability
+!    distribution function cloud schemes in large-scale models, J. Geophys.
+!    Res., 110, D15S09, doi:10.1029/2004JD005100.
+!  Oreopoulos, L., et al (2012) Radiative impacts of cloud heterogeneity
+!    and overlap in an atmospheric General Circulation Model,  Atmos. Chem.
+!    Phys., 12, 9097-9111, doi:10.5194/acp-12-9097-2012
+!  Naud, C., & A. D.  DelGenio (2006) Cloud Overlap Dependence on
+!    Atmospheric Dynamics, 16th ARM Science Team Meeting Proceedings,
+!    Albuquerque, NM, March 27 - 31, 2006.
 !
 !---Find the levels in each of the NRG6_  altitude-defined groups
        do L = 1,LCLTOP
@@ -874,7 +923,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_ALL(CLF,CLT,LTOP,CBINU,ICAU, CFBIN,CLDCOR,NCLDF,  &
+      SUBROUTINE ICA_ALL(LPRTJ0,CLF,CLT,LTOP,CBINU,ICAU, CFBIN,CLDCOR,NCLDF,  &
            GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
 !-----------------------------------------------------------------------
 !    OCOL() = cloud optical depth (total) in each ICA
@@ -892,6 +941,7 @@
 !      Integrating over fractional cloud cover,J. Geophys. Res., 112, D11306,
 !       doi:10.1029/2006JD008007
       implicit none
+      logical, intent(in) :: LPRTJ0
       integer, intent(in) :: LTOP, CBINU, ICAU, NRG, NICA
       integer, intent(in), dimension(LTOP)  :: NCLDF
       integer, intent(in), dimension(9)     :: GBOT,GTOP,GLVL,GNR,GCMX
@@ -930,22 +980,30 @@
       enddo
         FCMX(NRG+1) = 0.d0
 
-!  pre-calculate correl factors here:  no change if G = 100% cloud or G+1 = 100% cloud or clear
+!  pre-calculate correl factors here:  no change if G = 100% cloud or
+!  G+1 = 100% cloud or clear
 !   also no correlation fix for top MAX-GRP
       do G = 1,NRG-1
        LSKIP =   GCMX(G+1).eq.0 .or. GCMX(G+1).eq.CBINU   &
-           .or.  GCMX(G).eq.0 .or. GCMX(G).eq.CBINU     !must have cloudy&clear in both MAX-GRPs
+           .or.  GCMX(G).eq.0 .or. GCMX(G).eq.CBINU  ! must have cloudy&clear
+                                                     ! in both MAX-GRPs
        if (.not.LSKIP) then
           FIG2 = FCMX(G+1)       ! cloudy fract of MAX-GRP just above (G+1)
           GRP2 = GLVL(G+1)       ! upper G6 group for NRG # G+1
-          FIG1 = FCMX(G)         ! cloudy fract of current MAX-GRP (sum of cloudy fracts)
+          FIG1 = FCMX(G)         ! cloudy fract of current MAX-GRP (sum of
+                                 ! cloudy fracts)
           GRP1 = GLVL(G)         ! current G6 group for NRG # G
-          CORRFAC = CLDCOR**(GRP2-GRP1)  ! Cloud Correl Factor decreases with gap in G6 groups
-! correlation factor: increase fract-area of cloudy member under cloudy section of upper layer (FIG2)
-! Note that limits to increase depend on fract of cloud area above and the layer being increased
-          GCORR = min(1.d0 + CORRFAC*(1.d0/FIG2 - 1.d0), 1.d0/FIG2, 1.d0/FIG1)   !v7.7 taken out of loop below
+          CORRFAC = CLDCOR**(GRP2-GRP1)  ! Cloud Correl Factor decreases with
+                                         ! gap in G6 groups
+! correlation factor: increase fract-area of cloudy member under cloudy
+! section of upper layer (FIG2)
+! Note that limits to increase depend on fract of cloud area above and
+! the layer being increased
+          GCORR = min(1.d0 + CORRFAC*(1.d0/FIG2 - 1.d0), 1.d0/FIG2, 1.d0/FIG1)
+          !v7.7 taken out of loop below
         do I = 2,GNR(G)
-! enhance weighting for cloudy members below a cloud, reduce weighting below clear sky
+! enhance weighting for cloudy members below a cloud, reduce weighting
+! below clear sky
          FWTC(G,I) = GCORR * FWT(G,I)
          FWTCC(G,I) = FWT(G,I)*(1.d0-GCORR*FIG2)/(1.d0-FIG2)
         enddo
@@ -966,13 +1024,15 @@
         do G = 1,NRG
            IG1 = IGNR(G)          ! working on MAX-GRP = G, member IG1
            L_CLR1 = GFNR(G,  IG1) .gt. GCMX(G)      ! member IG1 is clear
-         if (G .eq. NRG) then     ! fix of indexing error in Cloud-J 7.3 did not affect results
+         if (G .eq. NRG) then     ! fix of indexing error in Cloud-J 7.3 did
+                                  ! not affect results
            L_CLR2 = .true.
          else
            IG2 = IGNR(G+1)        ! member of MAX-GRP = G+1 for this ICA
-           L_CLR2 = GFNR(G+1,IG2) .gt. GCMX(G+1)    ! member above (IG2) is clear
+           L_CLR2 = GFNR(G+1,IG2) .gt. GCMX(G+1)  ! member above (IG2) is clear
          endif
-! all of these combinations should preserve the total weighting for layer member IG1
+! all of these combinations should preserve the total weighting for layer
+! member IG1
           if (.not.L_CLR2) then
 ! upper layer GRP member IG2 is a cloud layer (maybe one of several)
             if (.not.L_CLR1) then
@@ -1008,18 +1068,18 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_III(CLF,CLT,LTOP,CBINU,ICAU, III, &
-               CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA, TTCOL)
+      SUBROUTINE ICA_III(LPRTJ0, CLT,  LTOP, CBINU, III,  NCLDF, GFNR, &
+                         GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 !-----------------------------------------------------------------------
 !    see ICA_ALL, this subroutine picks out the ICA atmosphere #III
 !      and loads the REFF/WPs for a FAST_JX calculation.
       implicit none
-      integer, intent(in) :: LTOP, CBINU, ICAU, NRG, NICA, III
+      logical, intent(in) :: LPRTJ0
+      integer, intent(in) :: LTOP, CBINU, NRG, NICA, III
       integer, intent(in), dimension(LTOP)  :: NCLDF
-      integer, intent(in), dimension(9)     :: GBOT,GTOP,GLVL,GNR,GCMX
+      integer, intent(in), dimension(9)     :: GBOT,GTOP,GNR
       integer, intent(in), dimension(9,CBINU+1) :: GFNR
-      real*8,  intent(in), dimension(LTOP)  :: CLF,CLT
-      real*8,  intent(in)                   :: CLDCOR
+      real*8,  intent(in), dimension(LTOP)  :: CLT
       real*8,  intent(out),dimension(LTOP)  :: TTCOL
 
       integer II, IG, G, L
@@ -1040,7 +1100,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE ICA_QUD(WCOL,OCOL, LTOP,ICAU,NQDU,NICA, &
+      SUBROUTINE ICA_QUD(WCOL,OCOL, ICAU,NQDU,NICA, &
                          WTQCA, ISORT,NQ1,NQ2,NDXQS)
 !-----------------------------------------------------------------------
 !---Take the full set of ICAs and group into the NQD_ ranges of total OD
@@ -1048,7 +1108,7 @@
 !---The Quad atmospheres have weights WTQCA
 !-----------------------------------------------------------------------
       implicit none
-      integer, intent(in)        :: LTOP,ICAU,NQDU,NICA
+      integer, intent(in)        :: ICAU,NQDU,NICA
       real*8,  intent(in), dimension(ICAU)      :: WCOL,OCOL
 
       real*8, intent(out), dimension(NQDU)      :: WTQCA
@@ -1063,6 +1123,7 @@
       ISORT(:) = 0
       WTQCA(:)  = 0.d0
       NDXQS(:) = 0
+      OCOLS(:) = 0.d0
 
 !---sort all the Indep Column Atmos (ICAs) in order of increasing column OD
 !--- ISORT is the key, giving the ICA number from smallest to largest column OD
@@ -1178,4 +1239,4 @@
       END SUBROUTINE HEAPSORT_A
 
 
-      END MODULE CLD_SUB_MOD
+      END MODULE CLDJ_SUB_MOD

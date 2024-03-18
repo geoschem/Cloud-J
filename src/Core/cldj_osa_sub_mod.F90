@@ -1,4 +1,4 @@
-MODULE OSA_SUB_MOD
+MODULE CLDJ_OSA_SUB_MOD
    ! for Cloud-J and Solar-J v7.6+
 
    !SFX_LIC Copyright 1994-2014 CNRS, Meteo-France and Universite Paul Sabatier
@@ -9,18 +9,23 @@ MODULE OSA_SUB_MOD
 
    ! >>>corrected parameter XWRC for < 400 nm from 0 to 0.2
 
-      IMPLICIT NONE
-      PUBLIC  :: OSA
-      CONTAINS
+   IMPLICIT NONE
+
+   PUBLIC :: OSA
+   
+   CONTAINS
 
 SUBROUTINE OSA(WAVEL,WIND,CHLORa, Cangles, OSA_dir)
 
 IMPLICIT NONE
-! number of wavelength (200nm - 4000nm by 10nm apart)
+
+! Number of wavelength (200nm - 4000nm by 10nm apart)
 INTEGER, PARAMETER   :: NNWL = 381
-! absorption coefficients for seawater et 440 nm
+
+! Absorption coefficients for seawater et 440 nm
 REAL, PARAMETER      :: XAW440 =  0.00635
-! table of wavelength discretization (by 10nm apart)
+
+! Table of wavelength discretization (by 10nm apart)
 REAL, PARAMETER, DIMENSION(NNWL)::  XAKWL= &
    [200.0, 210.0, 220.0, 230.0, 240.0, 250.0, 260.0, 270.0, 280.0,  &
     290.0, 300.0, 310.0, 320.0, 330.0, 340.0, 350.0, 360.0, 370.0,            &
@@ -62,8 +67,8 @@ REAL, PARAMETER, DIMENSION(NNWL)::  XAKWL= &
 3720.0, 3730.0, 3740.0, 3750.0, 3760.0, 3770.0, 3780.0, 3790.0, 3800.0, 3810.0,&
 3820.0, 3830.0, 3840.0, 3850.0, 3860.0, 3870.0, 3880.0, 3890.0, 3900.0, 3910.0,&
 3920.0, 3930.0, 3940.0, 3950.0, 3960.0, 3970.0, 3980.0, 3990.0, 4000.0 ]
-!
-! proportion of each wavelength
+
+! Proportion of each wavelength
 REAL, PARAMETER, DIMENSION(NNWL)::  XFRWL= &
 (/0.5399519E-04, 0.2057802E-03, 0.3488387E-03, 0.3841427E-03, 0.2915711E-03, &
 0.4429581E-03, 0.6302387E-03, 0.1970095E-02, 0.6974564E-03, 0.4431792E-02,   &
@@ -142,9 +147,10 @@ REAL, PARAMETER, DIMENSION(NNWL)::  XFRWL= &
 0.7074801E-04, 0.7011415E-04, 0.6948030E-04, 0.6876537E-04, 0.6805045E-04,&
 0.6730973E-04, 0.6656901E-04, 0.6592411E-04, 0.6527920E-04, 0.6458639E-04,&
 0.6389357E-04 /)
-!
-! Table for computing Reflectance just below ocean surface (bounded to 200-800 nm)
-! table of refractive index as function of wavelength
+
+! Table for computing Reflectance just below ocean surface (bounded to 200-800
+! nm)
+! Table of refractive index as function of wavelength
 REAL, PARAMETER, DIMENSION(NNWL)::  XAKREFM= &
 (/ 1.4517,  1.4345,  1.4214,  1.4108,  1.4022,  1.3950,  1.3889,  1.3836,      &
 1.3790,  1.3750,  1.3714,  1.3682,  1.3653,  1.3627,  1.3604,  1.3582,  1.3562,&
@@ -189,8 +195,9 @@ REAL, PARAMETER, DIMENSION(NNWL)::  XAKREFM= &
 1.3484,  1.3476,  1.3468,  1.3460,  1.3452,  1.3444,  1.3437,  1.3430,  1.3422,&
 1.3415,  1.3408,  1.3401,  1.3395,  1.3388,  1.3382,  1.3375,  1.3369,  1.3363,&
 1.3357,  1.3351,  1.3345,  1.3339 /)
-!
-! table of chlorophyll absorption coefficient as function of wavelength from Morel 2001
+
+! Table of chlorophyll absorption coefficient as function of wavelength from
+! Morel 2001
 REAL, PARAMETER, DIMENSION(NNWL)::  XAKACHL= &
 (/0.4629505E+00, 0.4694205E+00, 0.4758904E+00, 0.4823604E+00, 0.4888304E+00,&
 0.4953003E+00, 0.5017703E+00, 0.5082403E+00, 0.5147102E+00, 0.5211802E+00,&
@@ -269,8 +276,9 @@ REAL, PARAMETER, DIMENSION(NNWL)::  XAKACHL= &
 0.2795000E-02, 0.2730500E-02, 0.2666000E-02, 0.2601500E-02, 0.2537000E-02,&
 0.2472500E-02, 0.2408000E-02, 0.2343500E-02, 0.2279000E-02, 0.2214500E-02,&
 0.2150000E-02 /)
-!
-REAL, PARAMETER, DIMENSION(NNWL)::  XAKACHL2= &  ! frm Frigaard 1996 - not used here
+
+! From Frigaard 1996 - not used here
+REAL, PARAMETER, DIMENSION(NNWL)::  XAKACHL2= &  
 (/0.7745835E+00,  0.7522619E+00,  0.7299404E+00,  0.7076188E+00, 0.6852972E+00,&
 0.6629756E+00,  0.5767828E+00,  0.5011461E+00,  0.4285168E+00,  0.3946458E+00,&
 0.4330427E+00,  0.5309876E+00,  0.6371105E+00,  0.7297136E+00,  0.7904093E+00,&
@@ -348,8 +356,8 @@ REAL, PARAMETER, DIMENSION(NNWL)::  XAKACHL2= &  ! frm Frigaard 1996 - not used 
 -0.4862808E-01, -0.4848551E-01, -0.4869109E-01, -0.4848604E-01, -0.4866388E-01,&
 -0.4846765E-01, -0.4875867E-01, -0.4807435E-01, -0.4867530E-01, -0.4888080E-01,&
 -0.4844930E-01 /)
-!
-! table of seawater absorption coefficient as function of wavelength
+
+! Table of seawater absorption coefficient as function of wavelength
 REAL, PARAMETER, DIMENSION(NNWL)::  XAKAW3= &
 (/0.3067439E+01, 0.1993737E+01, 0.1309263E+01, 0.9275307E+00, 0.7183294E+00,&
 0.5608010E+00, 0.4552411E+00, 0.3738498E+00, 0.2879400E+00, 0.2145172E+00,&
@@ -428,8 +436,8 @@ REAL, PARAMETER, DIMENSION(NNWL)::  XAKAW3= &
 0.1237155E+05, 0.1263124E+05, 0.1290192E+05, 0.1318056E+05, 0.1346412E+05,&
 0.1374958E+05, 0.1403392E+05, 0.1431409E+05, 0.1458709E+05, 0.1484987E+05,&
 0.1509941E+05 /)
-!
-! table of seawater backscattering coefficient as function of wavelength
+
+! Table of seawater backscattering coefficient as function of wavelength
 REAL, PARAMETER, DIMENSION(NNWL)::  XAKBW= &
 (/0.1510000E+00, 0.1190000E+00, 0.9950015E-01, 0.8199944E-01, 0.6850207E-01,&
 0.5749506E-01, 0.4850663E-01, 0.4149505E-01, 0.3530210E-01, 0.3049935E-01,&
@@ -509,7 +517,7 @@ REAL, PARAMETER, DIMENSION(NNWL)::  XAKBW= &
 0.1020690E-04, 0.8965517E-05, 0.7724138E-05, 0.6482759E-05, 0.5241379E-05,&
 0.4000000E-05 /)
 
-! white-caps reflectance (Koepke and Whitlock)
+! White-caps reflectance (Koepke and Whitlock)
 !                 **** rest <400nm to 0.2 (else discontinuous)
 ! Whitlock fit varid 400nm - 2.4nm. set whitecap's albedo [0 otherwise- NO]
 REAL, PARAMETER, DIMENSION(NNWL)::  XRWC   = &
@@ -590,21 +598,24 @@ REAL, PARAMETER, DIMENSION(NNWL)::  XRWC   = &
 0.0000000E+00, 0.0000000E+00, 0.0000000E+00, 0.0000000E+00, 0.0000000E+00,&
 0.0000000E+00, 0.0000000E+00, 0.0000000E+00, 0.0000000E+00, 0.0000000E+00,&
 0.0000000E+00 /)
-!
+
 
 REAL, INTENT(IN)  :: WAVEL, WIND, CHLORa
 REAL, DIMENSION(5), INTENT(IN)  :: Cangles
 REAL, DIMENSION(5), INTENT(OUT) :: OSA_dir
-!
+
 INTEGER :: JI, JWL
+
 REAL:: ZCHL, ZCOS, ZWL, ZWORK, ZWORK4,ZWORK5, ZWIND
 REAL:: ZSIG, ZREFM, ZXX2, ZR00, ZRR0, ZRRR
 REAL:: ZR22, ZUE, ZUE2, ZR11DF, ZALBT, ZFWC
 REAL:: ZCHLABS, ZAW, ZBW, ZAP, ZYLMD, ZBP550
 REAL:: ZBBP, ZNU, ZHB, ZR11, ZRW, ZRWDF, ZRDF
-!
+
 OSA_dir(:) = 0.
-ZCHL = CHLORa  ! 0.05 = averaged global values for surface chlorophyll
+
+! 0.05 = averaged global values for surface chlorophyll
+ZCHL = CHLORa
 
 JWL = ifix(0.1*(WAVEL-185.0))
 JWL = min(381,max(1,JWL))
@@ -617,11 +628,11 @@ ZWL = XAKWL(JWL)
 ZCHLABS = XAKACHL(JWL)
 ZYLMD = exp(0.014*(440.0-ZWL))
 
-   ZWORK4 = ZCHL**0.65
-   ZWORK5 =log10(ZCHL)
-   ZBP550 = 0.416 * ZCHL**0.766
+ZWORK4 = ZCHL**0.65
+ZWORK5 =log10(ZCHL)
+ZBP550 = 0.416 * ZCHL**0.766
 ZAP = 0.06*ZCHLABS*ZWORK4 +0.2*(XAW440+0.06*ZWORK4)*ZYLMD
-   ZNU = 0.5*(ZWORK5-0.3)
+ZNU = 0.5*(ZWORK5-0.3)
 ZBBP = (0.002+0.01*(0.5-0.25*ZWORK5)*(ZWL/550.)**ZNU)*ZBP550
 ZHB=0.5*ZBW/(0.5*ZBW+ZBBP)
 ZWIND = max(2.0,min(20.0,WIND))
@@ -629,27 +640,32 @@ ZFWC = 3.97e-4*ZWIND**(1.59)
 ZSIG = sqrt(0.003+0.00512*ZWIND)
 ZR22=0.48168549-0.014894708*ZSIG-0.20703885*ZSIG**2
 
-do JI=1,5   ! loop over the sza and 4 quad angles
+! Loop over the sza and 4 quad angles
+do JI=1,5
    ZCOS = max(Cangles(JI), 0.d0)
-!---------------------------------------------------------------------------------
-! 1- Compute direct surface albedo (ZR11)
-!---------------------------------------------------------------------------------
-ZXX2=sqrt(1.0-(1.0-ZCOS**2)/ZREFM**2)
-ZRR0=0.50*(((ZXX2-ZREFM*ZCOS)/(ZXX2+ZREFM*ZCOS))**2 +((ZCOS-ZREFM*ZXX2)/(ZCOS+ZREFM*ZXX2))**2)
-ZRRR=0.50*(((ZXX2-1.34*ZCOS)/(ZXX2+1.34*ZCOS))**2 +((ZCOS-1.34*ZXX2)/(ZCOS+1.34*ZXX2))**2)
-ZR11=ZRR0-(0.0152-1.7873*ZCOS+6.8972*ZCOS**2-8.5778*ZCOS**3+4.071*ZSIG-7.6446*ZCOS*ZSIG) &
-     & * exp(0.1643-7.8409*ZCOS-3.5639*ZCOS**2-2.3588*ZSIG+10.0538*ZCOS*ZSIG)*ZRR0/ZRRR
-!---------------------------------------------------------------------------------
-! 3- Compute direct water-leaving albedo (ZRW)
-!---------------------------------------------------------------------------------
-ZR00 = (0.5*ZBW+ZBBP)/(ZAW+ZAP) * &
-     (0.6279-0.2227*ZHB-0.0513*ZHB**2 + (-0.3119 + 0.2465*ZHB)*ZCOS)
-ZRW = ZR00*(1.-ZR22)/(1.-ZR00*ZR22)
-!---------------------------------------------------------------------------------
-    OSA_dir(JI) = (1.-ZFWC)*(ZR11+ZRW) + ZFWC*XRWC(JWL)
-!---------------------------------------------------------------------------------
+   !---------------------------------------------------------------------------
+   ! 1- Compute direct surface albedo (ZR11)
+   !---------------------------------------------------------------------------
+   ZXX2=sqrt(1.0-(1.0-ZCOS**2)/ZREFM**2)
+   ZRR0=0.50*(((ZXX2-ZREFM*ZCOS)/(ZXX2+ZREFM*ZCOS))**2 &
+        +((ZCOS-ZREFM*ZXX2)/(ZCOS+ZREFM*ZXX2))**2)
+   ZRRR=0.50*(((ZXX2-1.34*ZCOS)/(ZXX2+1.34*ZCOS))**2 &
+        +((ZCOS-1.34*ZXX2)/(ZCOS+1.34*ZXX2))**2)
+   ZR11=ZRR0-(0.0152-1.7873*ZCOS+6.8972*ZCOS**2-8.5778*ZCOS**3 &
+        +4.071*ZSIG-7.6446*ZCOS*ZSIG) &
+        & * exp(0.1643-7.8409*ZCOS-3.5639*ZCOS**2-2.3588*ZSIG &
+        +10.0538*ZCOS*ZSIG)*ZRR0/ZRRR
+   !---------------------------------------------------------------------------
+   ! 3- Compute direct water-leaving albedo (ZRW)
+   !---------------------------------------------------------------------------
+   ZR00 = (0.5*ZBW+ZBBP)/(ZAW+ZAP) * &
+        (0.6279-0.2227*ZHB-0.0513*ZHB**2 + (-0.3119 + 0.2465*ZHB)*ZCOS)
+   ZRW = ZR00*(1.-ZR22)/(1.-ZR00*ZR22)
+   !---------------------------------------------------------------------------
+   OSA_dir(JI) = (1.-ZFWC)*(ZR11+ZRW) + ZFWC*XRWC(JWL)
+   !---------------------------------------------------------------------------
 enddo
 
 END SUBROUTINE OSA
 
-END MODULE OSA_SUB_MOD
+END MODULE CLDJ_OSA_SUB_MOD

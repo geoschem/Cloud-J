@@ -8,29 +8,45 @@
 !        New calling sequence of FPs, added OD18
 !     v7.6c (06/2019) Adds geometric option:
 !        Corrects (optical) mass to the value for a true spherical atmosphere.
-!        NOTE that inferred atmospheric mass for absorption & scattering will be
-!           larger than is used in the std planar geopotential hydrostatic atmosphere.
-!     (1) Z geometric replaces Z geopotential:  Z-geom = Z-geop / ( 1 - Z-geop/RAD)
-!     (2) Layer (optical) mass increases by AMG(L) = (1 + Z-geom-midpt(L)/RAD)**2  > 1
+!        NOTE that inferred atmospheric mass for absorption & scattering will
+!be
+!           larger than is used in the std planar geopotential hydrostatic
+!atmosphere.
+!     (1) Z geometric replaces Z geopotential:  Z-geom = Z-geop / 
+!( 1 - Z-geop/RAD)
+!     (2) Layer (optical) mass increases by AMG(L) = (1 + 
+!Z-geom-midpt(L)/RAD)**2  > 1
 !           to account for rho * dz going from geopotential to geometric
-!     (3) Layer (optical) mass increases by a second factor of AMG(L) = (1 + Z/RAD)**2
-!           but this is spread over a larger area (also AMG(L)) and so this factor
-!           does NOT apply to optical mass in expanding area that used for ray-tracing.
+!     (3) Layer (optical) mass increases by a second factor of AMG(L) = 
+!(1 + Z/RAD)**2
+!           but this is spread over a larger area (also AMG(L)) and so this 
+!factor
+!           does NOT apply to optical mass in expanding area that used for 
+!ray-tracing.
 !           It is recouped in (4) below.
 !     (4) Flux depositon (absorbed or scattered) in each expanded layer is
-!           increased by factor AMG(L) when used in multiple scattering to reflect
+!           increased by factor AMG(L) when used in multiple scattering to 
+!reflect
 !           the smaller grid area at the surface assumed for that calculation.
 !     (5) The optical mass grid used in spherical ray-tracing original must be
-!           increased by the expansion factor AMG(L) for the scattering code so that
-!           the total scattered/absorbed flux in an optically thin layer is included.
+!           increased by the expansion factor AMG(L) for the scattering code
+!so that
+!           the total scattered/absorbed flux in an optically thin layer is
+!included.
 !
 !     v7.6  (12/2018) CORRECTS the calc of deposition of direct beam (FLXD)
-!         >>>> for conservative atmos, now predicts no spurious atmos absorption.
-!         >>>> error in incident for clear skies:  <0.00% up to 80 sza, +0.04% at 88 sza
-!         >>>> error for cloudy atmos depends on OD & extra layers (ATAU, ATAU0) in top of clouds
-!              ATAU/ATAU0 = 1.10/.010  cld OD=38: +0.15% to +0.49% (sza = 0-80, 88) = 2x cost
-!              ATAU/ATAU0 = 1.05/.005  cld OD=38: +0.05% to +0.16% (sza = 0-80, 88) = 3x cost
-!              typical use before was 1.20/.020 which ads 50% more layers with OD=40 (1.5x cost)
+!         >>>> for conservative atmos, now predicts no spurious atmos
+!absorption.
+!         >>>> error in incident for clear skies:  <0.00% up to 80 sza, 
+!+0.04% at 88 sza
+!         >>>> error for cloudy atmos depends on OD & extra layers (ATAU,
+!ATAU0) in top of clouds
+!              ATAU/ATAU0 = 1.10/.010  cld OD=38: +0.15% to +0.49% (sza = 
+!0-80, 88) = 2x cost
+!              ATAU/ATAU0 = 1.05/.005  cld OD=38: +0.05% to +0.16% (sza = 
+!0-80, 88) = 3x cost
+!              typical use before was 1.20/.020 which ads 50% more layers
+!with OD=40 (1.5x cost)
 !
 !     v7.6  (07/2018) adds refraction to the SPHERE1R calculation.
 !            A new version of SPHERE1N is also available (cleaner algorithm)
@@ -42,17 +58,19 @@
 !          AND for the incident SZA (stored as the 5th albedo here).
 !     New simpler way of interpolating TAU and F for inserted cloud layers
 !     OD600 uses only clouds and aerosols, not O3 and Rayleigh as before
-!     Dropped mid-layer odd-points (J's) to cut cost, interpolated cloud layers remain
+!     Dropped mid-layer odd-points (J's) to cut cost, interpolated cloud
+!layers remain
 !
 !     v7.4  (08/2015) consistent with 7.1 data and results
 !          variables in call to PHOTO_JX are same as in 7.1,
 !          but a logical(out) LDARK is added to to count the number of J calcs
 !          Works new ver 7.3 tfor cloud-J
-!              + data sets for spectra, clouds and SS aerosols, new aerosol format
+!              + data sets for spectra, clouds and SS aerosols, new aerosol
+!format
 !          Extended to v7.4 to allow for Solar-J
 !          v7.4d fixed the deposition of sunlight for SAZ>90, J's are unchanged.
 
-      MODULE FJX_SUB_MOD
+      MODULE CLDJ_FJX_SUB_MOD
 
       USE CLDJ_CMN_MOD
       USE CLDJ_ERROR_MOD
@@ -66,7 +84,45 @@
 
       IMPLICIT NONE
 
-      PUBLIC :: PHOTO_JX, SOLAR_JX, JP_ATM0, ACLIM_FJX, ACLIM_GEO, ACLIM_RH, EXITC
+      PRIVATE
+
+      PUBLIC :: PHOTO_JX
+      PUBLIC :: SOLAR_JX
+      PUBLIC :: JP_ATM0
+      PUBLIC :: ACLIM_FJX  ! Load fast-JX climatology - T & O3
+      PUBLIC :: ACLIM_GEO  ! Compute RH profile given P, T, Q
+      PUBLIC :: ACLIM_RH   ! Load GEOMIP SSA climatology (vs P)
+      PUBLIC :: EXITC
+
+      PRIVATE :: OPMIE    ! Called in Photo_JX
+      PRIVATE :: MIESCT   ! Called in OPMIE
+      PRIVATE :: LEGND0   ! Called in MIESCT
+      PRIVATE :: BLKSLV   ! Called in MIESCT
+      PRIVATE :: GEN_ID   ! Called in BLKSLV
+      PRIVATE :: JRATET   ! Called in Photo_JX
+      PRIVATE :: X_INTERP ! Called in Photo_JX and JRATET
+      PRIVATE :: EXTRAL1  ! Called in Photo_JX
+
+      ! Other private subroutines called in Photo_JX
+
+      ! Compute layer optical depth, single-scattering albedo, scattering phase
+      PRIVATE :: OPTICL   ! For liquid water clouds
+      PRIVATE :: OPTICI   ! Parallel with liquid water, two types of ice-water
+      PRIVATE :: OPTICS   ! For UCI SSA (strat sulfate aerosol)
+      PRIVATE :: OPTICG   ! For GEOMIP SSA (strat sulfate aerosol)
+      PRIVATE :: OPTICA   ! No strat sulfate aerosol
+      PRIVATE :: OPTICM   ! U Michigan aerosol data sets
+
+      PRIVATE :: SPHERE1R ! Adds refraction (complex ray tracing)
+      PRIVATE :: SPHERE1N ! Drops mid-layer
+      PRIVATE :: SPHERE1F ! Needed for testing flat-disk errors
+
+      ! Prints only
+      PRIVATE :: JP_ATM   ! Called in Photo_JX
+
+      ! Not used
+      PRIVATE :: FJX_CLIRAD_H2O ! For Solar-J
+      PRIVATE :: FJX_GGLLNL_H2O ! For Solar-J
 
       CONTAINS
 
@@ -85,21 +141,34 @@
       implicit none
 
 !---calling sequence variables
-      integer, intent(in)                    :: L1U,ANU,NJXU
-      real*8,  intent(in)                    :: U0,SZA,SOLF
-      real*8,  intent(in), dimension(5,W_+W_r) :: RFL
-      logical, intent(in)                    :: LPRTJ
-      real*8,  intent(in), dimension(L1U+1)  :: PPP,ZZZ
-      real*8,  intent(in), dimension(L1U  )  :: TTT,HHH,DDD,RRR,OOO,CCC
-      real*8,  intent(in), dimension(L1U  )  :: LWP,IWP,REFFL,REFFI
-      real*8,  intent(in), dimension(L1U,ANU):: AERSP
-      integer, intent(in), dimension(L1U,ANU):: NDXAER
+      real*8,  intent(in)                    :: U0    ! cloud-j input
+      real*8,  intent(in)                    :: SZA   ! cloud-j input
+      real*8, intent(in), dimension(5,W_+W_r):: RFL   ! cloud-j input
+      real*8,  intent(in)                    :: SOLF  ! cloud-j input
+      logical, intent(in)                    :: LPRTJ ! cloud-j input
+      real*8,  intent(in), dimension(L1U+1)  :: PPP   ! cloud-j input
+      real*8,  intent(in), dimension(L1U+1)  :: ZZZ   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: TTT   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: HHH   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: DDD   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: RRR   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: OOO   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: CCC   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: LWP   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: IWP   ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: REFFL ! cloud-j input
+      real*8,  intent(in), dimension(L1U  )  :: REFFI ! cloud-j input
+      integer, intent(in)                    :: ANU   ! cloud-j input
+      real*8,  intent(in), dimension(L1U,ANU):: AERSP ! cloud-j input
+      integer, intent(in), dimension(L1U,ANU):: NDXAER! cloud-j input
+      integer, intent(in)                    :: L1U   ! cloud-j input
+      integer, intent(in)                    :: NJXU  ! cloud-j input
 ! reports out the JX J-values, upper level program converts to CTM chemistry J's
-      real*8,  intent(out), dimension(L1U-1,NJXU) ::  VALJXX
-      real*8,  intent(out), dimension(S_+2,L1U)   ::  SKPERD
-      real*8,  intent(out), dimension(L1U)        ::  OD18
-      real*8,  intent(out), dimension(6)     :: SWMSQ
-      logical, intent(out)                   :: LDARK
+      real*8,intent(out), dimension(L1U-1,NJXU):: VALJXX ! cloud-j output
+      real*8,intent(out), dimension(S_+2,L1U)  :: SKPERD ! cloud-j output
+      real*8,  intent(out), dimension(6)       :: SWMSQ  ! cloud-j output
+      real*8,  intent(out), dimension(L1U)     :: OD18   ! cloud-j output
+      logical, intent(out)                     :: LDARK  ! cloud-j output
 
 !-----------------------------------------------------------------------
 !---key LOCAL atmospheric data needed to solve plane-parallel J & Heating
@@ -143,7 +212,9 @@
       real*8   XQO3,XQO2,TTTX, ODKL,DPKL
       real*8   ODRRTM,FRRTM
       real*8   ZMID
+
 !-----------------------------------------------------------------------
+
       LU = L1U - 1
       VALJXX(:,:) = 0.d0
       FFXTAU(:,:) = 0.d0
@@ -180,7 +251,8 @@
         do L = 2,L1U+1
            ZZJ(L) = ZZJ(L)/(1.d0 - ZZJ(L)/RAD)
         enddo
-! Scale factor (1+Z/RAD)**2 = AMG(L) for area expansion & mass increase (geop dz)
+! Scale factor (1+Z/RAD)**2 = AMG(L) for area expansion & mass increase
+! (geop dz)
         do L = 1,L1U
            ZMID = 0.5d0*(ZZJ(L) + ZZJ(L+1))
            AMG(L) = (1.d0 + ZMID/RAD)**2
@@ -195,7 +267,8 @@
       if (ATM0 .eq. 0) then
          call SPHERE1F (U0,RAD,ZZJ,ZZHT,AMF, L1U)  ! flat Earth, AMF=1/u0
       elseif (ATM0 .eq. 1) then
-         call SPHERE1N (U0,RAD,ZZJ,ZZHT,AMF, L1U)  ! spherical straight-line paths
+         call SPHERE1N (U0,RAD,ZZJ,ZZHT,AMF, L1U)  ! spherical straight-line
+                                                   ! paths
       else     ! 2 or 3
          call SPHERE1R (U0,RAD,ZZJ,ZZHT,AMF, L1U)  ! spherical w/refraction
       endif
@@ -206,17 +279,21 @@
       TAUG_LLNL(:,:) = 0.d0
 !SJ! needed in Solar-J version
 !      if (W_r .ne. 0)then
-!         if (W_r .eq. W_rrtmg)  call RRTMG_SW_INP(IYEAR,L1U,PPJ,ZZJ,DDJ,TTJ,HHJ,OOJ,CCJ,TAUG_RRTMG)
-!         if (W_r .eq. W_Clirad) call FJX_CLIRAD_H2O(L1U,PPJ,TTJ,HHJ,TAUG_CLIRAD)
+!         if (W_r .eq. W_rrtmg)  call RRTMG_SW_INP(IYEAR,L1U,PPJ,ZZJ,DDJ,&
+!                                                  TTJ,HHJ,OOJ,CCJ,TAUG_RRTMG)
+!         if (W_r .eq. W_Clirad) call FJX_CLIRAD_H2O(L1U,PPJ,TTJ,HHJ,&
+!                                                    TAUG_CLIRAD)
 !         if (W_r .eq. W_LLNL)   call FJX_GGLLNL_H2O(L1U,PPJ,TTJ,HHJ,TAUG_LLNL)
-!         write(6,'(a,I5,a,I5,a,I5,a,I5)')'W_r=    ', W_r, 'W_rrtmg=', W_rrtmg, 'W_clirad=', W_clirad, 'W_LLNL=', W_LLNL
+!         write(6,'(a,I5,a,I5,a,I5,a,I5)')'W_r=    ', W_r, 'W_rrtmg=', &
+!               W_rrtmg, 'W_clirad=', W_clirad, 'W_LLNL=', W_LLNL
 
   !SJ    endif
 
       if (LPRTJ) then
          write(6,*)'Fast-J v7.6c ---PHOTO_JX internal print: fjx_sub_mod.f90'
          write(6,'(a,3i8)') ' NWBIN / NSBIN:',NWBIN,NSBIN
-         write(6,'(a,3i8)') ' g-bin super-bin  L-flux: W_  S_  W_+W_r ',W_,S_,W_+W_r
+         write(6,'(a,3i8)') ' g-bin super-bin  L-flux: W_  S_  W_+W_r ',&
+                            W_,S_,W_+W_r
          write(6,'(3i8)')   (KR, KDOKR(KR), LDOKR(KR), KR = 1,W_+W_r)
          write(6,*) '     L   P1      P2        T  //WPath, Reff, OD'
       endif
@@ -227,7 +304,8 @@
       SLEG(:,:,:)=0.d0
       do L = 1,L1U
          OD600(L) = 0.d0
-! initialize scattering/absoprtion data with Rayleigh scattering (always non-zero)
+! initialize scattering/absoprtion data with Rayleigh scattering (always
+! non-zero)
 ! NB. SLEG(8,Kwavel,Llayer) includes the single-scattering albedo
          do K = 1,S_
             do I = 1,8
@@ -244,10 +322,12 @@
             write(6,'(a,i3,2f8.2,f8.1,1p,e12.4)') &
                  'Rayl',L,PPP(L),PPP(L+1),TTT(L),OD(18,L)
          endif
-!---Liquid Water Cloud
+
+!---Liquid Water Cloud - uses data in FJX_scat-cld.dat
          if (LWP(L) .gt. 1.d-5 .and. REFFL(L) .gt. 0.1d0) then
             RE_LIQ = REFFL(L)
             TE_ICE = TTT(L)
+
             call OPTICL (RE_LIQ,TE_ICE, DDENS, QQEXT,SSALB,SSLEG)
 !---extinction K(m2/g) = 3/4 * Q / [Reff(micron) * density(g/cm3)]
             do K = 1,S_
@@ -266,13 +346,15 @@
 !>>>diagnostic print of cloud data:
             if (LPRTJ) then
                write(6,'(a,i3,2f8.2,f8.1,f8.4,f8.2,f8.4)') &
-                  'Rayl+Liq Cld',L,PPP(L),PPP(L+1),TTT(L),LWP(L),REFFL(L),OD(18,L)
+                  'Rayl+Liq Cld',L,PPP(L),PPP(L+1),TTT(L),LWP(L), &
+                  REFFL(L),OD(18,L)
             endif
          endif
-!---Ice Water Cloud
+!---Ice Water Cloud - uses data in FJX_scat-cld.dat
          if (IWP(L) .gt. 1.d-5 .and. REFFI(L) .gt. 0.1d0) then
             RE_ICE = REFFI(L)
             TE_ICE = TTT(L)
+
             call OPTICI (RE_ICE,TE_ICE, DDENS, QQEXT,SSALB,SSLEG)
 !---extinction K(m2/g) = 3/4 * Q / [Reff(micron) * density(g/cm3)]
             do K = 1,S_
@@ -291,15 +373,19 @@
 !>>>diagnostic print of cloud data:
             if (LPRTJ) then
                write(6,'(a,i3,2f8.2,f8.1,f8.4,f8.2,f8.4)') &
-                  'Rayl+Liq+Ice Cld',L,PPP(L),PPP(L+1),TTT(L),IWP(L),REFFI(L),OD(18,L)
+                  'Rayl+Liq+Ice Cld',L,PPP(L),PPP(L+1),TTT(L),IWP(L), &
+                  REFFI(L),OD(18,L)
             endif
          endif
-!---Strat Sulfate Aerosol Cloud: first aerosol index = 1 (bkgrd) or 2 (volcanic)
+!---Strat Sulfate Aerosol Cloud: use index = 1 (bkgrd) or 2 (volcanic)
          do M = 1,ANU
+
             NAER = NDXAER(L,M)
             if ((NAER.eq.1) .or. (NAER.eq.2)) then
+
                PATH = AERSP(L,M)
                if (PATH .gt. 0.d0) then
+
                   call OPTICS (OPTX,SSALB,SSLEG, PATH,NAER)
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
@@ -312,17 +398,20 @@
 !>>>diagnostic print of SSA data:
                   if (LPRTJ) then
                      write(6,'(a,i3,2f8.2,f8.1,2f8.5,1x,a12)') &
-                       'StratSA',L,PPP(L),PPP(L+1),TTT(L),PATH,OPTX(18),TITLSS(NAER)
+                       'StratSA',L,PPP(L),PPP(L+1),TTT(L),PATH, &
+                       OPTX(18),TITLSS(NAER)
                   endif
                endif
             endif
          enddo
-!---GEOMIP enhanced Strat Sulfate Aerosols:  index = 1001 to 1000+NGG
+!---GEOMIP enhanced Strat Sulfate Aerosols: use index = 1001 to 1000+NGG
          do M = 1,ANU
             NAER = NDXAER(L,M)
             if (NAER .gt. 1000) then
+
                PATH = AERSP(L,M)
                if (PATH .gt. 0.d0) then
+
                   call OPTICG (OPTX,SSALB,SSLEG, PATH,NAER)
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
@@ -335,12 +424,13 @@
 !>>>diagnostic print of GEOMIP data:
                   if (LPRTJ) then
                      write(6,'(a,i3,2f8.2,f8.1,3f8.5,i10)') &
-                        'SSA-GEO',L,PPP(L),PPP(L+1),TTT(L),PATH,OPTX(18),OD(18,L),NAER
+                        'SSA-GEO',L,PPP(L),PPP(L+1),TTT(L),PATH, &
+                        OPTX(18),OD(18,L),NAER
                   endif
                endif
             endif
          enddo
-!---OTHER aerosols in layer: check aerosol index
+!---OTHER aerosols in layer:  use index = 3 to 999
 !---this uses data from climatology OR from current CTM (STT of aerosols)
 !---subroutines OPTICA & OPTICM return the same information:
 !---  PATH is the g/m2 in the layer, NAER in the cloud/aerosol index
@@ -368,11 +458,13 @@
                endif
             endif
          enddo
+!---U Michigan aerosol data sets - use index < 0
          do M = 1,ANU
             NAER = NDXAER(L,M)
             PATH = AERSP(L,M)
             if (PATH .gt. 0.d0) then
                if (NAER .lt. 0) then
+
                   call OPTICM (OPTX,SSALB,SSLEG, PATH,RH, -NAER)
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
@@ -391,11 +483,14 @@
             endif
          enddo
 
-!---Add O2 & O3 absorbers to get final optical properties (Fast-J bins only 1:18)
+!---Add O2 & O3 absorbers to get final optical properties (Fast-J bins
+! only 1:18)
          do K = 1,W_
             TTTX = TTJ(L)
-            call X_interp (TTTX,XQO2, TQQ(1,1),QO2(K,1), TQQ(2,1),QO2(K,2),TQQ(3,1),QO2(K,3), LQQ(1))
-            call X_interp (TTTX,XQO3, TQQ(1,2),QO3(K,1), TQQ(2,2),QO3(K,2),TQQ(3,2),QO3(K,3), LQQ(2))
+            call X_interp (TTTX,XQO2, TQQ(1,1),QO2(K,1), TQQ(2,1), &
+                           QO2(K,2),  TQQ(3,1),QO2(K,3), LQQ(1))
+            call X_interp (TTTX,XQO3, TQQ(1,2),QO3(K,1), TQQ(2,2), &
+                           QO3(K,2),  TQQ(3,2),QO3(K,3), LQQ(2))
             ODABS = XQO3*OOJ(L) + XQO2*DDJ(L)*0.20948d0
             OD(K,L)  = OD(K,L)  + ODABS
 !SJ!       if (LPRTJ) then
@@ -403,7 +498,8 @@
 !SJ!               'L/K/PPP/TTT/OD_O2/3',L,K,PPP(L),TTT(L),ODABS
 !SJ!       endif
          enddo
-!---renormalize the SLEG array by OD - note that SSA is included in SLEG and not used further
+!---renormalize the SLEG array by OD - note that SSA is included in SLEG
+! and not used further
          do K = 1,S_
             do I = 1,8
                SLEG(I,K,L) = SLEG(I,K,L)/OD(K,L)
@@ -413,7 +509,8 @@
          enddo
       enddo   ! end of 'do L = 1,L1U'
 
-! >>> now transform matrix OD(K,L) & SLEG (I,K,L) ==> DTAUX(L,KR) & POMEGAX(I,L,KR)
+! >>> now transform matrix OD(K,L) & SLEG (I,K,L) ==> DTAUX(L,KR) & 
+! POMEGAX(I,L,KR)
 !     needed for good caching in the solver
 ! >>> also expand the K=1:S_ wavelengths of OD & SLEG to the KR=1:W_+W_r
 !     for the full sub-bins of RRTMG.
@@ -421,7 +518,8 @@
          KR0 = W_
          KR = 0
          do K = 1,S_
-            do J = 1,NGC(K)  ! for 1:17 just one gbin/bin, for 18:27 there are NGC gbins/bin
+            do J = 1,NGC(K)  ! for 1:17 just one gbin/bin, for 18:27
+                             ! there are NGC gbins/bin
                KR = KR+1
                if (KR .lt. KR0) then
                   do L = 1,L1U
@@ -449,7 +547,8 @@
                endif
             enddo
          enddo
-      else   ! below = no gas abs bins 18:S_, but cloud/aers abs. can be Cloud-J
+      else   ! below = no gas abs bins 18:S_, but cloud/aers abs.
+             ! can be Cloud-J
          do K=1,S_
             do L=1,L1U
                DTAUX(L,K)= OD(K,L)
@@ -463,15 +562,16 @@
          OD18(L)= OD600(L)
       enddo
 
-
 !---Using aerosol+cloud OD/layer in visible (600 nm) calculate how to add layers
 !-----------------------------------------------------------------------
       call EXTRAL1(OD600,L1U,N_,ATAU,ATAU0, JXTRA)
 !-----------------------------------------------------------------------
-!---complete calculation of actinic and net fluxes for all L & wavelengths (incl W_+W_r)
+!---complete calculation of actinic and net fluxes for all L & wavelengths
+! (incl W_+W_r)
 !-----------------------------------------------------------------------
       call OPMIE (DTAUX,POMEGAX,U0,RFL,AMF,AMG,JXTRA, &
               AVGF,FJTOP,FJBOT,FIBOT,FSBOT,FJFLX,FLXD,FLXD0, LDOKR,LU)
+
 !-----------------------------------------------------------------------
       FFF(:,:) = 0.d0
       FREFI = 0.d0
@@ -489,29 +589,38 @@
       FREF2 = 0.d0
       PREF1 = 0.d0
       PREF2 = 0.d0
-! accumulate data on solar fluxes:  actinic = J-values (1:W_), users FL(K) [photons]
-! note FFF(18,L) uses only the first sub-bin of K=18 (97% of flux) and applies 100% of FL(K)
+
+! accumulate data on solar fluxes:  actinic = J-values (1:W_),
+!users FL(K) [photons]
+! note FFF(18,L) uses only the first sub-bin of K=18 (97% of flux) and
+!applies 100% of FL(K)
       do K = 1,W_
          if (LDOKR(K) .gt. 0) then
             do L = 1,LU
                FFF(K,L) = SOLF*FL(K)*AVGF(L,K)
             enddo
-            PREF1 = PREF1 + FSBOT(K)*SOLF*FL(K)*FP(K)  ! PAR direct
-            PREF2 = PREF2 + FJBOT(K)*SOLF*FL(K)*FP(K)  ! PAR diffuse
+            PREF1 = PREF1 + FSBOT(K)*SOLF*FL(K)*FPAR(K)  ! PAR direct
+            PREF2 = PREF2 + FJBOT(K)*SOLF*FL(K)*FPAR(K)  ! PAR diffuse
          endif
       enddo
 !---use the FFF() values  in photons/cm2/sec to calculate J's
-!---mapping J-values from fast-JX species onto CTM chemistry reactins is done in main code
+!---mapping J-values from fast-JX species onto CTM chemistry reactins is
+!done in main code
+
 !-----------------------------------------------------------------------
       call JRATET(PPJ,TTJ,FFF, VALJXX, LU,NJXU)
 !-----------------------------------------------------------------------
-! accumulate data on solar fluxes:  energy and solar heating (!:S_), uses FW(K) [Watts]
+
+! accumulate data on solar fluxes:  energy and solar heating (!:S_),
+!uses FW(K) [Watts]
       KG = 0
       do K = 1,S_
-         do JG = 1,NSJSUB(K) ! NSJSUB could be NGC or ones set determined at INIT
+         do JG = 1,NSJSUB(K) ! NSJSUB could be NGC or ones set determined at
+!INIT
             KG = KG+1
             if (LDOKR(KG) .gt. 0) then
-!  direct(DIR) and diffuse(FLX) fluxes at top(UP) (solar = negative by convention)
+!  direct(DIR) and diffuse(FLX) fluxes at top(UP) (solar = negative by
+! convention)
 !  also at bottom (DN), does not include diffuse reflected flux.
                FLXUP(K) = FLXUP(K) + FJTOP(KG)*SJSUB(K,JG)
                DIRUP(K) = DIRUP(K) - FLXD0(KG)*SJSUB(K,JG)
@@ -532,19 +641,28 @@
                   FFX0 =     FFX0     + (FLXD(L,KG) - FLXJ(L))*SJSUB(K,JG)
                   FFX(K,L) = FFX(K,L) + (FLXD(L,KG) - FLXJ(L))*SJSUB(K,JG)
                enddo
-               FFXNET(K,1) = FFXNET(K,1) + (FLXD0(KG)             )*SJSUB(K,JG)  ! direct(solar) flux dep into atmos (spherical)
-               FFXNET(K,2) = FFXNET(K,2) + (FSBOT(KG)             )*SJSUB(K,JG)  ! direct(solar) flux dep onto LB (surface)
-               FFXNET(K,3) = FFXNET(K,3) + (FLXD0(KG)  + FSBOT(KG))*SJSUB(K,JG)  ! total solar into atmopshere+surface
-               FFXNET(K,4) = FFXNET(K,4) + (FJTOP(KG)             )*SJSUB(K,JG)  ! diffuse flux leaving top-of-atmos
-               FFXNET(K,5) = FFXNET(K,5) + (FFX0                  )              ! diffuse flux absorbed in atmos
-               FFXNET(K,6) = FFXNET(K,6) + (FABOT                 )*SJSUB(K,JG)  ! total (dir+dif) absorbed at LB (surface)
-               FFXNET(K,7) = FFXNET(K,7) + (FSBOT(KG)             )*SJSUB(K,JG)  ! direct flux dep onto LB (surface diags)
-               FFXNET(K,8) = FFXNET(K,8) + (FJBOT(KG)             )*SJSUB(K,JG)  ! diffuse flux dep onto LB (surface)
+               ! direct(solar) flux dep into atmos (spherical)
+               FFXNET(K,1) = FFXNET(K,1) + (FLXD0(KG)             )*SJSUB(K,JG)
+               ! direct(solar) flux dep onto LB (surface)
+               FFXNET(K,2) = FFXNET(K,2) + (FSBOT(KG)             )*SJSUB(K,JG)
+               ! total solar into atmopshere+surface
+               FFXNET(K,3) = FFXNET(K,3) + (FLXD0(KG)  + FSBOT(KG))*SJSUB(K,JG)
+               ! diffuse flux leaving top-of-atmos
+               FFXNET(K,4) = FFXNET(K,4) + (FJTOP(KG)             )*SJSUB(K,JG)
+               ! diffuse flux absorbed in atmos
+               FFXNET(K,5) = FFXNET(K,5) + (FFX0                  )
+               ! total (dir+dif) absorbed at LB (surface)
+               FFXNET(K,6) = FFXNET(K,6) + (FABOT                 )*SJSUB(K,JG)
+               ! direct flux dep onto LB (surface diags)
+               FFXNET(K,7) = FFXNET(K,7) + (FSBOT(KG)             )*SJSUB(K,JG)
+               ! diffuse flux dep onto LB (surface)
+               FFXNET(K,8) = FFXNET(K,8) + (FJBOT(KG)             )*SJSUB(K,JG)
             endif
          enddo ! end JG/KG loop over g-bins embedded in the S_=27 super bins
       enddo  ! end loop over wavelength super bins K
 !-----------------------------------------------------------
-      FREFL = FREFL/FREFS     !calculate fraction reflected flux (energy weighted)
+      FREFL = FREFL/FREFS     !calculate fraction reflected flux (energy
+! weighted)
       FREFI = FREFI/FREFS
 ! calc K/day & other fluxes
       do L = 1,L1U
@@ -574,11 +692,12 @@
          SWMSQ(4) = SWMSQ(4) + FFXNET(K,6)*SOLF*FW(K)
       enddo
       do K=1, W_
-         SWMSQ(5) = SWMSQ(5) + FFXNET(K,7)*FL(K)*FP(K)*SOLF
-         SWMSQ(6) = SWMSQ(6) + FFXNET(K,8)*FL(K)*FP(K)*SOLF
+         SWMSQ(5) = SWMSQ(5) + FFXNET(K,7)*FL(K)*FPAR(K)*SOLF
+         SWMSQ(6) = SWMSQ(6) + FFXNET(K,8)*FL(K)*FPAR(K)*SOLF
       enddo
 
-!---diagnostics/variables below are JUST for PRINT and NOT returned to the CTM code
+!---diagnostics/variables below are JUST for PRINT and NOT returned to the
+! CTM code
       if (LPRTJ) then
          do L=1,L1U
             DTAU600(L) = DTAUX(L,18)
@@ -594,7 +713,8 @@
 !SJ!               (RFL(i,18),i=1,5),SZA, U0, MAXVAL(OD600), FREFI, FREFL
 !SJ!            write(6,'(a)') ParaSummary(1:200)
 !SJ!         endif
-         write(6,'(a)') 'Fast-J  v7.6 ---PHOTO_JX internal print: Solar fluxes (W/m2)--'
+         write(6,'(a)') &
+            'Fast-J  v7.6 ---PHOTO_JX internal print: Solar fluxes (W/m2)--'
          write(6,'(a11,f12.4)')    ' inc TOTAL ',SWMSQ(1)
          write(6,'(a11,f12.4)')    ' rfl outtop',SWMSQ(2)
          write(6,'(a11,f12.4)')    ' abs in atm',SWMSQ(3)
@@ -648,7 +768,8 @@
             write(6,'(f5.2,20f8.5)') U0,(FSBOT(K), K=NW1,NW2)
             write(6,'(a)') 'diffus flux at lower bndry'
             write(6,'(f5.2,20f8.5)') U0,(FJBOT(K), K=NW1,NW2)
-            NSS2 = min(S_,NW2+32)  !  limt for large # of super bins: high-res clouds
+            NSS2 = min(S_,NW2+32)  !  limt for large # of super bins:
+! high-res clouds
             write(6,'(a5,32i8)')   ' bin:',(K, K=NW2+1,NSS2)
             write(6,'(a5,32f8.1)') ' wvl:',(WL(K), K=NW2+1,NSS2)
             write(6,'(a)') 'specific intensity to surface at the 4 quad angles'
@@ -662,8 +783,10 @@
             write(6,'(a)') 'diffus flux at lower bndry'
             write(6,'(f5.2,32f8.5)') U0,(FJBOT(K), K=NW2+1,NSS2)
             write(6,*)
-            write(6,*)'Fast-J v7.6 ---PHOTO_JX Net Fluxes include SZA & solar dist'
-            write(6,'(a,2f8.2)') ' ---NET FLUXES--- solar < 700 or 778 nm ',FREF1,FREF1+FREF2
+            write(6,'(a,a)') 'Fast-J v7.6 ---PHOTO_JX Net Fluxes include SZA ',&
+                      '& solar dist'
+            write(6,'(a,2f8.2)') ' ---NET FLUXES--- solar < 700 or 778 nm ',&
+                  FREF1,FREF1+FREF2
             write(6,'(a11,18i8)')   'bins:',(K, K=NW1,NW2)
             write(6,'(a11,18f8.1)') 'wavl:',(WL(K), K=NW1,NW2)
             write(6,'(a11,18f8.2)') 'watt:',(FW(K), K=NW1,NW2)
@@ -686,14 +809,22 @@
             write(6,'(a11,32i8)')   'bins:',(K, K=NW2+1,NSS2)
             write(6,'(a11,32f8.1)') 'wavl:',(WL(K), K=NW2+1,NSS2)
             write(6,'(a11,32f8.2)') 'watt:',(FW(K), K=NW2+1,NSS2)
-            write(6,'(a11,33f8.2)') ' sol atm+sf',(FFXNET(K,3), K=NW2+1,NSS2),FFXNETS(3)
-            write(6,'(a11,33f8.2)') ' sol in atm',(FFXNET(K,1), K=NW2+1,NSS2),FFXNETS(1)
-            write(6,'(a11,33f8.2)') ' sol at srf',(FFXNET(K,2), K=NW2+1,NSS2),FFXNETS(2)
-            write(6,'(a11,33f8.2)') ' dif outtop',(FFXNET(K,4), K=NW2+1,NSS2),FFXNETS(4)
-            write(6,'(a11,33f8.2)') ' abs in atm',(FFXNET(K,5), K=NW2+1,NSS2),FFXNETS(5)
-            write(6,'(a11,33f8.2)') ' abs at srf',(FFXNET(K,6), K=NW2+1,NSS2),FFXNETS(6)
-            write(6,'(a11,33f8.2)') ' srf direct',(FFXNET(K,7), K=NW2+1,NSS2),FFXNETS(7)
-            write(6,'(a11,33f8.2)') ' srf diffus',(FFXNET(K,8), K=NW2+1,NSS2),FFXNETS(8)
+            write(6,'(a11,33f8.2)') ' sol atm+sf',(FFXNET(K,3), &
+                  K=NW2+1,NSS2),FFXNETS(3)
+            write(6,'(a11,33f8.2)') ' sol in atm',(FFXNET(K,1), &
+                  K=NW2+1,NSS2),FFXNETS(1)
+            write(6,'(a11,33f8.2)') ' sol at srf',(FFXNET(K,2), &
+                  K=NW2+1,NSS2),FFXNETS(2)
+            write(6,'(a11,33f8.2)') ' dif outtop',(FFXNET(K,4), &
+                  K=NW2+1,NSS2),FFXNETS(4)
+            write(6,'(a11,33f8.2)') ' abs in atm',(FFXNET(K,5), &
+                  K=NW2+1,NSS2),FFXNETS(5)
+            write(6,'(a11,33f8.2)') ' abs at srf',(FFXNET(K,6), &
+                  K=NW2+1,NSS2),FFXNETS(6)
+            write(6,'(a11,33f8.2)') ' srf direct',(FFXNET(K,7), &
+                  K=NW2+1,NSS2),FFXNETS(7)
+            write(6,'(a11,33f8.2)') ' srf diffus',(FFXNET(K,8), &
+                  K=NW2+1,NSS2),FFXNETS(8)
             write(6,'(a11,32f8.3)') ' tau absorb',(FFXTAU(K,1), K=NW2+1,NSS2)
             write(6,'(a11,32f8.3)') ' tau total ',(FFXTAU(K,2), K=NW2+1,NSS2)
             write(6,'(a11,32f8.3)') ' cld absorb',(FFXTAU(K,3), K=NW2+1,NSS2)
@@ -703,15 +834,19 @@
             do L = LU,1,-1
                write(6,'(i4,32f7.2)') L,(SKPERD(I,L), I=NW1,NW2)
             enddo
-            write(6,'(a)') 'heating rate profiles in K/day v7.6 778-...nm plus 1:18 19:27 1:27'
+            write(6,'(a,a)') 'heating rate profiles in K/day v7.6 778-', &
+                  '...nm plus 1:18 19:27 1:27'
             write(6, '(a4,32f7.1)')'wvl ',(WL(I),I=NW2+1,NSS2)
             do L = LU,1,-1
-               write(6,'(i4,35f7.2)') L,(SKPERD(I,L), I=NW2+1,NSS2+2),SKPERD(S_+1,L)+SKPERD(S_+2,L)
+               write(6,'(i4,35f7.2)') L,(SKPERD(I,L), I=NW2+1,NSS2+2), &
+                     SKPERD(S_+1,L)+SKPERD(S_+2,L)
             enddo
             write(6,'(a)') ' Fast-J  v7.6 ----J-values----'
             write(6,'(1x,a,72(a6,3x))') 'L=  ',(TITLEJX(K), K=1,NJX)
             do L = LU,1,-1
-               write(6,'(i3,1p, 72e9.2)') L,(VALJXX(L,K),K=1,NJX)
+               ! Adjust NJX (# J-values per level) in write statement for GEOS-Chem
+               !write(6,'(i3,1p, 72e9.2)') L,(VALJXX(L,K),K=1,NJX)
+               write(6,'(i3,1p,104e9.2)') L,(VALJXX(L,K),K=1,NJX)
             enddo
        endif  ! end of CLOUDJ print
       endif   ! end of LPRTJ if
@@ -754,29 +889,35 @@
 
 ! in:
 !     DTAUX(1:L1_,1:W_+W_r) = optical depth of each layer
-!     POMEGAX(1:8,1:L1_,1:W_+W_r) = scattering phase fn (multiplied by s-s abledo)
+!     POMEGAX(1:8,1:L1_,1:W_+W_r) = scattering phase fn (multiplied by s-s
+!abledo)
 !     U0  = cos (SZA)
 !  ** RFL(5,1:W_) = Lambertian albedo of surface for angles 1:4 & U0 (#5)
 !     AMF(1:L1_+1,1:L1_+1) = air mass factor (I,L)=wt of layer-I to layer-L
 !        AMF now back to NOT inserting layers
 !     JXTRA(1:L1_) = number 0:J = no. of additional levels to be inserted
 ! out:
-!     FJACT(1:L_,1:W_) = mean actinic flux(diff+direct) at std CTM levels(mid-lyr)
+!     FJACT(1:L_,1:W_) = mean actinic flux(diff+direct) at std CTM
+!levels(mid-lyr)
 !  (new ver 5.7 diagnostics for fluxes, deposition)  fluxes 'down' are <0
-!     FJTOP(1:W_) = diffuse flux out top-of-atmosphere (TAU=0 above top model lyr)
+!     FJTOP(1:W_) = diffuse flux out top-of-atmosphere (TAU=0 above top
+!model lyr)
 !     FJBOT(1:W_) = diffuse flux onto surface (<0 by definition)
 !     FSBOT(1:W_) = direct/solar flux onto surface  (<0 by definition)
-!     FIBOT(5,1:W_) = mean intensities onto surface, #5 = I-plus refelected from surface
+!     FIBOT(5,1:W_) = mean intensities onto surface, #5 = I-plus refelected
+!from surface
 !     FJFLX(1:L_,1:W_) = diffuse flux across top of model layer L
 !        this connects with FJBOT = FJFLX(0) & FJTOP = FJFLX(L_+1) (not dim!!)
-!     FLXD(1:L_+1,1:W_) = solar flux deposited in layer L (includes lyr above CTM)
+!     FLXD(1:L_+1,1:W_) = solar flux deposited in layer L (includes lyr above
+!CTM)
 !        this should take into account sphericity, and is not just = mu0
 !     FLXD0(1:W_) = sum of solar flux deposited in atmos
 !        does NOT include flux on lower surface, does NOT mean absorbed!
 !-----------------------------------------------------------------------
 !
 !     DTAU     Local optical depth of each CTM level
-!     TTAU     Optical depth of air vertically above each point (to 0 at top of atm)
+!     TTAU     Optical depth of air vertically above each point (to 0 at top
+!of atm)
 !     FTAU     Attenuation of solar beam
 !     POMEGAJ  Scattering phase function
 !
@@ -848,16 +989,22 @@
 !---PRIMARY loop over wavelengths
       do K = 1,W_+W_r
       if (LDOKR(K) .gt. 0) then
-!---FTAU(L) = solar beam (attenuated) at layer edge L, thus need L1U+1 for uppermost layer.
-!   FTAU(1:L1U+1) = 1.0 when u0>0, but for u0<0 must be decayed from FTAU(L1U) to FTAU(L1U+1)
-!   To calculate FTAU(L1U+1) we need to have an artificial layer above (DTAU1(L1U+1) = 0)
-!        and a finite air mass AMF(L1U+1,L1U+1) = 1.0.  This works fine as long as
+!---FTAU(L) = solar beam (attenuated) at layer edge L, thus need L1U+1 for
+!uppermost layer.
+!   FTAU(1:L1U+1) = 1.0 when u0>0, but for u0<0 must be decayed from FTAU(L1U)
+!to FTAU(L1U+1)
+!   To calculate FTAU(L1U+1) we need to have an artificial layer above
+!(DTAU1(L1U+1) = 0)
+!        and a finite air mass AMF(L1U+1,L1U+1) = 1.0.  This works fine as
+!long as
 !        AMF(L<L1U+1,L1U+1) =0 then U0>0 and FTAU(L1U+1+1) = 1.0, but if
-!        AMF(L<L1U+1,L1U+1) >0 then U0<0 and sum XLTAU for L<L1U+1, get >0, & FTAU(L1U+1+1) <0
+!        AMF(L<L1U+1,L1U+1) >0 then U0<0 and sum XLTAU for L<L1U+1, get >0,
+!& FTAU(L1U+1+1) <0
 !---  FTAU and DTAU1 are local, non-K
 
 ! new v7.6c >>> correction for spherical geometric atmosphere
-!     DTAU1 is increased by AMG = (1+z/R)**2 for solar ray because of geopotential dz
+!     DTAU1 is increased by AMG = (1+z/R)**2 for solar ray because of
+!geopotential dz
 !     if not 'geom' model then AMG = 1
 ! >>>> DTAU1 is used ONLY to calculate solar ray attenuation
        do L = 1,L1U
@@ -874,7 +1021,8 @@
        do LL = LL0+1,L1U+1
 ! there is sunlight thru layer LL to layer edge/radius LL (=1:L1U)
 ! AMF(I,L) includes air mass effective (AMF ~ 1/U0) for all layers I at edge L
-! when U0<0 layers for I<L are included (w/double weights).and AMF(L1U,L1U+1) > 0
+! when U0<0 layers for I<L are included (w/double weights).and AMF(L1U,L1U+1)
+!> 0
              XLTAU = 0.0d0
           do II = 1,L1U
              XLTAU = XLTAU + DTAU1(II)*AMF(II,LL)
@@ -894,7 +1042,8 @@
 !      by AMG**2: 1 for the geop dz (as above for spherical shells)
 !                 2 for the squeezing expanded area into the surface column.
 !>>>>> Note TTAU is column optical depth used in the multiple scattering code
-!>>>>>     DTAUX(L,K) is the layer optical depth from the std planar geopot model
+!>>>>>     DTAUX(L,K) is the layer optical depth from the std planar geopot
+!model
           TTAU(L1U+1) = 0.0d0
        do L = L1U,1,-1
           TTAU(L) = TTAU(L+1) + DTAUX(L,K) * AMG(L)**2
@@ -913,7 +1062,8 @@
           enddo
        enddo
 
-!---prepare for interpolating semi-log TAU-grid at top of clouds, L2LEV(L) = added levels
+!---prepare for interpolating semi-log TAU-grid at top of clouds, L2LEV(L)
+!= added levels
 !---prepare master solution grid with both even (j) and odd (h) levels
 !---master solution grid (N_) is reversed with TAU=0 at top of atmosphere
 !---  LZ is reverse of L with added mid-point (even LZ)
@@ -921,7 +1071,8 @@
 !---Move everything onto the LZ arrays, interpolate the added j-levels (odd pts)
        do L = 1,L1U+1          ! L = index of CTM edge- and mid-layers
           L2 = L2LEV(L)        ! L2 = i# of interp layers
-          LZ  = ND + 2 - 2*L2  ! LZ = index for master solution arrays (LZ=1 = top)
+          LZ  = ND + 2 - 2*L2  ! LZ = index for master solution arrays (LZ=1
+!= top)
           ZTAU(LZ,K) = TTAU(L)
           FZ(LZ,K)   = FTAU(L)
           do I=1,M2_
@@ -943,15 +1094,19 @@
                 POMBTM(I) = POMEGA1(I,L)
                 POMTOP(I) = POMEGA1(I,L+1)
              enddo
-! ATAU = 1.05 / 0.005 (most accurate version) each successive delta_TAU increase 5%
+! ATAU = 1.05 / 0.005 (most accurate version) each successive delta_TAU
+!increase 5%
                 DIVT = 1.d0/(ATAU**(L22+1) - 1.d0)
-             do LL = 1,L22           ! add odd levels between L2LEV(L2) & L2LEV(L2+1)
-                LZZ = LZ - 2*LL      ! LZZ = index(odd) of added level in scatt arrays
+             do LL = 1,L22           ! add odd levels between L2LEV(L2)
+!& L2LEV(L2+1)
+                LZZ = LZ - 2*LL      ! LZZ = index(odd) of added level in
+!scatt arrays
 !--- for L=1 this is the odd (j) layer just above TAUBTM @ L2 on other grid
                 SUMT = (ATAU**(L22+1-LL) - 1.d0)*DIVT
                 ZTAU(LZZ,K) = TAUTOP + SUMT*(TAUBTM-TAUTOP)
                 if (AMF(1,1) .gt. 0.d0) then
-!--- sun is up, top-lit, flux decays downward  - reduce TAU for solar interpolation
+!--- sun is up, top-lit, flux decays downward  - reduce TAU for solar
+!interpolation
 ! v7.6c ZTAU & TAUTOP/TAUBTM have been increased by AMG**2 for 1D scattering,
 !     reduce this for direct beam in a spherical atmosphere
                    DTAUEXT = (ZTAU(LZZ,K)-TAUTOP) / AMG(L)
@@ -971,17 +1126,22 @@
 !---Diagnose direct solar-beam flux deposited in each standard L=1:L1U layer
 !---    this is critical as it determines the atmospheric heating rates.
 
-!---Need go thru all the odd (j) LZ layers and sum into the L layers where above shaddow ht
+!---Need go thru all the odd (j) LZ layers and sum into the L layers where
+!above shaddow ht
        do L = LL0+1,L1U              ! L = index of CTM edge- and mid-layers
           L2 = L2LEV(L)          ! L2 = index for L2 in expanded scale(JXTRA)
           LZ  = ND +   2 - 2*L2  ! LZ = index for scatt arrays
           L22 = L2LEV(L+1) - L2LEV(L) - 1   ! L22 = 0 if no added levels
         if (L22 .eq. 0) then     !--- Standard L layers, no interpoalted ones!
-!--- flux deposited in each layer L(bottom) to L+1(top) must be calculated for both
-!    for conservative scattering extinction and separately for absorption extinction
+!--- flux deposited in each layer L(bottom) to L+1(top) must be calculated for
+!both
+!    for conservative scattering extinction and separately for absorption
+!extinction
 !    For scattering, the correct flux deposited is Dtau*(Ftop + Fbot)/2
-!    For absorption, the correct flux needs to be the amount attenuated (down and up)
-!      Note use of POMEGAX(1:8,L,K) = original mean layer value L to L+1   (not edge)
+!    For absorption, the correct flux needs to be the amount attenuated
+!(down and up)
+!      Note use of POMEGAX(1:8,L,K) = original mean layer value L to L+1
+!(not edge)
 !--- calculate & add scattering flux in layer:
             DTAUSCA = DTAU1(L)*POMEGAX(1,L,K)
             FLXD(L,K) = FLXD(L,K) + 0.5d0*(FTAU(L)+FTAU(L+1))*DTAUSCA
@@ -1001,9 +1161,12 @@
         else
 
 !--- Interpolated layers, L22 > 0 for this L
-         do LL = 0,L22           ! add odd levels between L2LEV(L2) & L2LEV(L2+1)
-            LZZ = LZ - 2*LL      ! LZZ = index(odd) of added level in scatt arrays
-!--- calculate & add scattering flux in layer:  assume ZTAU is for 1D RT, not geom-scaled
+         do LL = 0,L22           ! add odd levels between L2LEV(L2) &
+!L2LEV(L2+1)
+            LZZ = LZ - 2*LL      ! LZZ = index(odd) of added level in scatt
+!arrays
+!--- calculate & add scattering flux in layer:  assume ZTAU is for 1D RT,
+! not geom-scaled
             DTAUEXT = (ZTAU(LZZ,K)-ZTAU(LZZ-2,K)) / AMG(L)
             DTAUSCA = DTAUEXT*POMEGAX(1,L,K)
             FLXD(L,K) = FLXD(L,K) + 0.5d0*(FZ(LZZ,K)+FZ(LZZ-2,K))*DTAUSCA
@@ -1024,7 +1187,8 @@
 
         endif
 ! v76c final correction:
-!    increase flux deposited in expanded spherical shells for 1D planar scattering code
+!    increase flux deposited in expanded spherical shells for 1D planar
+!scattering code
         FLXD(L,K) = FLXD(L,K)*AMG(L)
        enddo
 
@@ -1033,7 +1197,8 @@
           FLXD0(K) = FLXD0(K) + FLXD(L,K)
        enddo
 
-!   Now fill in the even 'h' points with simple interpolation in the scatter arrays:
+!   Now fill in the even 'h' points with simple interpolation in the scatter
+!arrays:
        do LZ = 2,ND-1,2
           ZTAU(LZ,K) = 0.5d0*(ZTAU(LZ-1,K)+ZTAU(LZ+1,K))
           FZ(LZ,K)   = sqrt(FZ(LZ-1,K)*FZ(LZ+1,K))
@@ -1100,7 +1265,8 @@
       integer, intent(in)  ::  LDOKR(W_+W_r),ND
       real*8,  intent(in)  ::  POMEGA(M2_,N_,W_+W_r),FZ(N_,W_+W_r), &
                                ZTAU(N_,W_+W_r),RFL(5,W_+W_r),U0,FSBOT(W_+W_r)
-      real*8,  intent(out) ::  FJ(N_,W_+W_r),FJT(W_+W_r),FJB(W_+W_r),FIB(5,W_+W_r)
+      real*8,  intent(out) ::  FJ(N_,W_+W_r),FJT(W_+W_r)
+      real*8,  intent(out) ::  FJB(W_+W_r),FIB(5,W_+W_r)
       real*8  PM(M_,M2_),PM0(M2_)
       integer I, IM  ,K
 !-----------------------------------------------------------------------
@@ -1724,8 +1890,10 @@
 
       implicit none
 
-      real*8, intent(in) ::    REFF         ! effective radius of liq water cloud
-      real*8, intent(in) ::    TEFF         ! effective temperature of ice water cloud
+      real*8, intent(in) ::    REFF         ! effective radius of liq water
+!cloud
+      real*8, intent(in) ::    TEFF         ! effective temperature of ice
+!water cloud
       real*8, intent(out) ::   DDENS        ! density of cloud particle (g/cm^3)
       real*8, intent(out)::    QQEXT(S_)    ! optical depth of layer
       real*8, intent(out)::    SSALB(S_)    ! single-scattering albedo
@@ -1765,8 +1933,10 @@
 
       implicit none
 
-      real*8, intent(in) ::    REFF         ! effective radius of liq water cloud
-      real*8, intent(in) ::    TEFF         ! effective temperature of ice water cloud
+      real*8, intent(in) ::    REFF         ! effective radius of liq water
+!cloud
+      real*8, intent(in) ::    TEFF         ! effective temperature of ice
+!water cloud
       real*8, intent(out) ::   DDENS        ! density of cloud particle (g/cm^3)
       real*8, intent(out)::    QQEXT(S_)    ! optical depth of layer
       real*8, intent(out)::    SSALB(S_)    ! single-scattering albedo
@@ -1776,9 +1946,9 @@
       real*8  FNR
 
         if (TEFF .ge. 233.15d0) then
-      K = 2  ! ice irreg (warm)
+           K = 2  ! ice irreg (warm)
         else
-      K = 3  ! ice hexag (cold)
+           K = 3  ! ice hexag (cold)
         endif
       DDENS = DCC(K)
           I = 1      !must have at least 2 Reff bins, interpolate in Reff
@@ -1810,7 +1980,8 @@
 ! >>>special for Strat Sulfate Aerosols (SSA)!
 ! K = 01 S-Bkg   just use 220K & 70 wt%  values for now:  KK = 3 + 1 = 4
 ! K = 02 S-Vol   LOGN:r=.080 s=.800 n=1.514/.../1.435  refKK = 9 + 4 = 13
-!>>> but the output OPTD, SSALB,SLEG now has a full SX-=27 wavelengths, not 5 (200-300-..-999mm)
+!>>> but the output OPTD, SSALB,SLEG now has a full SX-=27 wavelengths, not 5
+!(200-300-..-999mm)
 
       implicit none
 
@@ -1851,7 +2022,8 @@
       subroutine OPTICG (OPTD,SSALB,SLEG, PATH,K)
 !------------------------------------------------------------------------------
 !---for the GEOMIP SSA (stratospheric sulfate aerosol) data sets
-! K = 1001:1015 corresponds to R-eff = 0.02 0.04 0.08 0.10 ...  1.4 2.0 3.0 5.0 microns
+! K = 1001:1015 corresponds to R-eff = 0.02 0.04 0.08 0.10 ...  1.4 2.0 3.0
+!5.0 microns
 !     output OPTD, SSALB,SLEG now has a full SX-=27 wavelengths
       implicit none
 
@@ -1894,13 +2066,16 @@
         integer,intent(inout)::     K        ! index of cloud/aerosols
         integer I,J,JMIE
         real*8  XTINCT, REFF,RHO,WAVE, QAAX,SAAX,WAAX
-! K=1&2 are the SSA values, not used here any more, make sure they are not asked for.
-        if (K.gt.NAA .or. K.lt.3) call EXITC ('OPTICA: aerosol index out-of-range')
+! K=1&2 are the SSA values, not used here any more, make sure they are not
+!asked for.
+        if (K.gt.NAA .or. K.lt.3) &
+           call EXITC ('OPTICA: aerosol index out-of-range')
         REFF = RAA(K)
         RHO = DAA(K)
         do J = 1,S_
-           WAVE =  WL(J)      ! WL(1:S_=1:27) is in common = mean wavelength (nm)
-!---Pick pair of Mie wavelength to get scattering properites--sorry for the hardwire here
+           WAVE =  WL(J) ! WL(1:S_=1:27) is in common = mean wavelength (nm)
+!---Pick pair of Mie wavelength to get scattering properites--sorry for the
+!hardwire here
            JMIE = 1
            WAAX = (WAVE - 200.d0)*0.010d0
            if( WAVE .gt. 300.d0 ) then
@@ -1915,6 +2090,7 @@
               JMIE=4
               WAAX = (WAVE - 600.d0)*0.0025d0
            endif
+
            if( WAVE .gt. 999.d0 ) then
               QAAX = QAA(5,K) *999.d0/WAVE  ! Q gets smaller
               SSALB(J) = SAA(5,K)        ! single scat albedo & P1-P7 unchanged
@@ -1941,7 +2117,8 @@
       subroutine OPTICM (OPTD,SSALB,SLEG, PATH,RELH,LL)
 !------------------------------------------------------------------------------
 !---U Michigan aerosol data sets, this generate fast-JX data formats.
-!---Approximates the Legendre expansion(L) of the scattering phase fn as (2*L+1)*g**L
+!---Approximates the Legendre expansion(L) of the scattering phase fn as
+!(2*L+1)*g**L
 !---UMAER(I,J,K,L):
 !   I=1:3 = [SSAbldeo, g, k-ext(m2/g)]
 !   J=1:5 = [200, 300, 400, (550,) 600 , 1000 nm]
@@ -2026,7 +2203,8 @@
 
       do L = 1,LU
 
-!---need temperature, pressure, and density at mid-layer (for some quantum yields):
+!---need temperature, pressure, and density at mid-layer (for some quantum'
+!yields):
         TT   = TTJ(L)
         if (L .eq. 1) then
           PP = PPJ(1)
@@ -2034,7 +2212,8 @@
           PP  = (PPJ(L)+PPJ(L+1))*0.5d0
         endif
          DD = 7.24e18*PP/TT
-!---must zero bin-11 (216-222 & 287-291 nm) below 100 hPa since O2 e-fold is too weak
+!---must zero bin-11 (216-222 & 287-291 nm) below 100 hPa since O2 e-fold is
+!too weak
         if (PP .gt. 100.d0) then
           FFF(11,L) = 0.d0
         endif
@@ -2044,9 +2223,12 @@
 
 !     for J=1:3  O2, O3(total), & O3(O1D)
         do K = 1,W_
-          call X_interp (TT,QO2TOT, TQQ(1,1),QO2(K,1),TQQ(2,1),QO2(K,2), TQQ(3,1),QO2(K,3), LQQ(1))
-          call X_interp (TT,QO3TOT, TQQ(1,2),QO3(K,1),TQQ(2,2),QO3(K,2), TQQ(3,2),QO3(K,3), LQQ(2))
-          call X_interp (TT,QO31DY, TQQ(1,3),Q1D(K,1),TQQ(2,3),Q1D(K,2), TQQ(3,3),Q1D(K,3), LQQ(3))
+          call X_interp (TT, QO2TOT, TQQ(1,1),QO2(K,1), TQQ(2,1), QO2(K,2), &
+                         TQQ(3,1),QO2(K,3), LQQ(1))
+          call X_interp (TT,QO3TOT, TQQ(1,2),QO3(K,1),TQQ(2,2),QO3(K,2), &
+                         TQQ(3,2),QO3(K,3), LQQ(2))
+          call X_interp (TT,QO31DY, TQQ(1,3),Q1D(K,1),TQQ(2,3),Q1D(K,2), &
+                         TQQ(3,3),Q1D(K,3), LQQ(3))
           QO31D  = QO31DY*QO3TOT
           VALJ(1) = VALJ(1) + QO2TOT*FFF(K,L)
           VALJ(2) = VALJ(2) + QO3TOT*FFF(K,L)
@@ -2204,9 +2386,11 @@
 !     AMF(L,L) >0 is used to that there is a path to the sun at radius L
 !          even on the dark side, the path will start thru layers K < L
 !          but must eventually go up through layer L to reach the sun.
-!     AMF(LTOP+1,LTOP+1) is meaningless since there is no layer LTOP+1, and is set =0
+!     AMF(LTOP+1,LTOP+1) is meaningless since there is no layer LTOP+1, and
+! is set =0
 !          but when we need to calculate solar intensity at radius LTOP+1
-!          on the darkside, we set this = 1. to trigger the AMF(L,L)>0 criterion.
+!          on the darkside, we set this = 1. to trigger the AMF(L,L)>0
+! criterion.
 ! local:
 !     RZ(L) = radius vector length to bottom edge of layer L  = RAD+ZHL(L)
 !     ZHL(L1U) = top radius of CTM
@@ -2240,7 +2424,8 @@
       do L = 1,LTOP
         DIVZ(L) = 1.d0/(RZ(L+1)-RZ(L))
         RATZ(L) = RZ(L)/RZ(L+1)
-        RD(L) = exp(-(RZ(L)-RAD)/DDHT)    ! assume layer density is at the bottom edge
+        RD(L) = exp(-(RZ(L)-RAD)/DDHT)    ! assume layer density is at the
+! bottom edge
         RN(L) = 1.d0 + REF0*RD(L)
       enddo
         RD(LTOP+1) = 0.d0
@@ -2256,7 +2441,8 @@
 
       if (U0 .lt. 0.d0) goto 1111
 
-! ZA0 .le. 90 deg. = Solar path directly on surface *** even without refraction ***
+! ZA0 .le. 90 deg. = Solar path directly on surface *** even without
+! refraction ***
 !  do first downward integration with refraction,
 !  calculate elevation angle at each layer edge,
 !  redo each path for each layer edge
@@ -2264,8 +2450,10 @@
 ! Loop over each lowermost point L
       do L=1,LTOP
 ! First time thru, just get elevation angle correction (no paths)
-         SRN0 = SZA0*RZ(L)*RN(L)    ! invariant path that hits edge L at angle ZA0
-         SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! = sin of zenith angle at top of atmosphere
+         SRN0 = SZA0*RZ(L)*RN(L)    ! invariant path that hits edge L at
+! angle ZA0
+         SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! = sin of zenith angle at
+! top of atmosphere
          ZANG1(:) = 0.d0
          ZANG1(LTOP+1) = asin(SA0)
          PATH1(:) = 0.d0
@@ -2278,12 +2466,16 @@
           A2 = asin(SA2)
          ZANG1(K) = ZANG1(K+1) + A1 - A2
        enddo
-! correct zenith angle at lower edge L by subtracting elevation angle = ZANG1(L)-ZA0 > 0
+! correct zenith angle at lower edge L by subtracting elevation
+! angle = ZANG1(L)-ZA0 > 0
          ZA1 = ZA0 - (ZANG1(L) - ZA0)
-! Second time with elev angle correction. Calculate path. but cumulative angle not needed
+! Second time with elev angle correction. Calculate path. but cumulative
+! angle not needed
          SZA1 = sin(ZA1)
-         SRN1 = SZA1*RZ(L)*RN(L)    ! invariant path that hits surface at angle ZA0
-         SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! A0 = zenith angle at top of atmosphere
+         SRN1 = SZA1*RZ(L)*RN(L)    ! invariant path that hits surface at
+! angle ZA0
+         SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! A0 = zenith angle at top of
+! atmosphere
          PATH1(:) = 0.d0
        do K=LTOP,L,-1
 !  A1 = zenith angle at bottom layer K (from invariant)
@@ -2294,7 +2486,8 @@
           A2 = asin(SA2)
           CA1 = cos(A1)
           CA2 = cos(A2)
-         PATH1(K) = RZ(K+1)*CA2 - RZ(K)*CA1  ! path length thru layer K (edges K:K+1)
+         PATH1(K) = RZ(K+1)*CA2 - RZ(K)*CA1  ! path length thru layer K
+! (edges K:K+1)
        enddo
        do K=1,LTOP
         AMF(K,L) = PATH1(K)*DIVZ(K)
@@ -2308,7 +2501,8 @@
 ! calculate the zenith angle at the tangent point (Atan(L) > 90)
       do L=1,LTOP+1
          SRN0 = RZ(L)*RN(L)    ! invariant path that hits tangent at RZ(L)
-         SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! = sin of zenith angle at top of atmosphere
+         SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! = sin of zenith angle at top
+! of atmosphere
         ZANG1(:) = 0.d0
         ZANG1(LTOP+1) = asin(SA0)
         PATH1(:) = 0.d0
@@ -2322,10 +2516,12 @@
           A2 = asin(SA2)
           CA1 = cos(A1)
           CA2 = cos(A2)
-         PATH1(K) = RZ(K+1)*CA2 - RZ(K)*CA1  ! path length thru layer K (edges K:K+1)
+         PATH1(K) = RZ(K+1)*CA2 - RZ(K)*CA1  ! path length thru layer K
+! (edges K:K+1)
          ZANG1(K) = ZANG1(K+1) + A1 - A2
        enddo
-! this back-up integration is not necessary, symmetric in PATH and in angle about ZANG1(L)
+! this back-up integration is not necessary, symmetric in PATH and in angle
+! about ZANG1(L)
        do K=1,LTOP
         ZAMF(L,K) = PATH1(K)*DIVZ(K)
         ZANG(L,K) = ZANG1(L)+ZANG1(L)-ZANG1(K)
@@ -2336,21 +2532,27 @@
 
 ! there are only LTOP layers with PATHs (air mass factors)
 ! each layer has its own a path for each edge point
-! and layer LTOP is layer (w/thickness) above the model layers to reach top-of-atmos
+! and layer LTOP is layer (w/thickness) above the model layers to reach
+! top-of-atmos
 ! define 2 tangent paths to interpolate AMF (PATH2) between K0 and K0+1
 ! the PATH lengths on the tangent arcs are symmetric (but not about 90 deg)
       do L0 = 1,LTOP+1
 
        if (ZA0 .lt. ZANG(L0,L0)) then
-! do NOT calculate AMF's for top radius/edge LTOP+1 unless lit from below, else AMF=0
+! do NOT calculate AMF's for top radius/edge LTOP+1 unless lit from below,
+! else AMF=0
         if (L0 .le. LTOP) then
 ! the column atmosphere zenith angle is less than the tangent point angle
-! correct zenith angle at lower edge L by subtracting elevation angle = ZANG(L0,L0) - C90
+! correct zenith angle at lower edge L by subtracting elevation angle
+! = ZANG(L0,L0) - C90
           ZA1 = ZA0 - (ZANG(L0,L0) - C90)
-! Second time with elev angle correction. Calculate path. but cumulative angle not needed
+! Second time with elev angle correction. Calculate path. but cumulative
+! angle not needed
           SZA1 = sin(ZA1)
-          SRN1 = SZA1*RZ(L0)*RN(L0)    ! invariant path that hits surface at angle ZA0
-          SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! A0 = zenith angle at top of atmosphere
+          SRN1 = SZA1*RZ(L0)*RN(L0)    ! invariant path that hits surface
+! at angle ZA0
+          SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! A0 = zenith angle at top of
+! atmosphere
           PATH1(:) = 0.d0
          do K=LTOP,L0,-1
 !  A1 = zenith angle at bottom layer K (from refracted invariant)
@@ -2361,7 +2563,8 @@
           A2 = asin(SA2)
           CA1 = cos(A1)
           CA2 = cos(A2)
-          PATH1(K) = RZ(K+1)*CA2 - RZ(K)*CA1  ! path length thru layer K (edges K:K+1)
+          PATH1(K) = RZ(K+1)*CA2 - RZ(K)*CA1  ! path length thru layer K
+! (edges K:K+1)
          enddo
          do K=1,LTOP
           AMF(K,L0) = PATH1(K)*DIVZ(K)
@@ -2567,7 +2770,8 @@
 !---        ATAU0 = delta-TAU cut-off for cloud OD to insert a layer
 !--- Best values are 0.02 & 1.20, doubles # total layers for thick clouds,
 !       can use 1.40 with 30% reduction in cost, but 3x larger negative heating,
-!       likewise, and use 1.12 but 30% increase in cost, factor of 3 reduction in neg.
+!       likewise, and use 1.12 but 30% increase in cost, factor of 3
+! reduction in neg.
 !  If cloud top heating (K=1:27) is 24 K/day, (high sun, thick cloud)
 !    the visible (k=1:18) error is -2.3 (1.4 -30% layers),
 !                                  -0.6 (1.2 best case),
@@ -2591,7 +2795,8 @@
 !       1 + ATAU + ATAU^2 + ATAU^3 + ATAU^(JX-1)  = [ATAU^JX - 1]/[ATAU - 1]
 !  then JX = ln(1 + ratio*(ATAU-1)) / ln(ATAU) round off suitably
 !       and the last layer added has optical depth = ATAU0 * ATAU^JX
-!  note that there are JX+1 sub layers of DTAU inserted.  JX=0, means DTAU600 stays same
+!  note that there are JX+1 sub layers of DTAU inserted.  JX=0, means DTAU600
+! stays same
          ATAULN = log(ATAU)
          ATAU0X = ATAU0
       do L = L1X,1,-1
@@ -2672,43 +2877,61 @@
 
       integer G, K, INDKG, L
       real*8, dimension(nlayers):: WT
-! heating rate (K/day) = W/m2 deposited in layer * HeatFac_ / delta-P of layer (hPa)
+! heating rate (K/day) = W/m2 deposited in layer * HeatFac_ / delta-P of
+! layer (hPa)
       real*8,  parameter:: HeatFac_ = 86400.d0*9.80616d0/1.00464d5, S0=1360.8
       real*8   HHX, pavg
 !-----------------------------------------------------------------------
-!    Based on  Chu and Lee (JAS, 1996 Parameterizations for the Absorption of Solar Radiation by Water Vapor and Ozone)
+!    Based on  Chu and Lee (JAS, 1996 Parameterizations for the Absorption
+! of Solar Radiation by Water Vapor and Ozone)
 !    Three NIR band wavelength range = 0.70-1.22  1.22-2.27  2.27-10.0 microns
 !    WGF = fraction in sub-bin, WGK = H2O Xsection (cm2/g)
-!    WGTOT (is redundant here); note that unlike the code in Grant and Grossman, the sum of WGF (g) for each band doesn't add up to 1 and is a fracton of total S0 input
+!    WGTOT (is redundant here); note that unlike the code in Grant and
+! Grossman, the sum of WGF (g) for each band doesn't add up to 1 and is a
+! fracton of total S0 input
 !       real*8, dimension(3), parameter  :: WGTOT =[1, 1, 1]
-! WGF is recalculated to add to 1 for each solar bin and tabulated in FJX_spec_Clirad.dat
+! WGF is recalculated to add to 1 for each solar bin and tabulated in
+! FJX_spec_Clirad.dat
 ! Delta-g/WGF (fractions of S0 for 10 sub-bins)
 !      real*8, dimension(10,3), parameter  :: WGF = [ &
-!       0.20673, 0.03497, 0.03011, 0.02260, 0.01336, 0.00696, 0.00441, 0.00115, 0.00026, 0.00000, &
-!       0.08236, 0.01157, 0.01133, 0.01143, 0.01240, 0.01258, 0.01381, 0.00650, 0.00244, 0.00094, &
-!       0.01074, 0.00360, 0.00411, 0.00421, 0.00389, 0.00326, 0.00499, 0.00465, 0.00245, 0.00145]
+!       0.20673, 0.03497, 0.03011, 0.02260, 0.01336, 0.00696, 0.00441, &
+!       0.00115, 0.00026, 0.00000, &
+!       0.08236, 0.01157, 0.01133, 0.01143, 0.01240, 0.01258, 0.01381, &
+!       0.00650, 0.00244, 0.00094, &
+!       0.01074, 0.00360, 0.00411, 0.00421, 0.00389, 0.00326, 0.00499, &
+!       0.00465, 0.00245, 0.00145]
 !2012 HITRAN H2O
       real*8, dimension(10,3), parameter  :: WGF = RESHAPE( SOURCE = &
-          (/.14983, .04105, .04049, .03372, .02792, .01904, .00862, .00235, .00051, .00002,    &
-            .06266, .01465, .01286, .01165, .01311, .01728, .01949, .01032, .00358, .00122,    &
-            .00692, .00283, .00350, .00375, .00471, .00534, .00499, .00580, .00339, .00176 /), &
+          (/.14983, .04105, .04049, .03372, .02792, .01904, .00862,  &
+            .00235, .00051, .00002,    &
+            .06266, .01465, .01286, .01165, .01311, .01728, .01949,  &
+            .01032, .00358, .00122,    &
+            .00692, .00283, .00350, .00375, .00471, .00534, .00499,  &
+            .00580, .00339, .00176 /), &
           SHAPE = (/ 10, 3 /) )
 ! k-interval
 !      real*8, dimension(10,1), parameter :: WGK  =[&
-!       0.0010, 0.0133, 0.0422, 0.1334, 0.4217, 1.3340, 5.6230, 31.620, 177.80, 1000.0] !cm2/g
+!       0.0010, 0.0133, 0.0422, 0.1334, 0.4217, 1.3340, 5.6230, 31.620, &
+!       177.80, 1000.0] !cm2/g
 ! revised according to 2012 HITRAN H2O molecular line data; unit cm2/gram
       real*8, dimension(10), parameter :: WGK  =[&
-       0.0010, 0.0032, 0.0102, 0.0328, 0.1049, 0.4194, 2.5166, 17.616, 123.31, 839.19]
-      real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by Avagado number
+       0.0010, 0.0032, 0.0102, 0.0328, 0.1049, 0.4194, 2.5166, 17.616, &
+       123.31, 839.19]
+      real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by
+! Avagado number
 
 ! 0:0 will assign to bin 18 which is 0 for CLIRAD
       TAUG_CLIRAD(:,0:0)= 0.d0
       do L=1, nlayers
          pavg= 0.5d0* (PPP(L)+PPP(L+1))
 ! Weighting function Pr=300 hPa, Tr=240K;
-         WT(L)= (pavg/300.d0)**(0.8) * (1+ 0.00135*(TTT(L)- 240.0d0)) + 1.D-9 !exp(x) ~= 1+x
-! In literatue, the original eq. looks like the one below. So the above expression is an approximation.
-!        WT(L) =  (pavg/300.d0)**(0.8) * exp(0.00135*(tavg- 240.0d0)) !from Chou (1986, Journal of  Clim. and Appl. Meteo. )
+         WT(L)= (pavg/300.d0)**(0.8) * (1+ 0.00135*(TTT(L)- 240.0d0)) &
+                + 1.D-9 !exp(x) ~= 1+x
+! In literatue, the original eq. looks like the one below. So the above 
+! expression is an approximation.
+!        WT(L) =  (pavg/300.d0)**(0.8) * exp(0.00135*(tavg- &
+!                 240.0d0)) !from Chou (1986, Journal of  Clim. and Appl.
+! Meteo. )
       enddo
 ! we want g/cm2 of h2o for each box
       INDKG = 0
@@ -2719,7 +2942,8 @@
             do L = nlayers, 1,-1
 !after L box  sol2 left
                HHX = HHH(L)* CMF !convert molecules/cm2 to g/cm2
-               TAUG_CLIRAD(L, INDKG)= WGK(G)*HHX *WT(L) ! optical depth for H2O WGK cm2/gram; HHH (g/cm2); WT (no unit)
+               TAUG_CLIRAD(L, INDKG)= WGK(G)*HHX *WT(L) ! optical depth 
+!for H2O WGK cm2/gram; HHH (g/cm2); WT (no unit)
             enddo
          enddo
       enddo
@@ -2741,37 +2965,50 @@
 
       integer G, K, INDKG, L
       real*8, dimension(nlayers):: WT
-! heating rate (K/day) = W/m2 deposited in layer * HeatFac_ / delta-P of layer (hPa)
+! heating rate (K/day) = W/m2 deposited in layer * HeatFac_ / delta-P of
+! layer (hPa)
       real*8,  parameter:: HeatFac_ = 86400.d0*9.80616d0/1.00464d5, S0=1360.8
       real*8   HHX, pavg
 !-----------------------------------------------------------------------
 !   Grant & Grossman 1998 3-band Solar IR, based on Chu 1992
 !     wavelengths = 0.69¡V0.86  0.86¡V2.27  2.27¡V3.85 microns
-!     WGTOT = W/m2 in band, WGF = fraction in sub-bin, WGK = H2O Xsection (cm2/g)
+!     WGTOT = W/m2 in band, WGF = fraction in sub-bin, WGK = H2O Xsection
+!(cm2/g)
 !  WGF and WGTOT are tabulated FJX_spec_GGLLNL.dat
       real*8, dimension(3), parameter  :: WGTOT =[209.77, 472.71, 46.788]
-      real*8, dimension(7,3), parameter  :: WGF = RESHAPE( SOURCE =                 &
-        (/ 0.948551, 0.051449, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000,    &
-           0.703232, 0.085079, 0.098956, 0.046725, 0.049153, 0.016855, 0.000000,    &
-           0.389153, 0.106278, 0.142613, 0.118942, 0.151376, 0.068448, 0.023190 /), &
+      real*8, dimension(7,3), parameter  :: WGF = RESHAPE( SOURCE =    &
+        (/ 0.948551, 0.051449, 0.000000, 0.000000, 0.000000, 0.000000, &
+           0.000000,    &
+           0.703232, 0.085079, 0.098956, 0.046725, 0.049153, 0.016855, &
+           0.000000,    &
+           0.389153, 0.106278, 0.142613, 0.118942, 0.151376, 0.068448, &
+           0.023190 /), &
         SHAPE = (/ 7, 3 /) )
 !WGK cross sections unit cm2 g-1
       real*8, dimension(7,3), parameter  :: WGK = RESHAPE( SOURCE =  &
-        (/ 4.3980E-03, 2.4676E-01,        0.0,        0.0,        0.0,        0.0, 0.0, &
-           7.6655E-03, 1.3370E-01, 5.3350E-01, 2.3126E+00, 1.0536E+01, 1.3122E+02, 0.0, &
-           1.4989E-02, 1.3525E-01, 5.3707E-01, 3.1426E+00, 2.1238E+01, 1.8492E+02, 1.6292E+03 /), &
+        (/ 4.3980E-03, 2.4676E-01,        0.0,        0.0,        0.0, &
+           0.0, 0.0, &
+           7.6655E-03, 1.3370E-01, 5.3350E-01, 2.3126E+00, 1.0536E+01, &
+           1.3122E+02, 0.0, &
+           1.4989E-02, 1.3525E-01, 5.3707E-01, 3.1426E+00, 2.1238E+01, &
+           1.8492E+02, 1.6292E+03 /), &
         SHAPE = (/ 7, 3 /) )
 
-      real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by Avagado number
+      real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by
+!Avagado number
 
 ! 0:0 will assign to bin 18 which is 0 for CLIRAD
       TAUG_LLNL(:,0)= 0.d0
       do L=1, nlayers
          pavg= 0.5d0* (PPP(L)+PPP(L+1))
 ! Weighting function Pr=300 hPa, Tr=240K;
-         WT(L)= (pavg/300.d0)**(0.8) * (1+ 0.00135*(TTT(L)- 240.0d0)) + 1.D-9 !exp(x) ~= 1+x
-! In literatue, the original eq. looks like the one below. So the above expression is an approximation.
-!        WT(L) =  (pavg/300.d0)**(0.8) * exp(0.00135*(tavg- 240.0d0)) !from Chou (1986, Journal of  Clim. and Appl. Meteo. )
+         WT(L)= (pavg/300.d0)**(0.8) * (1+ 0.00135*(TTT(L)- 240.0d0)) &
+                + 1.D-9 !exp(x) ~= 1+x
+! In literatue, the original eq. looks like the one below. So the above
+! expression is an approximation.
+!        WT(L) =  (pavg/300.d0)**(0.8) * exp(0.00135*(tavg- &
+!                 240.0d0)) !from Chou (1986, Journal of  Clim. and Appl.
+! Meteo. )
       enddo
 ! we want g/cm2 of h2o for each box
       INDKG=0
@@ -2782,8 +3019,10 @@
             do L = nlayers, 1,-1
 !after L box  sol2 left
                HHX = HHH(L)* CMF !convert molecules/cm2 to g/cm2
-               TAUG_LLNL(L, INDKG)= WGK(G,K)*HHX *WT(L) ! optical depth for H2O WGK cm2/gram; HHH (g/cm2); WT (no unit)
-!               write(6,'(A10, 2I5, f12.8)')'LLNL tau', L, INDKG, TAUG_LLNL(L,indkg)
+               TAUG_LLNL(L, INDKG)= WGK(G,K)*HHX *WT(L) ! optical depth
+! for H2O WGK cm2/gram; HHH (g/cm2); WT (no unit)
+!               write(6,'(A10, 2I5, f12.8)')'LLNL tau', L, INDKG, &
+!                     TAUG_LLNL(L,indkg)
             enddo
          enddo
       enddo
@@ -2955,7 +3194,8 @@
 !---for each model layer L, calculate
 !   aerosol path in each layer AERS(L) (g/m2)
 !   index IGG of closest effective radius to R0 in optical tables
-!   AERSL path from X=microg-H2SO4/kg-air (ppb) with 75 wt% of H2SO4 (mass*1/.75)
+!   AERSL path from X=microg-H2SO4/kg-air (ppb) with 75 wt% of H2SO4
+!   (mass*1/.75)
 !     rescale it so that when RGG is used for OD, we get same as if R0 used.
          AERS(L) =  G100*(PPP(L)-PPP(L+1)) * X0 * 1.3333d-6
          NAER(L) = 1001
@@ -2986,4 +3226,4 @@
       END SUBROUTINE EXITC
 
 
-      END MODULE FJX_SUB_MOD
+      END MODULE CLDJ_FJX_SUB_MOD
