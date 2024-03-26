@@ -58,7 +58,7 @@
       JXUNIT  = 8
 
       NUN = JXUNIT
-      open (NUN,FILE=TRIM(DATADIR)//'CJ77_inp.dat',status='old', &
+      open (NUN,FILE=TRIM(DATADIR)//'/CJ77_inp.dat',status='old', &
             form='formatted')
       read (NUN,'(a120)',err=4) TIT_SPEC
          if (AMIROOT) write(6,'(a)') trim(TIT_SPEC)
@@ -138,7 +138,7 @@
       ANGLES(5) = 0.e0 ! assgin U0 in photol_mod.f90
 
 ! Read in Fast/Solar-J X-sections (spectral data)
-      call RD_XXX(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_spec.dat')
+      call RD_XXX(AMIROOT,JXUNIT,TRIM(DATADIR)//'/FJX_spec.dat')
 
       if (.not.(LRRTMG .or. LCLIRAD .or. LGGLLNL)) then
          do I = W_,  S_
@@ -166,39 +166,39 @@
       enddo
 
 ! Read in cloud scattering data
-      call RD_CLD(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-cld.dat')
+      call RD_CLD(AMIROOT,JXUNIT,TRIM(DATADIR)//'/FJX_scat-cld.dat')
 
 #ifndef MODEL_GEOSCHEM
 ! Read in strat sulf aerosols scattering data
-      call RD_SSA(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-ssa.dat')
+      call RD_SSA(AMIROOT,JXUNIT,TRIM(DATADIR)//'/FJX_scat-ssa.dat')
 #endif
 
 ! Read in aerosols scattering data
-      call RD_MIE(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-aer.dat')
+      call RD_MIE(AMIROOT,JXUNIT,TRIM(DATADIR)//'/FJX_scat-aer.dat')
 
 #ifndef MODEL_GEOSCHEM
 ! Read in UMich aerosol scattering data
-      call RD_UM (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-UMa.dat')
+      call RD_UM (AMIROOT,JXUNIT,TRIM(DATADIR)//'/FJX_scat-UMa.dat')
 #endif
 
 #ifndef MODEL_GEOSCHEM
 ! Read in GEOMIP aerosol scattering data
-      call RD_GEO (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-geo.dat')
+      call RD_GEO (AMIROOT,JXUNIT,TRIM(DATADIR)//'/FJX_scat-geo.dat')
 #endif
 
 #ifndef MODEL_GEOSCHEM
 ! Read in T & O3 climatology used to fill e.g. upper layers or if O3 not calc.
-      call RD_PROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_std.dat')
+      call RD_PROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'/atmos_std.dat')
 #endif
 
 #ifndef MODEL_GEOSCHEM
 ! Read in H2O and CH4 profiles for Solar-J
-      call RD_TRPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_h2och4.dat')
+      call RD_TRPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'/atmos_h2och4.dat')
 #endif
 
 #ifndef MODEL_GEOSCHEM
 ! Read in zonal mean Strat-Sulf-Aerosol monthly data
-      call RD_SSAPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_geomip.dat')
+      call RD_SSAPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'/atmos_geomip.dat')
 #endif
 
       NJXX = NJX
@@ -208,10 +208,10 @@
 
 ! Read in photolysis rates used in chemistry code and mapping onto FJX J's
 !---CTM call:  read in J-values names and link to fast-JX names
-      call RD_JS_JX(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_j2j.dat', TITLEJXX,NJXX)
+      call RD_JS_JX(AMIROOT,JXUNIT,TRIM(DATADIR)//'/FJX_j2j.dat', TITLEJXX,NJXX)
 
 !---for full ASAD:
-!     call RD_JS(JXUNIT,TRIM(DATADIR)//'ratj.d', TITLEJXX,NJXX,TSPECI,JPSPEC  &
+!     call RD_JS(JXUNIT,TRIM(DATADIR)//'/ratj.d', TITLEJXX,NJXX,TSPECI,JPSPEC  &
 !                ,MJVAL,TJVAL,MJX)
 
 !---setup the random number sequence RAN4
