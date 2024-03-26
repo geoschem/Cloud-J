@@ -168,26 +168,38 @@
 ! Read in cloud scattering data
       call RD_CLD(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-cld.dat')
 
+#ifndef MODEL_GEOSCHEM
 ! Read in strat sulf aerosols scattering data
       call RD_SSA(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-ssa.dat')
+#endif
 
 ! Read in aerosols scattering data
       call RD_MIE(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-aer.dat')
 
+#ifndef MODEL_GEOSCHEM
 ! Read in UMich aerosol scattering data
       call RD_UM (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-UMa.dat')
+#endif
 
+#ifndef MODEL_GEOSCHEM
 ! Read in GEOMIP aerosol scattering data
       call RD_GEO (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-geo.dat')
+#endif
 
+#ifndef MODEL_GEOSCHEM
 ! Read in T & O3 climatology used to fill e.g. upper layers or if O3 not calc.
       call RD_PROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_std.dat')
+#endif
 
+#ifndef MODEL_GEOSCHEM
 ! Read in H2O and CH4 profiles for Solar-J
       call RD_TRPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_h2och4.dat')
+#endif
 
+#ifndef MODEL_GEOSCHEM
 ! Read in zonal mean Strat-Sulf-Aerosol monthly data
       call RD_SSAPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_geomip.dat')
+#endif
 
       NJXX = NJX
       do J = 1,NJXX
