@@ -1,0 +1,35 @@
+{
+    "access_right": "open",
+    "creators": [
+	{
+	    "affiliation": "University of California Irvine",
+	    "name": "Michael J. Prather",
+	},
+ 	{
+	    "affiliation": "Harvard University",
+	    "name": "Elizabeth W. Lundgren",
+	},
+    ],
+    "contributors": [
+	{
+	    "affiliation": "Harvard University",
+	    "name": "Haipeng Lin",
+	},
+ 	{
+	    "affiliation": "National Center for Atmospheric Research",
+	    "name": "Kyle Shores",
+	},
+    ]
+    "description": "Cloud-J multi-scattering radiative transfer model for solar radiation",
+    "keywords": [
+	"atmospheric-chemistry",
+	"atmospheric-composition",
+	"atmospheric-modeling",
+	"photolysis",
+	"radiative-transfer",
+	"atmospheric-computing",
+	"scientific-computing"
+    ],
+    "license": "gpl-3.0-license",
+    "upload_type": "software"
+}
