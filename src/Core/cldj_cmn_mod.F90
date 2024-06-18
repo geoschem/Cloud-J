@@ -33,8 +33,14 @@
       integer, parameter :: L2_ = L_+2 !  L_+2 = total # of layer edges counting top (TAU=0)
 #endif
 
+#ifdef MODEL_CESM
       !  # layers that have clouds (LWEPAR < L_)
-      integer, parameter :: LWEPAR = 34        
+      integer, parameter :: LWEPAR = 34
+#else
+      !  # layers that have clouds (LWEPAR < L_)
+      ! FIXME (hplin): This should be a run-time parameter which also could vary by compset.
+      integer, parameter :: LWEPAR = 22     ! ~100 hPa for CESM 32-levels
+#endif
 
 !------------------------------------------------------------------------------
 ! Additional parameters
