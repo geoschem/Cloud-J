@@ -27,14 +27,13 @@
       integer, parameter :: L_  = 57    !  # of CTM layers, set at build-time
       integer, parameter :: L1_ = L_+1  !  L_+1 = # of CTM layer edges (radii)
       integer, parameter :: L2_ = L_+2  !  L_+2 = total # of layer edges counting top (TAU=0)#
+      integer, parameter :: LWEPAR = 34 !  # layers that have clouds (LWEPAR < L_)
 #else
       integer :: L_     !  # of CTM layers, set at run-time
       integer :: L1_    !  L_+1 = # of CTM layer edges (radii)
       integer :: L2_    !  L_+2 = total # of layer edges counting top (TAU=0)
+      integer :: LWEPAR !  # layers that have clouds (LWEPAR < L_)
 #endif
-
-      !  # layers that have clouds (LWEPAR < L_)
-      integer, parameter :: LWEPAR = 34        
 
 !------------------------------------------------------------------------------
 ! Additional parameters

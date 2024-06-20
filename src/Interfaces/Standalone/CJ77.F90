@@ -67,7 +67,7 @@
       amIRoot = .true.
 !---read in & store all fast-JX data:   single call at set up
 !-----------------------------------------------------------------------      
-      call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,TITLJXX,JVNU,NJXX)
+      call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,LWEPAR,TITLJXX,JVNU,NJXX)
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case
