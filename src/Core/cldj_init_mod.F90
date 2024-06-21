@@ -30,7 +30,6 @@
 !-----------------------------------------------------------------------
       subroutine INIT_CLDJ (AMIROOT,DATADIR,NLEVELS,TITLEJXX,NJXU,NJXX)
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)           :: thisloc
       logical, intent(in)          :: AMIROOT
@@ -246,7 +245,6 @@
 !     TQQ      Temperature for supplied cross sections
 !     QQQ      Supplied cross sections in each wavelength bin (cm2)
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -527,7 +525,6 @@
 !     SCC      Single scattering albedo
 !     DCC      density (g/cm^3)
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -615,7 +612,6 @@
 !     SSS      Single scattering albedo
 !     DSS      density (g/cm^3)
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -683,7 +679,6 @@
 !     SAA      Single scattering albedo
 !     DAA      density (g/cm^3)
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -754,7 +749,6 @@
 !     NAMFIL   Name of scattering data file (e.g., FJX_scat.dat)
 !     NUN      Channel number for reading data file
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -808,7 +802,6 @@
 !-----------------------------------------------------------------------
 !  Routine to input T and O3 reference profiles 'atmos_std.dat'
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -869,7 +862,6 @@
 !-----------------------------------------------------------------------
 !  Routine to input H2O and CH4 reference profiles 'atmos_h2och4.dat'
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -932,7 +924,6 @@
 !     NRATJ     number of Photolysis reactions in CTM chemistry, derived here
 !                   NRATJ must be .le. JVN_
 !-----------------------------------------------------------------------
-      implicit none
 !
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -1027,7 +1018,6 @@
 !     SGG      Single scattering albedo
 !     PGG      Phase function: first 8 terms of expansion
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -1085,7 +1075,6 @@
 !      R_GEO = effective radius (microns)
 !      X_GEO = mass fraction (1e-9 kg-H2SO4/kg-air)
 !-----------------------------------------------------------------------
-      implicit none
 
       character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
@@ -1152,7 +1141,6 @@
 !-----------------------------------------------------------------------
 !  generates a sequence of real*4 pseudo-random numbers RAN4L(1:ND)
 !     program RAN3 from Press, based on Knuth
-      implicit none
 
       character(len=255) ::  thisloc
       integer, parameter ::  MBIG=1000000000

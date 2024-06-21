@@ -1,4 +1,4 @@
-ï»¿c-------FJ_index11d.f    modern code for integrating over REFR INDEX, Rayleigh, YPar & fluxes
+c-------FJ_index11d.f    modern code for integrating over REFR INDEX, Rayleigh, YPar & fluxes
 !           uses both photons and Watts to do weighting  Example = water liqu & ice
 !           starts with pratmo full 77+SR bins and then generates the Solar-J bins (18+9)
 
@@ -474,7 +474,7 @@ c        Agricultural and Forest Meteorology 9:191-216.
 c      McCree, Keith J. (1972b). Agric. & Forest Meteorology 10:443-453.
 c---PAR in PAR is normally quantified as Âµmol photons/m2/s =? ÂµE/m2/s
 c        photosynthetic photon flux (area) density, or PPFD.
-      implicit none
+
       real*8 YPAR
       real*8, intent(in) :: WAVE
       integer IWW
@@ -1486,8 +1486,6 @@ C
 C     Note: You may need to remove the underscores from function names if
 C     using the g77 compiler.
 
-      IMPLICIT NONE
-
       REAL f                    ! [GHz]  Frequency (valid from 0 to 1000 GHz)
       REAL T                    ! [°C]   Temperature
       COMPLEX eps_swd_l91sd     !        Dielectric constant
@@ -1520,8 +1518,6 @@ C     and Manabe (Int. J. IR & mm Waves V.12 (7) July 1991).
 C
 C     Note: You may need to remove the underscores from function names if
 C     using the g77 compiler.
-
-      IMPLICIT NONE
 
       REAL f                    ! [GHz]  Frequency (valid from 0 to 1000 GHz)
       REAL T                    ! [°C]   Temperature

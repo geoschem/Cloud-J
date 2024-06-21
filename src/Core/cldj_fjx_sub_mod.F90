@@ -138,7 +138,6 @@
 !    needs P, T, O3, clds, aersls; adds top-of-atmos layer from climatology
 !    needs day-of-year for sun distance, SZA (not lat or long)
 !-----------------------------------------------------------------------
-      implicit none
 
 !---calling sequence variables
       real*8,  intent(in)                    :: U0    ! cloud-j input
@@ -859,7 +858,6 @@
       subroutine OPMIE (DTAUX,POMEGAX,U0,RFL,AMF,AMG,JXTRA, &
               FJACT,FJTOP,FJBOT,FIBOT,FSBOT,FJFLX,FLXD,FLXD0, LDOKR,LU)
 !-----------------------------------------------------------------------
-      implicit none
 
       real*8, intent(in)  ::  DTAUX(L1_,W_+W_r),POMEGAX(M2_,L1_,W_+W_r)
       real*8, intent(in)  ::  AMF(L1_+1,L1_+1),AMG(L1_)
@@ -1264,7 +1262,6 @@
 !-----------------------------------------------------------------------
       subroutine MIESCT(FJ,FJT,FJB,FIB, POMEGA,FZ,ZTAU,FSBOT,RFL,U0,LDOKR,ND)
 !-----------------------------------------------------------------------
-      implicit none
 
       integer, intent(in)  ::  LDOKR(W_+W_r),ND
       real*8,  intent(in)  ::  POMEGA(M2_,N_,W_+W_r),FZ(N_,W_+W_r), &
@@ -1318,7 +1315,7 @@
 !-----------------------------------------------------------------------
 !---Calculates ORDINARY Legendre fns of X (real)
 !---   from P[0] = PL(1) = 1,  P[1] = X, .... P[N-1] = PL(N)
-      implicit none
+
       integer, intent(in) :: N
       real*8, intent(in)  :: X
       real*8, intent(out) :: PL(N)
@@ -1348,7 +1345,6 @@
 !  This goes back to the old, dumb, fast version 5.3
 !-----------------------------------------------------------------------
 !SJ!      USE IEEE_ARITHMETIC
-      implicit none
 
       integer, intent(in) ::  LDOKR(W_+W_r),ND
       real*8, intent(in)  ::  POMEGA(M2_,N_,W_+W_r),FZ(N_,W_+W_r), &
@@ -1637,7 +1633,6 @@
 !  Generates coefficient matrices for the block tri-diagonal system:
 !               A(I)*X(I-1) + B(I)*X(I) + C(I)*X(I+1) = H(I)
 !-----------------------------------------------------------------------
-      implicit none
 
       integer, intent(in) ::  ND
       real*8, intent(in)  ::  POMEGA(M2_,N_),PM(M_,M2_),PM0(M2_)
@@ -1906,8 +1901,6 @@
 ! every S-bin has its own optical properties
 ! water clouds for (C1/Deir) GAMMA FN:alf=6  Reff from 1.5 to 48 microns
 
-      implicit none
-
       real*8, intent(in) ::    REFF         ! effective radius of liq water
 !cloud
       real*8, intent(in) ::    TEFF         ! effective temperature of ice
@@ -1951,8 +1944,6 @@
 ! new for FJ v7.5, parallel with liquid water, but two types of ice-water
 ! phase functions from a single calculation of Mishchenko, other opticals
 !     based on Mie calc. for liquid water to get best possible abosorption in IR
-
-      implicit none
 
       real*8, intent(in) ::    REFF         ! effective radius of liq water
 !cloud
@@ -2007,8 +1998,6 @@
 !>>> but the output OPTD, SSALB,SLEG now has a full SX-=27 wavelengths, not 5
 !(200-300-..-999mm)
 
-      implicit none
-
       real*8, intent(in)::     PATH         ! path (g/m2) of aerosol/cloud
       integer,intent(inout)::     K            ! index of cloud/aerosols
       real*8, intent(out)::    OPTD(S_)    ! optical depth of layer
@@ -2052,7 +2041,6 @@
 ! K = 1001:1015 corresponds to R-eff = 0.02 0.04 0.08 0.10 ...  1.4 2.0 3.0
 !5.0 microns
 !     output OPTD, SSALB,SLEG now has a full SX-=27 wavelengths
-      implicit none
 
       real*8, intent(in)::     PATH        ! path (g/m2) of aerosol/cloud
       integer,intent(in)::     K           ! index of cloud/aerosols
@@ -2087,7 +2075,7 @@
 !------------------------------------------------------------------------------
 !---v-7.6+ no StratSulfAers (use OPTICS)  also interp/extrap a 1/wavelength
 !         std 5 wavelengths:200-300-400-600-999nm
-        implicit none
+
         real*8, intent(out)::    OPTD(S_)    ! optical depth of layer
         real*8, intent(out)::    SSALB(S_)   ! single-scattering albedo
         real*8, intent(out)::    SLEG(8,S_)  ! scatt phase fn (Leg coeffs)
@@ -2159,7 +2147,6 @@
 !   K=1:21= [0, 5, 10, 15, ..., 90, 95, 99 %RelHum]
 !   L=1:33= UM aerosol types [SULF, SS-1,-2,-3,-4, DD-1,-2,-3,-4, FF00(0%BC),
 !                      FF02, ...FF14(14%BC), BB00, BB02, ...BB30(30%BC)]
-      implicit none
 
       real*8, intent(out)::    OPTD(S_)    ! optical depth of layer
       real*8, intent(out)::    SSALB(S_)   ! single-scattering albedo
@@ -2221,7 +2208,6 @@
 ! out:
 !        VALJL(L_,JX_)  JX_ = no of dimensioned J-values in CTM code
 !-----------------------------------------------------------------------
-      implicit none
 
       integer, intent(in)  :: LU,NJXU
       real*8, intent(in)  ::  PPJ(LU+1),TTJ(LU+1)
@@ -2303,7 +2289,6 @@
 !-----------------------------------------------------------------------
 !  up-to-three-point linear interpolation function for X-sections
 !-----------------------------------------------------------------------
-      implicit none
 
       real*8, intent(in)::  TINT,T1,T2,T3, X1,X2,X3
       integer,intent(in)::  L123
@@ -2335,7 +2320,7 @@
 !-----------------------------------------------------------------------
       subroutine JP_ATM(PPJ,TTJ,DDJ,OOJ,ZZJ,DTAU6,POMEG6,JXTRA,LU)
 !-----------------------------------------------------------------------
-      implicit none
+
 !-----------------------------------------------------------------------
 !---the CTM has L_ = LU layers and fast-JX adds layer LU+1
 !---the pressure and altitude(Z) are on layer edge (LU+2)
@@ -2379,7 +2364,7 @@
 !-----------------------------------------------------------------------
       subroutine JP_ATM0(PPJ,TTJ,DDJ,OOJ,ZZJ, LU)
 !-----------------------------------------------------------------------
-      implicit none
+
 !-----------------------------------------------------------------------
 !---Atmosphere print, called from outside fjx_sub_mod.f90
 !---CTM layers are 1:LU, + top layer (to P=0) added
@@ -2447,7 +2432,6 @@
 !     ZHL(L1U+1) = top radius of atmosphere = RZ(L1U) + ZZHT (in cm)
 !     LTOP = L1U = top radius of CTM layers, LTOP+1 = top of atmosphere
 !-----------------------------------------------------------------------
-      implicit none
       integer, intent(in) ::   L1U
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
@@ -2677,7 +2661,6 @@
 !     LTOP = L1U = top radius of CTM layers, LTOP+1 = top of atmosphere
 !-----------------------------------------------------------------------
 
-      implicit none
       integer, intent(in) ::   L1U
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
@@ -2791,7 +2774,6 @@
 !        = 1/U0
 !-----------------------------------------------------------------------
 
-      implicit none
       integer, intent(in) ::   L1U
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
@@ -2843,7 +2825,6 @@
 !     JXTRA(L=1:L1x)  the number in levels to insert in each layer L
 !-----------------------------------------------------------------------
 
-      implicit none
       integer, intent(in) ::  L1X            !# layers
       integer, intent(in) ::  NX             !Mie scattering array size (max)
       real*8,  intent(in) ::  DTAU600(L1X)     !cloud+3aerosol OD in each layer
@@ -2903,7 +2884,6 @@
 !     SZA = solar zenith angle in degrees
 !     COSSZA = U0 = cos(SZA)
 !-----------------------------------------------------------------------
-      implicit none
 
       real*8,  intent(in)  ::  GMTIME,YGRDJ,XGRDI
       integer, intent(in)  ::  NDAY
@@ -2936,7 +2916,6 @@
 !---------------------------------------------------------------------
       subroutine  FJX_CLIRAD_H2O(nlayers, PPP, TTT, HHH, TAUG_CLIRAD)
 !---------------------------------------------------------------------
-      implicit none
 
       integer,  intent(in):: nlayers
       real*8 ,  intent(in) :: PPP(nlayers+1), TTT(nlayers), HHH(nlayers)
@@ -3027,7 +3006,6 @@
 !---------------------------------------------------------------------
       subroutine  FJX_GGLLNL_H2O(nlayers, PPP, TTT, HHH, TAUG_LLNL)
 !---------------------------------------------------------------------
-      implicit none
 
       integer,  intent(in):: nlayers
       real*8 ,  intent(in) :: PPP(nlayers+1), TTT(nlayers), HHH(nlayers)
@@ -3111,7 +3089,7 @@
 !-----------------------------------------------------------------------
 !  Load fast-JX climatology - T & O3 - for latitude & month & pressure grid
 !-----------------------------------------------------------------------
-      implicit none
+
       real*8,  intent(in)  :: YLATD
       integer, intent(in)  :: MONTH, L1U
       real*8,  intent(in),  dimension(L1U+1) :: PPP
@@ -3180,7 +3158,7 @@
 !  Calculates RH profile given PL(mid-pressure), TL(K), QL (spec hum)
 !  May nee RH @ L1U (top layer, not CTM) so aerosol calls are stable
 !-----------------------------------------------------------------------
-      implicit none
+
       integer, intent(in):: L1U
       real*8,  intent(in),  dimension(L1U) :: PL,TL,QL
       real*8,  intent(out), dimension(L1U) :: RH
@@ -3216,7 +3194,7 @@
 !-----------------------------------------------------------------------
 !---note that trigger for using GEOMIP aerosol properties is NAER(L) = 1001:1015
 !   numbers 1:nnn are reserved for standard ssa and trop aerosols.
-      implicit none
+
       real*8,  intent(in)  :: YLATD
       integer, intent(in)  :: MONTH, L1U
       real*8,  intent(in),  dimension(L1U+1) :: PPP
