@@ -33,6 +33,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
+      character(len=255)           :: thisloc
       logical, intent(in)          :: AMIROOT
       character(LEN=*), intent(in) :: DATADIR
       integer, intent(in)          :: NLEVELS
@@ -44,6 +45,7 @@
       character*120  TIT_SPEC
       integer  JXUNIT,I, J, K, KR, RANSEED, NUN
 
+      thisloc = ' -> at INIT_CLDJ in module cldj_init_mod.F90'
       if (AMIROOT) write(6,*) ' Solar/Cloud-J  ver-7.7 initialization'
 
 #ifndef CLOUDJ_STANDALONE
@@ -130,7 +132,7 @@
 ! with Cloud-J v7.6, NO wavelength truncation for trop only, internal fixes
 ! remain
       if (W_ .ne. 18) then
-        call EXITC(' INIT_JX: invalid no. wavelengths')
+        call EXITC(' INIT_JX: invalid no. wavelengths', thisloc)
       endif
 
 ! set up angles of diffuse radiance at ocean surface
@@ -158,7 +160,7 @@
             if (AMIROOT) write(6,'(A,2I5)')'KR/KDOKR(KR)',KR, KDOKR(KR)
          enddo
       enddo
-      if (KR .ne. W_+W_r) CALL EXITC('>>>error w/ RRTM sub bins: KDOKR')
+      if (KR .ne. W_+W_r) CALL EXITC('>>>error w/ RRTM sub bins: KDOKR', thisloc)
       do KR = 1, W_+W_r
          K = KDOKR(KR)
          if (FL(K) .gt. 0.d0) then ! FL is read in call RD_XXX
@@ -211,7 +213,7 @@
 
       goto 1
     4 continue
-        call EXITC(' CLDJ_INIT: error in read')
+        call EXITC(' CLDJ_INIT: error in read', thisloc)
     1 continue
 
       if (AMIROOT) write(6,*) ' end of Solar/Cloud-J initialization'
@@ -249,6 +251,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
@@ -258,13 +261,15 @@
       character*6  TIT_J1S,TIT_J2S
       real*8  FWSUM
 
+      thisloc = ' -> at RD_XXX in module cldj_init_mod.F90'
+
       TQQ(:,:) = 0.d0
 
 !----------spectral data----set for new format data------------------
 !   note that X_ = max # Xsects read in
 !           NJX = # fast-JX J-values derived from this (.le. X_)
       if (W_ .ne. 18) then
-       call EXITC(' no. wavelengths wrong: W_ .ne. 18')
+       call EXITC(' no. wavelengths wrong: W_ .ne. 18', thisloc)
       endif
 
       open (NUN,FILE=trim(NAMFIL),status='old',form='formatted')
@@ -278,7 +283,7 @@
             NSSS, ' solar heating bins '
 
       if (NWWW.gt.WX_ .or. NSSS.gt.SX_) then
-       call EXITC(' WX_ or SX_ not large enough')
+       call EXITC(' WX_ or SX_ not large enough', thisloc)
       endif
 
       NW1 = 1
@@ -405,7 +410,7 @@
     2 continue
        JJ = JJ+1
        LQ = 1
-         if (JJ .gt. X_) call EXITC(' RD_XXX: X_ not large enough')
+         if (JJ .gt. X_) call EXITC(' RD_XXX: X_ not large enough', thisloc)
        TITLEJX(JJ) = TIT_J1S
        TITLEJL(JJ) = TIT_J1L
       read (NUN,'(a1,f3.0,1x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
@@ -439,7 +444,7 @@
       endif
       goto 3
     4 continue
-        call EXITC(' RD_XXX: error in read')
+        call EXITC(' RD_XXX: error in read', thisloc)
     1 continue
       NJX = JJ
 
@@ -478,10 +483,10 @@
 !---need to check that TQQ (= T(K) or p(hPa)) is monotonically increasing:
       do J = 1,NJX
          if ((LQQ(J) .eq. 3) .and. (TQQ(2,J) .ge. TQQ(3,J))) then
-            call EXITC ('TQQ out of order')
+            call EXITC ('TQQ out of order', thisloc)
          endif
          if ((LQQ(J) .eq. 2) .and. (TQQ(1,J) .ge. TQQ(2,J))) then
-            call EXITC ('TQQ out of order')
+            call EXITC ('TQQ out of order', thisloc)
          endif
       enddo
 
@@ -527,6 +532,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
@@ -534,6 +540,8 @@
       integer  I,J,K,L, JCC
       character*120 TITLE0
       real*8     GCCJ, XNDR,XNDI
+
+      thisloc = ' -> at RD_CLD in module cldj_init_mod.F90'
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
 
@@ -583,7 +591,7 @@
         goto 2
 
     4 continue
-        call EXITC(' RD_CLD: error in read')
+        call EXITC(' RD_CLD: error in read', thisloc)
 
     2 continue
         close(NUN)
@@ -612,6 +620,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
@@ -619,6 +628,8 @@
       integer  I, J, JSS, K, JCC, NSX_
       character*120 TITLE0
       real*8     WJSS,XNDR,XNDI
+
+      thisloc = ' -> at RD_SSA in module cldj_init_mod.F90'
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
       read (NUN,'(a120)',err=4) TITLE0
@@ -652,7 +663,7 @@
       goto 2
 
     4 continue
-        call EXITC(' RD_SSA: error in read')
+        call EXITC(' RD_SSA: error in read', thisloc)
 
     2 continue
         close(NUN)
@@ -677,6 +688,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
@@ -687,6 +699,8 @@
 !      character*12 TITLAA(A_) 
       Character*12 TITLAAJ
       real*8   RAAJ, DAAJ
+
+      thisloc = ' -> at RD_MIE in module cldj_init_mod.F90'
 
       if (AMIROOT) write(6,'(i5,a)') NUN,trim(NAMFIL)
 
@@ -726,7 +740,7 @@
 
     4 continue
 
-      call EXITC(' RD_MIE: error in read')
+      call EXITC(' RD_MIE: error in read', thisloc)
 
     2 continue
 
@@ -745,6 +759,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
@@ -752,6 +767,8 @@
       integer  I, J, K, L
       character*78 TITLE0
       character*20 TITLUM(33)   ! TITLUM: Title for U Michigan aerosol data set
+
+      thisloc = ' -> at RD_UM in module cldj_init_mod.F90'
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted')
 
@@ -796,6 +813,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) ::  NJ2
       character(*), intent(in) ::  NAMFIL
@@ -805,6 +823,7 @@
 
       character*78 TITLE0
 !
+      thisloc = ' -> at RD_PROF in module cldj_init_mod.F90'
       open (NJ2,file=NAMFIL,status='old',form='formatted')
       read (NJ2,'(A)') TITLE0
       read (NJ2,'(2I5)') NTLATS,NTMONS
@@ -855,6 +874,7 @@
 !-----------------------------------------------------------------------
       implicit none
 
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) ::  NJ2
       character(*), intent(in) ::  NAMFIL
@@ -863,6 +883,7 @@
 
       character*78 TITLE0
 !
+      thisloc = ' -> at RD_TRPROF in module cldj_init_mod.F90'
       open (NJ2,file=NAMFIL,status='old',form='formatted')
       read (NJ2,'(A)') TITLE0
       read (NJ2,'(2I5)') NTLATS,NTMONS
@@ -916,6 +937,7 @@
 !-----------------------------------------------------------------------
       implicit none
 !
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in)                    ::  NUNIT, NJX
       character(*), intent(in)               ::  NAMFIL
@@ -926,6 +948,7 @@
       character*6  T_FJX
       real*8 F_FJX
 
+      thisloc = ' -> at RD_JS_JX in module cldj_init_mod.F90'
 ! Read the FJX_j2j.dat file to map model specific J's onto fast-JX J's
 ! The chemistry code title describes fully the reaction (a50)
 ! Blank (unfilled) chemistry J's are unmapped
@@ -1008,6 +1031,8 @@
 !     PGG      Phase function: first 8 terms of expansion
 !-----------------------------------------------------------------------
       implicit none
+
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
@@ -1015,6 +1040,8 @@
       integer  I, J, K
       character*120 TITLE0
       real*8     WGGJ,XNDR,XNDI,G1,G2,G3
+
+      thisloc = ' -> at RD_GEO in module cldj_init_mod.F90'
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
 
@@ -1046,7 +1073,7 @@
       goto 2
 
     4 continue
-      call EXITC(' RD_GEO: error in read')
+      call EXITC(' RD_GEO: error in read', thisloc)
 
     2 continue
       close(NUN)
@@ -1062,6 +1089,8 @@
 !      X_GEO = mass fraction (1e-9 kg-H2SO4/kg-air)
 !-----------------------------------------------------------------------
       implicit none
+
+      character(len=255)  :: thisloc
       logical, intent(in) :: AMIROOT
       integer, intent(in) ::  NJ2
       character(*), intent(in) ::  NAMFIL
@@ -1069,6 +1098,7 @@
       integer J,L,M
       character*78 TITLE0
 !
+      thisloc = ' -> at RD_SSAPROF in module cldj_init_mod.F90'
       open (NJ2,file=NAMFIL,status='old',form='formatted')
       read (NJ2,'(a)') TITLE0
          if (AMIROOT) write(6,'(1x,a)') TITLE0
@@ -1126,6 +1156,8 @@
 !  generates a sequence of real*4 pseudo-random numbers RAN4L(1:ND)
 !     program RAN3 from Press, based on Knuth
       implicit none
+
+      character(len=255) ::  thisloc
       integer, parameter ::  MBIG=1000000000
       integer, parameter ::  MSEED=161803398
       integer, parameter ::  MZ=0
@@ -1134,6 +1166,8 @@
       real*4, intent(out)   :: RAN4L(ND)
       integer,intent(inout) :: ISTART
       integer :: MA(55),MJ,MK,I,II,J,K,INEXT,INEXTP
+
+      thisloc = ' -> at RANSET in module cldj_init_mod.F90'
 !---initialization and/or fix of ISEED < 0
         MJ = MSEED - abs(ISTART)
         MJ = mod(MJ,MBIG)
