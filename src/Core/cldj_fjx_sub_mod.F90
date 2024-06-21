@@ -170,6 +170,7 @@
       logical, intent(out)                     :: LDARK  ! cloud-j output
 
 !-----------------------------------------------------------------------
+      character(len=255)  ::  thisloc
 !---key LOCAL atmospheric data needed to solve plane-parallel J & Heating
 !-----these are dimensioned L1_
       real*8, dimension(L1_+1) :: PPJ,ZZJ
@@ -214,12 +215,18 @@
 
 !-----------------------------------------------------------------------
 
+      ! Initialize location and outputs
+      thisloc = ' -> at PHOTO_JX in module cldj_fjx_sub_mod.F90'
+      VALJXX = 0.d0
+      SKPERD = 0.d0
+      SWMSQ  = 0.d0
+      OD18   = 0.d0
+      LDARK  = .FALSE.
+
       LU = L1U - 1
-      VALJXX(:,:) = 0.d0
-      FFXTAU(:,:) = 0.d0
-      SKPERD(:,:)=0.d0
-      SWMSQ(:)=0.d0
-      OD18(:)=0.d0
+      FFXTAU = 0.d0
+      SWMSQ = 0.d0
+      OD18 = 0.d0
 
 !---check for dark conditions SZA > 98.0 deg => tan ht = 63 km
 !                        or         99.0                 80 km
@@ -257,7 +264,7 @@
            AMG(L) = (1.d0 + ZMID/RAD)**2
         enddo
       else
-           AMG(:) = 1.d0
+           AMG = 1.d0
       endif
 
 !---calculate spherical weighting functions (AMF: Air Mass Factor)
@@ -273,9 +280,9 @@
       endif
 !-----------------------------------------------------------------------
 
-      TAUG_RRTMG(:,:)= 0.d0
-      TAUG_CLIRAD(:,:)=0.d0
-      TAUG_LLNL(:,:) = 0.d0
+      TAUG_RRTMG  = 0.d0
+      TAUG_CLIRAD = 0.d0
+      TAUG_LLNL   = 0.d0
 !SJ! needed in Solar-J version
 !      if (W_r .ne. 0)then
 !         if (W_r .eq. W_rrtmg)  call RRTMG_SW_INP(IYEAR,L1U,PPJ,ZZJ,DDJ,&
@@ -298,9 +305,9 @@
       endif
 
 ! >>>> major loop over standard levels:
-      OD(:,:) = 0.d0
-      SSA(:,:)= 0.d0
-      SLEG(:,:,:)=0.d0
+      OD   = 0.d0
+      SSA  = 0.d0
+      SLEG = 0.d0
       do L = 1,L1U
          OD600(L) = 0.d0
 ! initialize scattering/absoprtion data with Rayleigh scattering (always
@@ -572,18 +579,18 @@
               AVGF,FJTOP,FJBOT,FIBOT,FSBOT,FJFLX,FLXD,FLXD0, LDOKR,LU)
 
 !-----------------------------------------------------------------------
-      FFF(:,:) = 0.d0
+      FFF   = 0.d0
       FREFI = 0.d0
       FREFL = 0.d0
       FREFS = 0.d0
-      FLXUP(:) = 0.d0
-      DIRUP(:) = 0.d0
-      FLXDN(:) = 0.d0
-      DIRDN(:) = 0.d0
-      FLXJ(:) = 0.d0
-      FFX(:,:) = 0.d0
-      FFXNET(:,:) = 0.d0
-      FFXNETS(:) = 0.d0
+      FLXUP = 0.d0
+      DIRUP = 0.d0
+      FLXDN = 0.d0
+      DIRDN = 0.d0
+      FLXJ  = 0.d0
+      FFX   = 0.d0
+      FFXNET  = 0.d0
+      FFXNETS = 0.d0
       FREF1 = 0.d0
       FREF2 = 0.d0
       PREF1 = 0.d0
@@ -683,7 +690,7 @@
             FFXNETS(J) = FFXNETS(J) + FFXNET(K,J)*SOLF*FW(K)
          enddo
       enddo
-      SWMSQ(:) = 0.d0
+      SWMSQ = 0.d0
       do K=1,S_
          SWMSQ(1) = SWMSQ(1) + FFXNET(K,3)*SOLF*FW(K)
          SWMSQ(2) = SWMSQ(2) + FFXNET(K,4)*SOLF*FW(K)
@@ -748,7 +755,7 @@
             write(6,'(a5,20i8)')   ' bin:',(K, K=NW1,NW2)
             write(6,'(a5,20f8.1)') ' wvl:',(WL(K), K=NW1,NW2)
             write(6,'(a)') ' ---- 100000=Fsolar   MEAN INTENSITY per wvl bin'
-                 RATIO(:) = 0.d0
+                 RATIO = 0.d0
             do L = LU,1,-1
                do K=NW1,NW2
                   if (LDOKR(K) .gt. 0) then
@@ -867,7 +874,7 @@
       real*8, intent(out) ::  FJTOP(W_+W_r),FJBOT(W_+W_r),FSBOT(W_+W_r)
       real*8, intent(out) ::  FJFLX(L1_,W_+W_r),FLXD(L1_,W_+W_r),FLXD0(W_+W_r)
 
-      character(len=255)  ::  thisloc
+      character(len=255) ::  thisloc
       integer JADDTO,L2LEV(L1_+1)
       integer I,II,J,K,L,LL,LL0,IX,JK,   L2,L22,LZ,LZZ,ND
       integer L1U,  LZ0,LZ1,LZMID
@@ -956,7 +963,16 @@
 !     JADDTO is the cumulative number of JXTRA levels to be added
 !---these should be fixed for all wavelengths to lock-in the array sizes
 
+      ! initialize
       thisloc = ' -> at OPMIE in module cldj_fjx_sub_mod.F90'
+      FJACT = 0.d0
+      FJTOP = 0.d0
+      FIBOT = 0.d0
+      FJBOT = 0.d0
+      FSBOT = 0.d0
+      FJFLX = 0.d0
+      FLXD  = 0.d0
+      FLXD0 = 0.d0
 
       L1U = LU + 1   ! uppermost edge is LU+2
         JADDTO = 0  ! no added layers in the topmost added layer (goes to TAU=0)
@@ -976,17 +992,10 @@
 
 !----------------begin wavelength dependent set up------------------------------
 !---Reinitialize arrays
-        ZTAU(:,:)     = 0.d0
-        POMEGA(:,:,:) = 0.d0
-        FJACT(:,:) = 0.d0
-        FJTOP(:) = 0.d0
-        FJBOT(:) = 0.d0
-        FSBOT(:) = 0.d0
-        FJFLX(:,:) = 0.d0
-        FLXD(:,:) = 0.d0
-        FLXD0(:) = 0.d0
-        FJ(:,:) = 0.d0
-        FZ(:,:) = 0.d0
+        ZTAU   = 0.d0
+        POMEGA = 0.d0
+        FJ     = 0.d0
+        FZ     = 0.d0
 !---PRIMARY loop over wavelengths
       do K = 1,W_+W_r
       if (LDOKR(K) .gt. 0) then
@@ -1018,7 +1027,7 @@
              LL0 = LL
           endif
        enddo
-          FTAU(:) = 0.d0
+          FTAU = 0.d0
        do LL = LL0+1,L1U+1
 ! there is sunlight thru layer LL to layer edge/radius LL (=1:L1U)
 ! AMF(I,L) includes air mass effective (AMF ~ 1/U0) for all layers I at edge L
@@ -1287,7 +1296,12 @@
 !    ALSO limited to 4 Gauss points, only calculates mean field! (M=1)
 !-----------------------------------------------------------------------
 
-      thisloc = ' -> at MIESCT in module cldj_fjx_sub_mod.F90'
+      ! initialize location and outputs for safetly
+      thisloc  = ' -> at MIESCT in module cldj_fjx_sub_mod.F90'
+      FJ  = 0.d0
+      FJT = 0.d0
+      FJB = 0.d0
+      FIB = 0.d0
 
       do I = 1,M_
          call LEGND0 (EMU(I),PM0,M2_)
@@ -1323,7 +1337,9 @@
       integer I
       real*8  DEN
 
+      ! initialize location and output for safety
       thisloc = ' -> at LEGNDO in module cldj_fjx_sub_mod.F90'
+      PL = 0.d0
 
 !---Always does PL(2) = P[1]
       PL(1) = 1.d0
@@ -1361,7 +1377,12 @@
       real*8  SUMB,SUMBX,SUMT,SUMBR,SUMRF
       integer I, J, K, L
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at BLKSLV in module cldj_fjx_sub_mod.F90'
+      FJ    = 0.d0
+      FJTOP = 0.d0
+      FJBOT = 0.d0
+      FIBOT = 0.d0
 
       do K = 1,W_+W_r
       if (LDOKR(K) .gt. 0) then
@@ -1650,7 +1671,14 @@
       real*8, dimension(M_,M_) :: S,T,U,V,W
 !---------------------------------------------
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at GEN_ID in module cldj_fjx_sub_mod.F90'
+      B  = 0.d0
+      AA = 0.d0
+      CC = 0.d0
+      A  = 0.d0
+      C  = 0.d0
+      H  = 0.d0
 
 !---------upper boundary:  2nd-order terms
        L1 = 1
@@ -1910,11 +1938,16 @@
       real*8, intent(out)::    SSALB(S_)    ! single-scattering albedo
       real*8, intent(out)::    SSLEG(8,S_)  ! scatt phase fn (Leg coeffs)
 
-      character(len=255) ::    thisloc
+      character(len=255) :: thisloc
       integer I,J,K,L, NR
       real*8  FNR
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at OPTICL in module cldj_fjx_sub_mod.F90'
+      DDENS = 0.d0
+      QQEXT = 0.d0
+      SSALB = 0.d0
+      SSLEG = 0.d0
 
       K = 1   ! liquid water Mie clouds
       DDENS = DCC(K)
@@ -1954,11 +1987,16 @@
       real*8, intent(out)::    SSALB(S_)    ! single-scattering albedo
       real*8, intent(out)::    SSLEG(8,S_)  ! scatt phase fn (Leg coeffs)
 
-      character(len=255) ::    thisloc
+      character(len=255) :: thisloc
       integer I,J,K,L, NR
       real*8  FNR
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at OPTICI in module cldj_fjx_sub_mod.F90'
+      DDENS = 0.d0
+      QQEXT = 0.d0
+      SSALB = 0.d0
+      SSLEG = 0.d0
 
       if (TEFF .ge. 233.15d0) then
            K = 2  ! ice irreg (warm)
@@ -2008,7 +2046,11 @@
       integer I,J, KK
       real*8  XTINCT, REFF,RHO
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at OPTICS in module cldj_fjx_sub_mod.F90'
+      OPTD  = 0.d0
+      SSALB = 0.d0
+      SLEG  = 0.d0
 
       if (K .eq. 1) then
         KK = 4    ! background, 220K, 70 wt%
@@ -2048,11 +2090,15 @@
       real*8, intent(out)::    SSALB(S_)   ! single-scattering albedo
       real*8, intent(out)::    SLEG(8,S_)  ! scatt phase fn (Leg coeffs)
 
-      character(len=255)::     thisloc
+      character(len=255) :: thisloc
       integer I,J, KK
       real*8  XTINCT, REFF,RHO
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at OPTICG in module cldj_fjx_sub_mod.F90'
+      OPTD  = 0.d0
+      SSALB = 0.d0
+      SLEG  = 0.d0
 
       KK = max(1, min(NGG, K-1000))
       REFF = RGG(KK)
@@ -2085,11 +2131,15 @@
         character(len=255) ::    thisloc
         integer I,J,JMIE
         real*8  XTINCT, REFF,RHO,WAVE, QAAX,SAAX,WAAX
+
+        ! initialize location and outputs for safety
+        thisloc = ' -> at OPTICA in module cldj_fjx_sub_mod.F90'
+        OPTD  = 0.d0
+        SSALB = 0.d0
+        SLEG  = 0.d0
+
 ! K=1&2 are the SSA values, not used here any more, make sure they are not
 !asked for.
-
-        thisloc = ' -> at OPTICA in module cldj_fjx_sub_mod.F90'
-
         if (K.gt.NAA .or. K.lt.3) &
            call EXITC ('OPTICA: aerosol index out-of-range', thisloc)
         REFF = RAA(K)
@@ -2155,11 +2205,15 @@
       real*8, intent(in)::     RELH       ! relative humidity (0.00->1.00)
       integer,intent(in)::     LL         ! index of cloud/aerosols
 
-      character(len=255) ::    thisloc
+      character(len=255) :: thisloc
       integer KR,J,L, JMIE
       real*8  R,FRH, GCOS, XTINCT, WAVE
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at OPTICM in module cldj_fjx_sub_mod.F90'
+      OPTD  = 0.d0
+      SSALB = 0.d0
+      SLEG  = 0.d0
 
 !---calculate fast-JX properties at the std 5 wavelengths:200-300-400-600-999nm
 !---extrapolate phase fn from first term (g)
@@ -2214,13 +2268,15 @@
       real*8, intent(inout)  ::  FFF(W_,LU)
       real*8, intent(out), dimension(LU,NJXU) ::  VALJL
 
-      character(len=255) ::   thisloc
+      character(len=255) :: thisloc
       real*8  VALJ(X_)
       real*8  QO2TOT, QO3TOT, QO31DY, QO31D, QQQT, TFACT
       real*8  TT,PP,DD,TT200,TFACA,TFAC0,TFAC1,TFAC2,QQQA,QQ2,QQ1A,QQ1B
       integer J,K,L, IV
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at JRATET in module cldj_fjx_sub_mod.F90'
+      VALJL = 0.d0
 
       if (NJXU .lt. NJX) then
         write(6,'(A,2I5)')  'NJXU<NJX',NJXU,NJX
@@ -2297,7 +2353,9 @@
       character(len=255)::  thisloc
       real*8  TFACT
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at X_interp in module cldj_fjx_sub_mod.F90'
+      XINT = 0.d0
 
       if (L123 .le. 1) then
            XINT = X1
@@ -2334,6 +2392,7 @@
       integer  I,J,K,L
       real*8   XCOLO2,XCOLO3,ZKM,DELZ,ZTOP,DAIR,DOZO
 
+      ! initialize
       thisloc = ' -> at JP_ATM in module cldj_fjx_sub_mod.F90'
 
       write(6,'(4a)') '   L z(km)     p      T   ', &
@@ -2444,7 +2503,9 @@
       real*8, dimension(L1_+1,L1_+1) :: ZANG,ZAMF
       real*8, dimension(L1_+1) :: RZ,DIVZ,RATZ,RD,RN, PATH1,PATH2,ZANG1
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at SPHERE1R in module cldj_fjx_sub_mod.F90'
+      AMF = 0.d0
 
 !-----------------------------------------------------------------------
 !  this versions sets a density scale ht of DDHT=8km, and a
@@ -2471,11 +2532,10 @@
         CZA0 = U0
         ZA0 = acos(CZA0)
         SZA0 = sin(ZA0)
-      AMF(:,:) = 0.d0
       AMF(LTOP+1,LTOP+1) = 1.d0
 !-----------------------------------------------------------------------
-        ZAMF(:,:) = 0.d0
-        ZANG(:,:) = 0.d0
+        ZAMF = 0.d0
+        ZANG = 0.d0
 
       if (U0 .lt. 0.d0) goto 1111
 
@@ -2492,9 +2552,9 @@
 ! angle ZA0
          SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! = sin of zenith angle at
 ! top of atmosphere
-         ZANG1(:) = 0.d0
+         ZANG1 = 0.d0
          ZANG1(LTOP+1) = asin(SA0)
-         PATH1(:) = 0.d0
+         PATH1 = 0.d0
        do K=LTOP,L,-1
 !  A1 = zenith angle at bottom layer K (from invariant)
          SA1 = SRN0/(RZ(K)*RN(K))
@@ -2514,7 +2574,7 @@
 ! angle ZA0
          SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! A0 = zenith angle at top of
 ! atmosphere
-         PATH1(:) = 0.d0
+         PATH1 = 0.d0
        do K=LTOP,L,-1
 !  A1 = zenith angle at bottom layer K (from invariant)
          SA1 = SRN1/(RZ(K)*RN(K))
@@ -2541,9 +2601,9 @@
          SRN0 = RZ(L)*RN(L)    ! invariant path that hits tangent at RZ(L)
          SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! = sin of zenith angle at top
 ! of atmosphere
-        ZANG1(:) = 0.d0
+        ZANG1 = 0.d0
         ZANG1(LTOP+1) = asin(SA0)
-        PATH1(:) = 0.d0
+        PATH1 = 0.d0
 ! begin going downward to tangent layer L (RZ(L) = lower layer edge of layer)
        do K=LTOP,L,-1
 !  A1 = zenith angle at bottom layer K (from invariant)
@@ -2591,7 +2651,7 @@
 ! at angle ZA0
           SA0 = SRN0/(RZ(LTOP+1)*RN(LTOP+1)) ! A0 = zenith angle at top of
 ! atmosphere
-          PATH1(:) = 0.d0
+          PATH1 = 0.d0
          do K=LTOP,L0,-1
 !  A1 = zenith angle at bottom layer K (from refracted invariant)
           SA1 = SRN1/(RZ(K)*RN(K))
@@ -2671,8 +2731,9 @@
 
       real*8, dimension(L1_+1) :: RZ,DIVZ,RATZ
 
-
+      ! initialize location and outputs for safety
       thisloc = ' -> at SPHERE1N in module cldj_fjx_sub_mod.F90'
+      AMF = 0.d0
 
       LTOP = L1U
       do L = 1,LTOP
@@ -2687,7 +2748,6 @@
         A0 = acos(CA0)
         SA0 = sin(A0)
         R0 = RZ(1)
-      AMF(:,:) = 0.d0
       AMF(LTOP+1,LTOP+1) = 1.d0
 !-----------------------------------------------------------------------
 
@@ -2782,10 +2842,11 @@
       integer  L, J, LTOP
       real*8   PATH0
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at SPHERE1F in module cldj_fjx_sub_mod.F90'
+      AMF = 0.d0
 
       LTOP = L1U
-      AMF(:,:) = 0.d0
       AMF(LTOP+1,LTOP+1) = 1.d0
 
       if (U0 .gt. 0.d0) then
@@ -2834,7 +2895,9 @@
       integer JTOTL,JX,L,LL
       real*8  ATAULN,ATAU0X,AJX,DTAU0X
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at EXTRAL1 in module cldj_fjx_sub_mod.F90'
+      JXTRA = 0
 
 !  need to divide DTAU600 into JX layers such that DTAU600/ATAU0 = ratio =
 !       1 + ATAU + ATAU^2 + ATAU^3 + ATAU^(JX-1)  = [ATAU^JX - 1]/[ATAU - 1]
@@ -2892,7 +2955,7 @@
       character(len=255)   ::  thisloc
       real*8  LOCT
       real*8  SINDEC, SOLDEK, COSDEC, SINLAT, SOLLAT, COSLAT, COSZ
-!
+
       thisloc = ' -> at SOLAR_JX in module cldj_fjx_sub_mod.F90'
 
       SINDEC = 0.3978d0*sin(0.9863d0*(dble(NDAY)-80.d0)*CPI180)
@@ -2903,9 +2966,10 @@
       COSLAT = cos(SOLLAT)
 !
       LOCT   = (((GMTIME)*15.d0)-180.d0)*CPI180 + XGRDI
+
+      ! set outputs
       COSSZA = COSDEC*COSLAT*cos(LOCT) + SINDEC*SINLAT
       SZA    = acos(COSSZA)/CPI180
-!
       SOLFX  = 1.d0-(0.034d0*cos(dble(NDAY-186)*C2PI/365.d0))
 !
       END SUBROUTINE SOLAR_JX
@@ -2967,10 +3031,11 @@
       real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by
 ! Avogado number
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at FJX_CLIRAD_H2O in module cldj_fjx_sub_mod.F90'
+      TAUG_CLIRAD = 0.d0
 
 ! 0:0 will assign to bin 18 which is 0 for CLIRAD
-      TAUG_CLIRAD(:,0:0)= 0.d0
       do L=1, nlayers
          pavg= 0.5d0* (PPP(L)+PPP(L+1))
 ! Weighting function Pr=300 hPa, Tr=240K;
@@ -3045,10 +3110,11 @@
 
       real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by Avogado number
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at FJX_GGLLNL_H2O in module cldj_fjx_sub_mod.F90'
+      TAUG_LLNL = 0.d0
 
-! 0:0 will assign to bin 18 which is 0 for CLIRAD
-      TAUG_LLNL(:,0)= 0.d0
+      ! 0:0 will assign to bin 18 which is 0 for CLIRAD
       do L=1, nlayers
          pavg= 0.5d0* (PPP(L)+PPP(L+1))
 ! Weighting function Pr=300 hPa, Tr=240K;
@@ -3100,7 +3166,11 @@
       integer  K, L, M, N
       real*8   DDDL,DLOGP,F0,T0,H0,C0,PB,PC,XC
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at ACLIM_FJX in module cldj_fjx_sub_mod.F90'
+      TTT = 0.d0
+      O3  = 0.d0
+      CH4 = 0.d0
 
 !  Select appropriate month
       M = max(1,min(12,MONTH))
@@ -3167,7 +3237,9 @@
       real*8  T, eps, es, qs
       integer  L
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at ACLIM_RH in module cldj_fjx_sub_mod.F90'
+      RH = 0.d0
 
       eps=287.04d0/461.50d0
       do L = 1,L1U-1
@@ -3207,7 +3279,10 @@
       integer  I, IGG, K, L, M, N
       real*8   R0,X0,RX0,PB,PC,XC,YN,REDGE(GGA_)
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at ACLIM_GEO in module cldj_fjx_sub_mod.F90'
+      AERS = 0.d0
+      NAER = 0
 
 !  Select appropriate month
       M = max(1, min(12, MONTH))
@@ -3220,8 +3295,8 @@
       enddo
       N = max(1, min(64, N))
 !---P_GREF = 2.7,.... 339 hPa (reverse order) ensure ZERO ssa above and below
-      RREF2(:) = 0.d0
-      XREF2(:) = 0.d0
+      RREF2 = 0.d0
+      XREF2 = 0.d0
       do K = 1,LGREF
          PREF2(K+1) = P_GREF(LGREF+1-K)
          RREF2(K+1) = R_GREF(N,LGREF+1-K,M)

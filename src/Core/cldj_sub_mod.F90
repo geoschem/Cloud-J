@@ -149,24 +149,24 @@
       real*8,  dimension(L1U)       :: OD18Q
 
 !-----------------------------------------------------------------------
+
+      ! initialize location and outputs for safety
       thisloc = ' -> at CLOUD_JX in module cldj_sub_mod.F90'
-      LPRTJ0 = LPRTJ
-      JCOUNT = 0
-      NICA = 0
-      do L = LWEPAR+1, L1U
-         LWPX(L) = 0.d0
-         IWPX(L) = 0.d0
-         REFFLX(L) = 0.d0
-         REFFIX(L) = 0.d0
-      enddo
-      VALJXX(:,:) = 0.d0    ! zero J's Heating R's in case LDARK is returned
-      SKPERD(:,:) = 0.d0
-      SWMSQ(:)    = 0.d0
-      VALJXXX(:,:) = 0.d0   ! zero the PHOTOJ equivalents for wtd averaging
-      SKPERDD(:,:) = 0.d0
-      SWMSQQ(:)    = 0.d0
-      OD18(:)      = 0.d0
-      OD18Q(:)     = 0.d0
+      LPRTJ0  = LPRTJ
+      JCOUNT  = 0
+      NICA    = 0
+      LWPX    = 0.d0
+      IWPX    = 0.d0
+      REFFLX  = 0.d0
+      REFFIX  = 0.d0
+      VALJXX  = 0.d0   ! zero J's Heating R's in case LDARK is returned
+      SKPERD  = 0.d0
+      SWMSQ   = 0.d0
+      VALJXXX = 0.d0   ! zero the PHOTOJ equivalents for wtd averaging
+      SKPERDD = 0.d0
+      SWMSQQ  = 0.d0
+      OD18    = 0.d0
+      OD18Q   = 0.d0
 
 !---CLOUD_JX:   different cloud schemes
 !-----------------------------------------------------------------------
@@ -426,8 +426,8 @@
             do N = 1, NQD_
                if (WTQCA(N) .gt. 0.d0) then
                   if (NQ2(N) .ge. NQ1(N)) then
-                     IWPX(:) = 0.d0
-                     LWPX(:) = 0.d0
+                     IWPX = 0.d0
+                     LWPX = 0.d0
                      QCAOD = 0.d0
                      do II = NQ1(N),NQ2(N)
                         I = ISORT(II)
@@ -619,7 +619,18 @@
       logical  L1GRP,L2GRP,L3GRP, L6GRP
 !-----------------------------------------------------------------------
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at ICA_NR in module cldj_sub_mod.F90'
+      NRG   = 0
+      NICA  = 0
+      NCLDF = 0
+      GBOT  = 0
+      GTOP  = 0
+      GLVL  = 0
+      GNR   = 0
+      GCMX  = 0
+      GFNR  = 0
+      CFBIN = 0.d0
 
 !---quantize cloud fractions into bins to avoid excessive calculations for
 !---  nearly identical maximally overlapping cloud fractions.
@@ -866,8 +877,8 @@
 !---finished selection of max-overlap groups
 
 !---simplify groups if no clouds with NCLDF > NG_BRK
-      GBOT(:) = 0
-      GTOP(:) = 0
+      GBOT = 0
+      GTOP = 0
       if (NRG .eq. 0) then
         NRG = 1
         GBOT(1) = 1
@@ -885,7 +896,7 @@
       endif
 !---for each max-overlap group calculate number of unique cloud fractions
       do N = 1,NRG
-        NSAME(:) = 0
+        NSAME = 0
         GCMX(N) = 0
         do L = GBOT(N),GTOP(N)
           if (NCLDF(L) .gt. 0) then
@@ -962,9 +973,12 @@
       logical L_CLR1,L_CLR2  ,LSKIP   ,LGR_CLR(10)
 !-----------------------------------------------------------------------
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at ICA_ALL in module cldj_sub_mod.F90'
+      WCOL = 0.d0
+      OCOL = 0.d0
 
-      CLTOT(:) = 0.d0
+      CLTOT = 0.d0
 
         CF0(1) = 0.d0
       do L = 1,CBINU
@@ -1094,9 +1108,11 @@
       integer II, IG, G, L
 !-----------------------------------------------------------------------
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at ICA_III in module cldj_sub_mod.F90'
+      TTCOL = 0.d0
 
-      TTCOL(:) = 0.d0
+      TTCOL = 0.d0
       II = max(1, min(NICA,III))
       do G = 1,NRG
           IG = mod(II-1, GNR(G)) + 1
@@ -1134,12 +1150,17 @@
       real*8, parameter:: OD_QUAD(4) =[0.5d0, 4.0d0, 30.d0, 1.d9]
 !-----------------------------------------------------------------------
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at ICA_QUD in module cldj_sub_mod.F90'
+      ISORT = 0
+      NQ1   = 0
+      NQ2   = 0
+      NDXQS = 0
 
-      ISORT(:) = 0
-      WTQCA(:)  = 0.d0
-      NDXQS(:) = 0
-      OCOLS(:) = 0.d0
+      ISORT = 0
+      WTQCA = 0.d0
+      NDXQS = 0
+      OCOLS = 0.d0
 
 !---sort all the Indep Column Atmos (ICAs) in order of increasing column OD
 !--- ISORT is the key, giving the ICA number from smallest to largest column OD
@@ -1208,7 +1229,10 @@
       real*8 :: RA
 !-----------------------------------------------------------------------
 
+      ! initialize location and outputs for safety
       thisloc = ' -> at HEAPSORT_A in module cldj_sub_mod.F90'
+      AX = 0.d0
+      IX = 0
 
       do I = 1,N
         IX(I) = I
