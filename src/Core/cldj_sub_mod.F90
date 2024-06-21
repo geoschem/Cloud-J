@@ -90,7 +90,7 @@
 !     = 2 = ice cloud only
 !     = 3 = liquid+ice cloud mix
 !-----------------------------------------------------------------------
-      implicit none
+
 !---calling sequence variables
       integer, intent(in)                    :: L1U
       integer, intent(in)                    :: ANU
@@ -581,7 +581,6 @@
 !   GFNR(G=1:NRG,1:GNR(G)) = cloud fraction quantum no (value = 0 to NCBIN)
 !          Stores the specific cloud fractions counted in GNR.
 !-----------------------------------------------------------------------
-      implicit none
 
 !---Cloud Cover parameters (in cldj_cmn_mod.f90)
 !      integer, parameter ::  NQD_  = 4
@@ -945,7 +944,7 @@
 !---See JL Neu, MJ Prather, JE Penner (2007), Global atmospheric chemistry:
 !      Integrating over fractional cloud cover,J. Geophys. Res., 112, D11306,
 !       doi:10.1029/2006JD008007
-      implicit none
+
       logical, intent(in) :: LPRTJ0
       integer, intent(in) :: LTOP, CBINU, ICAU, NRG, NICA
       integer, intent(in), dimension(LTOP)  :: NCLDF
@@ -1082,7 +1081,7 @@
 !-----------------------------------------------------------------------
 !    see ICA_ALL, this subroutine picks out the ICA atmosphere #III
 !      and loads the REFF/WPs for a FAST_JX calculation.
-      implicit none
+
       logical, intent(in) :: LPRTJ0
       integer, intent(in) :: LTOP, CBINU, NRG, NICA, III
       integer, intent(in), dimension(LTOP)  :: NCLDF
@@ -1120,7 +1119,7 @@
 !---Create the Cumulative Prob Fn and select the mid-point ICA for each group
 !---The Quad atmospheres have weights WTQCA
 !-----------------------------------------------------------------------
-      implicit none
+
       integer, intent(in)        :: ICAU,NQDU,NICA
       real*8,  intent(in), dimension(ICAU)      :: WCOL,OCOL
 
@@ -1199,7 +1198,7 @@
 !           A(IX(J)) ==> AX(J), s.t. IX(1) = orig location of smallest A
 !                           and IX(N) = original loc. of largest A
 !-----------------------------------------------------------------------
-      implicit none
+
       integer, intent(in)  :: N, ND
       real*8, dimension(ND),intent(in)  :: A
       real*8, dimension(ND),intent(out) :: AX

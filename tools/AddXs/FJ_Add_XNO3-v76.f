@@ -346,7 +346,7 @@ C---RAYLEIGH+RAMAN CROSS-SECTION (INCLUDE FOR ALL WAVELENGTHS)
 
 
       subroutine X_NO3 (WWX,TT, XXWTa,XXWTb,INIT,TITLNEW)
-      implicit none
+
       real*8, intent(in) :: WWX, TT
       integer, intent(inout) :: INIT
       real*8, intent(out) :: XXWTa,XXWTb
