@@ -869,6 +869,7 @@
       real*8, intent(out) ::  FJTOP(W_+W_r),FJBOT(W_+W_r),FSBOT(W_+W_r)
       real*8, intent(out) ::  FJFLX(L1_,W_+W_r),FLXD(L1_,W_+W_r),FLXD0(W_+W_r)
 
+      character(len=255)  ::  thisloc
       integer JADDTO,L2LEV(L1_+1)
       integer I,II,J,K,L,LL,LL0,IX,JK,   L2,L22,LZ,LZZ,ND
       integer L1U,  LZ0,LZ1,LZMID
@@ -957,6 +958,8 @@
 !     JADDTO is the cumulative number of JXTRA levels to be added
 !---these should be fixed for all wavelengths to lock-in the array sizes
 
+      thisloc = ' -> at OPMIE in module cldj_fjx_sub_mod.F90'
+
       L1U = LU + 1   ! uppermost edge is LU+2
         JADDTO = 0  ! no added layers in the topmost added layer (goes to TAU=0)
       do L = 1,L1U
@@ -964,7 +967,7 @@
       enddo
       ND = 2*L1U + 2*JADDTO + 1
       if(ND .gt. N_) then
-        call EXITC (' overflow of scatter arrays: ND > N_')
+        call EXITC (' overflow of scatter arrays: ND > N_', thisloc)
       endif
 !---L2LEV(L) = L-index for old layer-edge L in the expanded JXTRA-grid
 !     in absence of JXTRA,  L2LEV(L) = L
@@ -1262,11 +1265,13 @@
       subroutine MIESCT(FJ,FJT,FJB,FIB, POMEGA,FZ,ZTAU,FSBOT,RFL,U0,LDOKR,ND)
 !-----------------------------------------------------------------------
       implicit none
+
       integer, intent(in)  ::  LDOKR(W_+W_r),ND
       real*8,  intent(in)  ::  POMEGA(M2_,N_,W_+W_r),FZ(N_,W_+W_r), &
                                ZTAU(N_,W_+W_r),RFL(5,W_+W_r),U0,FSBOT(W_+W_r)
       real*8,  intent(out) ::  FJ(N_,W_+W_r),FJT(W_+W_r)
       real*8,  intent(out) ::  FJB(W_+W_r),FIB(5,W_+W_r)
+      character(len=255)   ::  thisloc
       real*8  PM(M_,M2_),PM0(M2_)
       integer I, IM  ,K
 !-----------------------------------------------------------------------
@@ -1284,6 +1289,9 @@
 !    takes atmospheric structure and source terms from std J-code
 !    ALSO limited to 4 Gauss points, only calculates mean field! (M=1)
 !-----------------------------------------------------------------------
+
+      thisloc = ' -> at MIESCT in module cldj_fjx_sub_mod.F90'
+
       do I = 1,M_
          call LEGND0 (EMU(I),PM0,M2_)
          do IM = 1,M2_
@@ -1314,8 +1322,12 @@
       integer, intent(in) :: N
       real*8, intent(in)  :: X
       real*8, intent(out) :: PL(N)
+      character(len=255)  :: thisloc
       integer I
       real*8  DEN
+
+      thisloc = ' -> at LEGNDO in module cldj_fjx_sub_mod.F90'
+
 !---Always does PL(2) = P[1]
       PL(1) = 1.d0
       PL(2) = X
@@ -1345,12 +1357,15 @@
       real*8, intent(out) ::  FJ(N_,W_+W_r),FJTOP(W_+W_r),FJBOT(W_+W_r), &
                               FIBOT(5,W_+W_r)
 
+      character(len=255)  ::  thisloc
       real*8, dimension(M_,N_,W_+W_r)    ::  A,C,H,   RR
 
       real*8, dimension(M_,M_,N_,W_+W_r) ::  B,AA,CC,  DD
       real*8, dimension(M_,M_) ::  E
       real*8  SUMB,SUMBX,SUMT,SUMBR,SUMRF
       integer I, J, K, L
+
+      thisloc = ' -> at BLKSLV in module cldj_fjx_sub_mod.F90'
 
       do K = 1,W_+W_r
       if (LDOKR(K) .gt. 0) then
@@ -1632,12 +1647,15 @@
       real*8, intent(out),dimension(M_,M_,N_) ::  B,AA,CC
       real*8, intent(out),dimension(M_,N_) ::  A,C,H
 
+      character(len=255)  ::  thisloc
       integer I, J, K, L1,L2,LL
       real*8  SUM0, SUM1, SUM2, SUM3
       real*8  DELTAU, D1, D2, SURFAC,SUMRFL
 !
       real*8, dimension(M_,M_) :: S,T,U,V,W
 !---------------------------------------------
+
+      thisloc = ' -> at GEN_ID in module cldj_fjx_sub_mod.F90'
 
 !---------upper boundary:  2nd-order terms
        L1 = 1
@@ -1899,8 +1917,11 @@
       real*8, intent(out)::    SSALB(S_)    ! single-scattering albedo
       real*8, intent(out)::    SSLEG(8,S_)  ! scatt phase fn (Leg coeffs)
 
+      character(len=255) ::    thisloc
       integer I,J,K,L, NR
       real*8  FNR
+
+      thisloc = ' -> at OPTICL in module cldj_fjx_sub_mod.F90'
 
       K = 1   ! liquid water Mie clouds
       DDENS = DCC(K)
@@ -1942,10 +1963,13 @@
       real*8, intent(out)::    SSALB(S_)    ! single-scattering albedo
       real*8, intent(out)::    SSLEG(8,S_)  ! scatt phase fn (Leg coeffs)
 
+      character(len=255) ::    thisloc
       integer I,J,K,L, NR
       real*8  FNR
 
-        if (TEFF .ge. 233.15d0) then
+      thisloc = ' -> at OPTICI in module cldj_fjx_sub_mod.F90'
+
+      if (TEFF .ge. 233.15d0) then
            K = 2  ! ice irreg (warm)
         else
            K = 3  ! ice hexag (cold)
@@ -1991,15 +2015,18 @@
       real*8, intent(out)::    SSALB(S_)   ! single-scattering albedo
       real*8, intent(out)::    SLEG(8,S_) ! scatt phase fn (Leg coeffs)
 
+      character(len=255)::     thisloc
       integer I,J, KK
       real*8  XTINCT, REFF,RHO
+
+      thisloc = ' -> at OPTICS in module cldj_fjx_sub_mod.F90'
 
       if (K .eq. 1) then
         KK = 4    ! background, 220K, 70 wt%
       elseif (K .eq. 2) then
         KK = 13   ! volcanic,   220K, 70 wt%
       else
-        call EXITC ('OPTICS: SSA index out-of-range')
+        call EXITC ('OPTICS: SSA index out-of-range', thisloc)
       endif
 
          REFF = RSS(KK)
@@ -2033,8 +2060,11 @@
       real*8, intent(out)::    SSALB(S_)   ! single-scattering albedo
       real*8, intent(out)::    SLEG(8,S_)  ! scatt phase fn (Leg coeffs)
 
+      character(len=255)::     thisloc
       integer I,J, KK
       real*8  XTINCT, REFF,RHO
+
+      thisloc = ' -> at OPTICG in module cldj_fjx_sub_mod.F90'
 
       KK = max(1, min(NGG, K-1000))
       REFF = RGG(KK)
@@ -2064,12 +2094,16 @@
         real*8, intent(in)::     PATH        ! path (g/m2) of aerosol/cloud
         real*8, intent(in)::     RELH        ! relative humidity (0.00->1.00+)
         integer,intent(inout)::     K        ! index of cloud/aerosols
+        character(len=255) ::    thisloc
         integer I,J,JMIE
         real*8  XTINCT, REFF,RHO,WAVE, QAAX,SAAX,WAAX
 ! K=1&2 are the SSA values, not used here any more, make sure they are not
 !asked for.
+
+        thisloc = ' -> at OPTICA in module cldj_fjx_sub_mod.F90'
+
         if (K.gt.NAA .or. K.lt.3) &
-           call EXITC ('OPTICA: aerosol index out-of-range')
+           call EXITC ('OPTICA: aerosol index out-of-range', thisloc)
         REFF = RAA(K)
         RHO = DAA(K)
         do J = 1,S_
@@ -2134,14 +2168,17 @@
       real*8, intent(in)::     RELH       ! relative humidity (0.00->1.00)
       integer,intent(in)::     LL         ! index of cloud/aerosols
 
+      character(len=255) ::    thisloc
       integer KR,J,L, JMIE
       real*8  R,FRH, GCOS, XTINCT, WAVE
+
+      thisloc = ' -> at OPTICM in module cldj_fjx_sub_mod.F90'
 
 !---calculate fast-JX properties at the std 5 wavelengths:200-300-400-600-999nm
 !---extrapolate phase fn from first term (g)
       L = LL
       if (L.lt.1 .or. L.gt.33)  &
-          call EXITC ('OPTICM: aerosol index out-of-range')
+          call EXITC ('OPTICM: aerosol index out-of-range', thisloc)
 !---pick nearest Relative Humidity
       KR =  20.d0*RELH  + 1.5d0
       KR = max(1, min(21, KR))
@@ -2191,14 +2228,17 @@
       real*8, intent(inout)  ::  FFF(W_,LU)
       real*8, intent(out), dimension(LU,NJXU) ::  VALJL
 
+      character(len=255) ::   thisloc
       real*8  VALJ(X_)
       real*8  QO2TOT, QO3TOT, QO31DY, QO31D, QQQT, TFACT
       real*8  TT,PP,DD,TT200,TFACA,TFAC0,TFAC1,TFAC2,QQQA,QQ2,QQ1A,QQ1B
       integer J,K,L, IV
 
+      thisloc = ' -> at JRATET in module cldj_fjx_sub_mod.F90'
+
       if (NJXU .lt. NJX) then
         write(6,'(A,2I5)')  'NJXU<NJX',NJXU,NJX
-        call EXITC(' JRATET:  CTM has not enough J-values dimensioned')
+        call EXITC(' JRATET:  CTM has not enough J-values dimensioned', thisloc)
       endif
 
       do L = 1,LU
@@ -2269,7 +2309,10 @@
       integer,intent(in)::  L123
       real*8, intent(out)::  XINT
 
+      character(len=255)::  thisloc
       real*8  TFACT
+
+      thisloc = ' -> at X_interp in module cldj_fjx_sub_mod.F90'
 
       if (L123 .le. 1) then
            XINT = X1
@@ -2302,8 +2345,11 @@
       real*8, intent(in), dimension(8,LU+1) :: POMEG6
       integer,intent(in), dimension(LU+1) :: JXTRA
 !-----------------------------------------------------------------------
+      character(len=255)  ::  thisloc
       integer  I,J,K,L
       real*8   XCOLO2,XCOLO3,ZKM,DELZ,ZTOP,DAIR,DOZO
+
+      thisloc = ' -> at JP_ATM in module cldj_fjx_sub_mod.F90'
 
       write(6,'(4a)') '   L z(km)     p      T   ', &
        '    d(air)   d(O3)','  col(O2)  col(O3)     d-TAU   SS-alb', &
@@ -2342,8 +2388,12 @@
       real*8, intent(in), dimension(LU+2) :: PPJ,ZZJ
       real*8, intent(in), dimension(LU+1) :: TTJ,DDJ,OOJ
 !-----------------------------------------------------------------------
+      character(len=255)  ::  thisloc
       integer  I,J,K,L
       real*8   XCOLO2,XCOLO3,ZKM,DELZ,ZTOP
+
+      thisloc = ' -> at JP_ATM0 in module cldj_fjx_sub_mod.F90'
+
       write(6,'(4a)') '   L z(km)     p      T   ', &
        '    d(air)   d(O3)','  col(O2)  col(O3)     d-TAU   SS-alb', &
        '  g(cos) CTM lyr=>'
@@ -2402,12 +2452,16 @@
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
 
+      character(len=255)  ::   thisloc
       integer  L,L0, K,K0, LTOP
       real*8   ZA0,SZA0,CZA0
       real*8   ZA1,SZA1,SRN0,SA0,A0,CA0,SRN1,SA1,A1,CA1,SA2,A2,CA2
       real*8   DDHT,REF0,F0, C90
       real*8, dimension(L1_+1,L1_+1) :: ZANG,ZAMF
       real*8, dimension(L1_+1) :: RZ,DIVZ,RATZ,RD,RN, PATH1,PATH2,ZANG1
+
+      thisloc = ' -> at SPHERE1R in module cldj_fjx_sub_mod.F90'
+
 !-----------------------------------------------------------------------
 !  this versions sets a density scale ht of DDHT=8km, and a
 !        refractive index of 1.000300 at radius = RAD,
@@ -2628,10 +2682,14 @@
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
 
+      character(len=255)  ::   thisloc
       integer  L, J, JUP, LTOP, K
       real*8   A0,A1,A2,SA0,SA1,SA2,CA0,CA1,CA2,R0, PATH,ZA0,CZA0,SZA0
 
       real*8, dimension(L1_+1) :: RZ,DIVZ,RATZ
+
+
+      thisloc = ' -> at SPHERE1N in module cldj_fjx_sub_mod.F90'
 
       LTOP = L1U
       do L = 1,LTOP
@@ -2738,8 +2796,11 @@
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
 
+      character(len=255)  ::   thisloc
       integer  L, J, LTOP
       real*8   PATH0
+
+      thisloc = ' -> at SPHERE1F in module cldj_fjx_sub_mod.F90'
 
       LTOP = L1U
       AMF(:,:) = 0.d0
@@ -2788,8 +2849,11 @@
       real*8,  intent(in) ::  DTAU600(L1X)     !cloud+3aerosol OD in each layer
       real*8,  intent(in) ::  ATAU,ATAU0
       integer, intent(out)::  JXTRA(L1X)    !number of sub-layers to be added
+      character(len=255)  ::  thisloc
       integer JTOTL,JX,L,LL
       real*8  ATAULN,ATAU0X,AJX,DTAU0X
+
+      thisloc = ' -> at EXTRAL1 in module cldj_fjx_sub_mod.F90'
 
 !  need to divide DTAU600 into JX layers such that DTAU600/ATAU0 = ratio =
 !       1 + ATAU + ATAU^2 + ATAU^3 + ATAU^(JX-1)  = [ATAU^JX - 1]/[ATAU - 1]
@@ -2817,7 +2881,7 @@
             do LL = L,1,-1
                JXTRA(LL) = 0
             enddo
-!           call exitc('STOP at EXTRAL') !not necessary, a warning is OK
+!           call exitc('STOP at EXTRAL', thisloc) !not necessary, a warning is OK
             go to 10
          endif
       enddo
@@ -2845,9 +2909,12 @@
       integer, intent(in)  ::  NDAY
       real*8,  intent(out) ::  SZA,COSSZA,SOLFX
 !
+      character(len=255)   ::  thisloc
       real*8  LOCT
       real*8  SINDEC, SOLDEK, COSDEC, SINLAT, SOLLAT, COSLAT, COSZ
 !
+      thisloc = ' -> at SOLAR_JX in module cldj_fjx_sub_mod.F90'
+
       SINDEC = 0.3978d0*sin(0.9863d0*(dble(NDAY)-80.d0)*CPI180)
       SOLDEK = asin(SINDEC)
       COSDEC = cos(SOLDEK)
@@ -2875,6 +2942,7 @@
       real*8 ,  intent(in) :: PPP(nlayers+1), TTT(nlayers), HHH(nlayers)
       real*8 ,  intent(out):: TAUG_CLIRAD(nlayers, 0:30)
 
+      character(len=255)  :: thisloc
       integer G, K, INDKG, L
       real*8, dimension(nlayers):: WT
 ! heating rate (K/day) = W/m2 deposited in layer * HeatFac_ / delta-P of
@@ -2918,7 +2986,9 @@
        0.0010, 0.0032, 0.0102, 0.0328, 0.1049, 0.4194, 2.5166, 17.616, &
        123.31, 839.19]
       real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by
-! Avagado number
+! Avogado number
+
+      thisloc = ' -> at FJX_CLIRAD_H2O in module cldj_fjx_sub_mod.F90'
 
 ! 0:0 will assign to bin 18 which is 0 for CLIRAD
       TAUG_CLIRAD(:,0:0)= 0.d0
@@ -2963,6 +3033,7 @@
       real*8 ,  intent(in) :: PPP(nlayers+1), TTT(nlayers), HHH(nlayers)
       real*8 ,  intent(out):: TAUG_LLNL(nlayers, 0:21)
 
+      character(len=255)  :: thisloc
       integer G, K, INDKG, L
       real*8, dimension(nlayers):: WT
 ! heating rate (K/day) = W/m2 deposited in layer * HeatFac_ / delta-P of
@@ -2994,8 +3065,9 @@
            1.8492E+02, 1.6292E+03 /), &
         SHAPE = (/ 7, 3 /) )
 
-      real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by
-!Avagado number
+      real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by Avogado number
+
+      thisloc = ' -> at FJX_GGLLNL_H2O in module cldj_fjx_sub_mod.F90'
 
 ! 0:0 will assign to bin 18 which is 0 for CLIRAD
       TAUG_LLNL(:,0)= 0.d0
@@ -3046,8 +3118,12 @@
       real*8,  intent(out), dimension(L1U)   :: TTT,O3,CH4
       real*8, dimension(LREF)   :: OREF2,TREF2,HREF2,CREF2
       real*8, dimension(LREF+1) :: PSTD
+      character(len=255)  ::  thisloc
       integer  K, L, M, N
       real*8   DDDL,DLOGP,F0,T0,H0,C0,PB,PC,XC
+
+      thisloc = ' -> at ACLIM_FJX in module cldj_fjx_sub_mod.F90'
+
 !  Select appropriate month
       M = max(1,min(12,MONTH))
 !  Select appropriate latitudinal profiles
@@ -3109,8 +3185,11 @@
       real*8,  intent(in),  dimension(L1U) :: PL,TL,QL
       real*8,  intent(out), dimension(L1U) :: RH
 ! local variables
+      character(len=255)  ::  thisloc
       real*8  T, eps, es, qs
       integer  L
+
+      thisloc = ' -> at ACLIM_RH in module cldj_fjx_sub_mod.F90'
 
       eps=287.04d0/461.50d0
       do L = 1,L1U-1
@@ -3144,10 +3223,13 @@
       real*8,  intent(out), dimension(L1U)   :: AERS
       integer, intent(out), dimension(L1U)   :: NAER
 
+      character(len=255)  ::  thisloc
       real*8, dimension(LGREF+2) :: RREF2,XREF2,PREF2    ! param LGREF=19
       real*8, dimension(LGREF+3) :: PSTD2
       integer  I, IGG, K, L, M, N
       real*8   R0,X0,RX0,PB,PC,XC,YN,REDGE(GGA_)
+
+      thisloc = ' -> at ACLIM_GEO in module cldj_fjx_sub_mod.F90'
 
 !  Select appropriate month
       M = max(1, min(12, MONTH))
@@ -3217,11 +3299,12 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine EXITC(T_EXIT)
+      subroutine EXITC(T_EXIT, LOC)
 !-----------------------------------------------------------------------
-      character(len=*), intent(in) ::  T_EXIT
+        character(len=*), intent(in) ::  T_EXIT
+        character(len=*), intent(in) ::  LOC
 
-      call cloudj_error_stop(T_EXIT)
+      call cloudj_error_stop(T_EXIT, LOC)
 
       END SUBROUTINE EXITC
 

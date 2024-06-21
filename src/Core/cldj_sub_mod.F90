@@ -128,6 +128,7 @@
       integer, intent(out)                     :: JCOUNT
       logical, intent(out)                     :: LDARK
 !-----------------------------------------------------------------------
+      character(len=255)          :: thisloc
       logical  LPRTJ0
       integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX
       real*8   CLDFR, XRAN, FSCALE, QCAOD, WTRAN
@@ -148,6 +149,7 @@
       real*8,  dimension(L1U)       :: OD18Q
 
 !-----------------------------------------------------------------------
+      thisloc = ' -> at CLOUD_JX in module cldj_sub_mod.F90'
       LPRTJ0 = LPRTJ
       JCOUNT = 0
       NICA = 0
@@ -169,7 +171,7 @@
 !---CLOUD_JX:   different cloud schemes
 !-----------------------------------------------------------------------
       if (CLDFLAG.lt.1 .or. CLDFLAG.gt.8)then
-         call EXITC ('>>>stop, incorrect cloud index')
+         call EXITC ('>>>stop, incorrect cloud index', thisloc)
       endif
 
 !--------------------CLDFLAG =  1, 2, 3---------------------------------
@@ -271,7 +273,7 @@
 !-----------------------------------------------------------------------
 ! 4 = average direct beam over all ICAs  DISCONTINUED
          if (CLDFLAG .eq. 4) then
-            call EXITC(' CLD FLAG = 4 not allowed')
+            call EXITC(' CLD FLAG = 4 not allowed', thisloc)
          endif
 
 !-----------------------------------------------------------------------
@@ -609,6 +611,7 @@
       integer, intent(out), dimension(9,CBIN_+1) :: GFNR
       real*8,  intent(out), dimension(CBIN_) :: CFBIN
 
+      character(len=255)        :: thisloc
       real*8   FBIN, FSCALE, CLF_MIN, CLF_MAX, FSCALE2
       integer                   ::  NRGX, NICAX
       integer, dimension(9)  :: GMIN,GMAX
@@ -616,6 +619,8 @@
       integer  I,K,L,LL,N,NC, L1,L2,L3,  LCLTOP,LCIRRUS
       logical  L1GRP,L2GRP,L3GRP, L6GRP
 !-----------------------------------------------------------------------
+
+      thisloc = ' -> at ICA_NR in module cldj_sub_mod.F90'
 
 !---quantize cloud fractions into bins to avoid excessive calculations for
 !---  nearly identical maximally overlapping cloud fractions.
@@ -951,12 +956,16 @@
       real*8,  intent(in)                   :: CLDCOR
       real*8,  intent(out),dimension(ICAU)  :: WCOL,OCOL
 
+      character(len=255) :: thisloc
       real*8  ODCOL,WTCOL,CF0(51),  FWT(10,51),FWTC(10,51),FWTCC(10,51)
       real*8  FIG1,FIG2,GCORR,GCOWT,CORRFAC, FCMX(10) ,CLTOT(100)
       integer I, II, IG1,IG2, G, L,  IGNR(10),GCLDY(10),GRP1,GRP2
       logical L_CLR1,L_CLR2  ,LSKIP   ,LGR_CLR(10)
 !-----------------------------------------------------------------------
-        CLTOT(:) = 0.d0
+
+      thisloc = ' -> at ICA_ALL in module cldj_sub_mod.F90'
+
+      CLTOT(:) = 0.d0
 
         CF0(1) = 0.d0
       do L = 1,CBINU
@@ -1082,9 +1091,13 @@
       real*8,  intent(in), dimension(LTOP)  :: CLT
       real*8,  intent(out),dimension(LTOP)  :: TTCOL
 
+      character(len=255) :: thisloc
       integer II, IG, G, L
 !-----------------------------------------------------------------------
-         TTCOL(:) = 0.d0
+
+      thisloc = ' -> at ICA_III in module cldj_sub_mod.F90'
+
+      TTCOL(:) = 0.d0
       II = max(1, min(NICA,III))
       do G = 1,NRG
           IG = mod(II-1, GNR(G)) + 1
@@ -1115,11 +1128,15 @@
       integer, intent(out), dimension(ICAU)     :: ISORT
       integer, intent(out), dimension(NQDU)     :: NQ1,NQ2,NDXQS
 
+      character(len=255)       :: thisloc
       real*8,  dimension(ICA_) :: OCDFS, OCOLS
       integer I, II, J, L, N, N1, N2
 
       real*8, parameter:: OD_QUAD(4) =[0.5d0, 4.0d0, 30.d0, 1.d9]
 !-----------------------------------------------------------------------
+
+      thisloc = ' -> at ICA_QUD in module cldj_sub_mod.F90'
+
       ISORT(:) = 0
       WTQCA(:)  = 0.d0
       NDXQS(:) = 0
@@ -1187,9 +1204,13 @@
       real*8, dimension(ND),intent(in)  :: A
       real*8, dimension(ND),intent(out) :: AX
       integer,dimension(ND),intent(out) :: IX
+      character(len=255) :: thisloc
       integer :: I,J,L,IR,IA
       real*8 :: RA
 !-----------------------------------------------------------------------
+
+      thisloc = ' -> at HEAPSORT_A in module cldj_sub_mod.F90'
+
       do I = 1,N
         IX(I) = I
         AX(I) = A(I)
