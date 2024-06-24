@@ -6,7 +6,7 @@
       MODULE CLDJ_INIT_MOD
 
       USE CLDJ_CMN_MOD
-      USE CLDJ_FJX_SUB_MOD, ONLY : EXITC
+      USE CLDJ_ERROR_MOD
 !SJ!  USE CLDJ_FJX_MOD
 
       IMPLICIT NONE
@@ -40,9 +40,10 @@
       character*6, intent(out), dimension(NJXU) :: TITLEJXX
 
       character*120  TIT_SPEC
-      integer  JXUNIT,I, J, K, KR, RANSEED, NUN
+      integer  JXUNIT,I, J, K, KR, RANSEED, NUN, rc
 
       thisloc = ' -> at INIT_CLDJ in module cldj_init_mod.F90'
+      rc = CLDJ_SUCCESS
       if (AMIROOT) write(6,*) ' Solar/Cloud-J  ver-7.7 initialization'
 
 #if defined ( MODEL_GEOSCHEM )
@@ -128,7 +129,8 @@
 ! with Cloud-J v7.6, NO wavelength truncation for trop only, internal fixes
 ! remain
       if (W_ .ne. 18) then
-        call EXITC(' INIT_JX: invalid no. wavelengths', thisloc)
+        call CLOUDJ_ERROR(' INIT_JX: invalid no. wavelengths', thisloc, rc)
+        return
       endif
 
 ! set up angles of diffuse radiance at ocean surface
@@ -156,7 +158,10 @@
             if (AMIROOT) write(6,'(A,2I5)')'KR/KDOKR(KR)',KR, KDOKR(KR)
          enddo
       enddo
-      if (KR .ne. W_+W_r) CALL EXITC('>>>error w/ RRTM sub bins: KDOKR', thisloc)
+      if (KR .ne. W_+W_r) then
+         CALL CLOUDJ_ERROR('>>>error w/ RRTM sub bins: KDOKR', thisloc, rc)
+         return
+      endif
       do KR = 1, W_+W_r
          K = KDOKR(KR)
          if (FL(K) .gt. 0.d0) then ! FL is read in call RD_XXX
@@ -209,7 +214,9 @@
 
       goto 1
     4 continue
-        call EXITC(' CLDJ_INIT: error in read', thisloc)
+      call CLOUDJ_ERROR(' CLDJ_INIT: error in read', thisloc, rc)
+      return
+
     1 continue
 
       if (AMIROOT) write(6,*) ' end of Solar/Cloud-J initialization'
@@ -250,13 +257,14 @@
       logical, intent(in) :: AMIROOT
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
-      integer  I, J, JJ, K, IW, NQRD, LQ, NWWW, NSSS
+      integer  I, J, JJ, K, IW, NQRD, LQ, NWWW, NSSS, rc
       character*120  TIT_SPEC, TIT_J1N
       character*16 TIT_J1L
       character*6  TIT_J1S,TIT_J2S
       real*8  FWSUM
 
       thisloc = ' -> at RD_XXX in module cldj_init_mod.F90'
+      rc = CLDJ_SUCCESS
 
       TQQ(:,:) = 0.d0
 
@@ -264,7 +272,8 @@
 !   note that X_ = max # Xsects read in
 !           NJX = # fast-JX J-values derived from this (.le. X_)
       if (W_ .ne. 18) then
-       call EXITC(' no. wavelengths wrong: W_ .ne. 18', thisloc)
+        call CLOUDJ_ERROR(' no. wavelengths wrong: W_ .ne. 18', thisloc, rc)
+        return 
       endif
 
       open (NUN,FILE=trim(NAMFIL),status='old',form='formatted')
@@ -278,7 +287,8 @@
             NSSS, ' solar heating bins '
 
       if (NWWW.gt.WX_ .or. NSSS.gt.SX_) then
-       call EXITC(' WX_ or SX_ not large enough', thisloc)
+         call CLOUDJ_ERROR(' WX_ or SX_ not large enough', thisloc, rc)
+         return
       endif
 
       NW1 = 1
@@ -405,7 +415,10 @@
     2 continue
        JJ = JJ+1
        LQ = 1
-         if (JJ .gt. X_) call EXITC(' RD_XXX: X_ not large enough', thisloc)
+       if (JJ .gt. X_) then
+          call CLOUDJ_ERROR(' RD_XXX: X_ not large enough', thisloc, rc)
+          return
+       endif
        TITLEJX(JJ) = TIT_J1S
        TITLEJL(JJ) = TIT_J1L
       read (NUN,'(a1,f3.0,1x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
@@ -439,7 +452,9 @@
       endif
       goto 3
     4 continue
-        call EXITC(' RD_XXX: error in read', thisloc)
+      call CLOUDJ_ERROR(' RD_XXX: error in read', thisloc, rc)
+      return
+
     1 continue
       NJX = JJ
 
@@ -478,10 +493,12 @@
 !---need to check that TQQ (= T(K) or p(hPa)) is monotonically increasing:
       do J = 1,NJX
          if ((LQQ(J) .eq. 3) .and. (TQQ(2,J) .ge. TQQ(3,J))) then
-            call EXITC ('TQQ out of order', thisloc)
+            call CLOUDJ_ERROR('TQQ out of order', thisloc, rc)
+            return
          endif
          if ((LQQ(J) .eq. 2) .and. (TQQ(1,J) .ge. TQQ(2,J))) then
-            call EXITC ('TQQ out of order', thisloc)
+            call CLOUDJ_ERROR('TQQ out of order', thisloc, rc)
+            return
          endif
       enddo
 
@@ -531,11 +548,12 @@
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
 
-      integer  I,J,K,L, JCC
+      integer  I,J,K,L, JCC, rc
       character*120 TITLE0
       real*8     GCCJ, XNDR,XNDI
 
       thisloc = ' -> at RD_CLD in module cldj_init_mod.F90'
+      rc = CLDJ_SUCCESS
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
 
@@ -585,8 +603,9 @@
         goto 2
 
     4 continue
-        call EXITC(' RD_CLD: error in read', thisloc)
-
+        call CLOUDJ_ERROR(' RD_CLD: error in read', thisloc, rc)
+        return
+        
     2 continue
         close(NUN)
 
@@ -618,11 +637,12 @@
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
 
-      integer  I, J, JSS, K, JCC, NSX_
+      integer  I, J, JSS, K, JCC, NSX_, rc
       character*120 TITLE0
       real*8     WJSS,XNDR,XNDI
 
       thisloc = ' -> at RD_SSA in module cldj_init_mod.F90'
+      rc = CLDJ_SUCCESS
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
       read (NUN,'(a120)',err=4) TITLE0
@@ -656,7 +676,8 @@
       goto 2
 
     4 continue
-        call EXITC(' RD_SSA: error in read', thisloc)
+      call CLOUDJ_ERROR(' RD_SSA: error in read', thisloc, rc)
+      return
 
     2 continue
         close(NUN)
@@ -685,7 +706,7 @@
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
 
-      integer  I, J, K , JAA
+      integer  I, J, K , JAA, rc
       character*120 TITLE0
 ! TITLAA: Title for scat data NEEDS to be in COMMON
 !      character*12 TITLAA(A_) 
@@ -693,6 +714,7 @@
       real*8   RAAJ, DAAJ
 
       thisloc = ' -> at RD_MIE in module cldj_init_mod.F90'
+      rc = CLDJ_SUCCESS
 
       if (AMIROOT) write(6,'(i5,a)') NUN,trim(NAMFIL)
 
@@ -731,8 +753,8 @@
       goto 2
 
     4 continue
-
-      call EXITC(' RD_MIE: error in read', thisloc)
+      call CLOUDJ_ERROR(' RD_MIE: error in read', thisloc, rc)
+      return
 
     2 continue
 
@@ -1024,11 +1046,12 @@
       integer, intent(in) :: NUN
       character(*), intent(in) ::  NAMFIL
 
-      integer  I, J, K
+      integer  I, J, K, rc
       character*120 TITLE0
       real*8     WGGJ,XNDR,XNDI,G1,G2,G3
 
       thisloc = ' -> at RD_GEO in module cldj_init_mod.F90'
+      rc = CLDJ_SUCCESS
 
       open (NUN,FILE=NAMFIL,status='old',form='formatted',err=4)
 
@@ -1060,7 +1083,8 @@
       goto 2
 
     4 continue
-      call EXITC(' RD_GEO: error in read', thisloc)
+      call CLOUDJ_ERROR(' RD_GEO: error in read', thisloc, rc)
+      return
 
     2 continue
       close(NUN)

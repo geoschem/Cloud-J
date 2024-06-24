@@ -92,7 +92,6 @@
       PUBLIC :: ACLIM_FJX  ! Load fast-JX climatology - T & O3
       PUBLIC :: ACLIM_GEO  ! Compute RH profile given P, T, Q
       PUBLIC :: ACLIM_RH   ! Load GEOMIP SSA climatology (vs P)
-      PUBLIC :: EXITC
 
       PRIVATE :: OPMIE    ! Called in Photo_JX
       PRIVATE :: MIESCT   ! Called in OPMIE
@@ -877,7 +876,7 @@
       character(len=255) ::  thisloc
       integer JADDTO,L2LEV(L1_+1)
       integer I,II,J,K,L,LL,LL0,IX,JK,   L2,L22,LZ,LZZ,ND
-      integer L1U,  LZ0,LZ1,LZMID
+      integer L1U,  LZ0,LZ1,LZMID, rc
       real*8   SUMT,SUMJ,DIVT, FBTMLOG
 
       real*8  TTAU(L1_+1)
@@ -965,6 +964,7 @@
 
       ! initialize
       thisloc = ' -> at OPMIE in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       FJACT = 0.d0
       FJTOP = 0.d0
       FIBOT = 0.d0
@@ -981,8 +981,9 @@
       enddo
       ND = 2*L1U + 2*JADDTO + 1
       if(ND .gt. N_) then
-        call EXITC (' overflow of scatter arrays: ND > N_', thisloc)
-      endif
+        call CloudJ_Error(' overflow of scatter arrays: ND > N_', thisloc, rc)
+        return
+     endif
 !---L2LEV(L) = L-index for old layer-edge L in the expanded JXTRA-grid
 !     in absence of JXTRA,  L2LEV(L) = L
         L2LEV(1)  = 1
@@ -2043,11 +2044,12 @@
       real*8, intent(out)::    SLEG(8,S_) ! scatt phase fn (Leg coeffs)
 
       character(len=255)::     thisloc
-      integer I,J, KK
+      integer I,J, KK, rc
       real*8  XTINCT, REFF,RHO
 
       ! initialize location and outputs for safety
       thisloc = ' -> at OPTICS in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       OPTD  = 0.d0
       SSALB = 0.d0
       SLEG  = 0.d0
@@ -2057,7 +2059,8 @@
       elseif (K .eq. 2) then
         KK = 13   ! volcanic,   220K, 70 wt%
       else
-        call EXITC ('OPTICS: SSA index out-of-range', thisloc)
+         call CloudJ_Error('OPTICS: SSA index out-of-range', thisloc, rc)
+         return
       endif
 
          REFF = RSS(KK)
@@ -2129,19 +2132,22 @@
         real*8, intent(in)::     RELH        ! relative humidity (0.00->1.00+)
         integer,intent(inout)::     K        ! index of cloud/aerosols
         character(len=255) ::    thisloc
-        integer I,J,JMIE
+        integer I,J,JMIE, rc
         real*8  XTINCT, REFF,RHO,WAVE, QAAX,SAAX,WAAX
 
         ! initialize location and outputs for safety
         thisloc = ' -> at OPTICA in module cldj_fjx_sub_mod.F90'
+        rc = CLDJ_SUCCESS
         OPTD  = 0.d0
         SSALB = 0.d0
         SLEG  = 0.d0
 
 ! K=1&2 are the SSA values, not used here any more, make sure they are not
 !asked for.
-        if (K.gt.NAA .or. K.lt.3) &
-           call EXITC ('OPTICA: aerosol index out-of-range', thisloc)
+        if (K.gt.NAA .or. K.lt.3) then
+           call CloudJ_Error('OPTICA: aerosol index out-of-range', thisloc, rc)
+           return
+        endif
         REFF = RAA(K)
         RHO = DAA(K)
         do J = 1,S_
@@ -2206,11 +2212,12 @@
       integer,intent(in)::     LL         ! index of cloud/aerosols
 
       character(len=255) :: thisloc
-      integer KR,J,L, JMIE
+      integer KR,J,L, JMIE, rc
       real*8  R,FRH, GCOS, XTINCT, WAVE
 
       ! initialize location and outputs for safety
       thisloc = ' -> at OPTICM in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       OPTD  = 0.d0
       SSALB = 0.d0
       SLEG  = 0.d0
@@ -2218,8 +2225,10 @@
 !---calculate fast-JX properties at the std 5 wavelengths:200-300-400-600-999nm
 !---extrapolate phase fn from first term (g)
       L = LL
-      if (L.lt.1 .or. L.gt.33)  &
-          call EXITC ('OPTICM: aerosol index out-of-range', thisloc)
+      if (L.lt.1 .or. L.gt.33) then
+         call CloudJ_Error('OPTICM: aerosol index out-of-range', thisloc, rc)
+         return
+      endif
 !---pick nearest Relative Humidity
       KR =  20.d0*RELH  + 1.5d0
       KR = max(1, min(21, KR))
@@ -2272,15 +2281,17 @@
       real*8  VALJ(X_)
       real*8  QO2TOT, QO3TOT, QO31DY, QO31D, QQQT, TFACT
       real*8  TT,PP,DD,TT200,TFACA,TFAC0,TFAC1,TFAC2,QQQA,QQ2,QQ1A,QQ1B
-      integer J,K,L, IV
+      integer J,K,L, IV, rc
 
       ! initialize location and outputs for safety
       thisloc = ' -> at JRATET in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       VALJL = 0.d0
 
       if (NJXU .lt. NJX) then
         write(6,'(A,2I5)')  'NJXU<NJX',NJXU,NJX
-        call EXITC(' JRATET:  CTM has not enough J-values dimensioned', thisloc)
+        call CloudJ_Error(' JRATET:  CTM has not enough J-values dimensioned', thisloc, rc)
+        return
       endif
 
       do L = 1,LU
@@ -2892,11 +2903,12 @@
       real*8,  intent(in) ::  ATAU,ATAU0
       integer, intent(out)::  JXTRA(L1X)    !number of sub-layers to be added
       character(len=255)  ::  thisloc
-      integer JTOTL,JX,L,LL
+      integer JTOTL,JX,L,LL, rc
       real*8  ATAULN,ATAU0X,AJX,DTAU0X
 
       ! initialize location and outputs for safety
       thisloc = ' -> at EXTRAL1 in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       JXTRA = 0
 
 !  need to divide DTAU600 into JX layers such that DTAU600/ATAU0 = ratio =
@@ -2925,7 +2937,7 @@
             do LL = L,1,-1
                JXTRA(LL) = 0
             enddo
-!           call exitc('STOP at EXTRAL', thisloc) !not necessary, a warning is OK
+ !           call CloudJ_Error('STOP at EXTRAL', thisloc, rc) !not necessary, a warning is OK
             go to 10
          endif
       enddo
@@ -3349,17 +3361,5 @@
       enddo
 
       END SUBROUTINE ACLIM_GEO
-
-
-!-----------------------------------------------------------------------
-      subroutine EXITC(T_EXIT, LOC)
-!-----------------------------------------------------------------------
-        character(len=*), intent(in) ::  T_EXIT
-        character(len=*), intent(in) ::  LOC
-
-      call cloudj_error_stop(T_EXIT, LOC)
-
-      END SUBROUTINE EXITC
-
 
       END MODULE CLDJ_FJX_SUB_MOD

@@ -2,6 +2,7 @@ MODULE CLDJ_ERROR_MOD
 
   IMPLICIT NONE
 
+  PUBLIC  :: CLOUDJ_ERROR
   PUBLIC  :: CLOUDJ_ERROR_STOP
   PUBLIC  :: SAFE_DIV
 
@@ -44,7 +45,7 @@ CONTAINS
   end subroutine CLOUDJ_ERROR_STOP
 
   !-----------------------------------------------------------------------
-  subroutine CLDJ_ERROR( errmsg, loc, rc )
+  subroutine CLOUDJ_ERROR( errmsg, loc, rc )
 
 #if defined( MODEL_CESM )
     USE CAM_ABORTUTILS, ONLY : ENDRUN
@@ -86,7 +87,7 @@ CONTAINS
        rc = CLDJ_FAILURE
     ENDIF
 
-  end subroutine CLDJ_ERROR
+  end subroutine CLOUDJ_ERROR
 
   !-----------------------------------------------------------------------
   function SAFE_DIV( numer, denom, alt_nan, alt_overflow, alt_underflow ) &

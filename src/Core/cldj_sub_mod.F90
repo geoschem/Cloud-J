@@ -6,7 +6,8 @@
       MODULE CLDJ_SUB_MOD
 
       USE CLDJ_CMN_MOD
-      USE CLDJ_FJX_SUB_MOD,  ONLY: PHOTO_JX, EXITC
+      USE CLDJ_ERROR_MOD
+      USE CLDJ_FJX_SUB_MOD,  ONLY: PHOTO_JX
 
       IMPLICIT NONE
 
@@ -130,7 +131,7 @@
 !-----------------------------------------------------------------------
       character(len=255)          :: thisloc
       logical  LPRTJ0
-      integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX
+      integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX, rc
       real*8   CLDFR, XRAN, FSCALE, QCAOD, WTRAN
       real*8,  dimension(L1U)     :: LWPX,IWPX,REFFLX,REFFIX
       real*8,  dimension(LWEPAR)  :: CLTL,CLTI, CLT,CLDX
@@ -152,6 +153,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at CLOUD_JX in module cldj_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       LPRTJ0  = LPRTJ
       JCOUNT  = 0
       NICA    = 0
@@ -171,7 +173,7 @@
 !---CLOUD_JX:   different cloud schemes
 !-----------------------------------------------------------------------
       if (CLDFLAG.lt.1 .or. CLDFLAG.gt.8)then
-         call EXITC ('>>>stop, incorrect cloud index', thisloc)
+         call CLOUDJ_ERROR('>>>stop, incorrect cloud index', thisloc, rc)
       endif
 
 !--------------------CLDFLAG =  1, 2, 3---------------------------------
@@ -273,7 +275,7 @@
 !-----------------------------------------------------------------------
 ! 4 = average direct beam over all ICAs  DISCONTINUED
          if (CLDFLAG .eq. 4) then
-            call EXITC(' CLD FLAG = 4 not allowed', thisloc)
+            call CLOUDJ_ERROR(' CLD FLAG = 4 not allowed', thisloc, rc)
          endif
 
 !-----------------------------------------------------------------------
