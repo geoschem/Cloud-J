@@ -1,6 +1,7 @@
 # Cloud-J
 
 [![Ubuntu](https://github.com/geoschem/Cloud-J/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/geoschem/Cloud-J/actions/workflows/ubuntu.yml)
+[![Mac](https://github.com/geoschem/Cloud-J/actions/workflows/mac.yml/badge.svg)](https://github.com/geoschem/Cloud-J/actions/workflows/mac.yml)
 [![License](https://img.shields.io/badge/license-GPLv3-blue)](https://github.com/geoschem/Cloud-J/blob/main/LICENSE)
 
 Cloud-J is a multi-scattering eight-stream radiative transfer model for solar radiation based on Fast-J. It was originally developed by Michael J. Prather (UCI). For information about the origins and history of Cloud-J and its predecessor Fast-J please see the [history document](https://github.com/geoschem/cloud-j/blob/main/docs/History_of_Fast-J_photolysis_code.md) in the docs subdirectory of this repository.
