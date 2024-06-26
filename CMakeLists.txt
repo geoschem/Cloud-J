@@ -64,7 +64,7 @@ set(CloudJ_Fortran_FLAGS_DEBUG_Intel
 
 set(CloudJ_Fortran_FLAGS_GNU
    -cpp -w -std=legacy -fautomatic -fno-align-commons -fconvert=big-endian
-   -fno-range-check -mcmodel=medium -fbacktrace -g -DLINUX_GFORTRAN
+   -fno-range-check -mcmodel=small -fbacktrace -g -DLINUX_GFORTRAN
    -ffree-line-length-none
    CACHE STRING "Cloud-J compiler flags for all build types with GNU compilers"
 )
