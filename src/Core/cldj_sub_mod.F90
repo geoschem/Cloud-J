@@ -30,7 +30,7 @@
       SUBROUTINE CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,  &
              RRR,OOO,CCC, LWP,IWP,REFFL,REFFI, CLDF,CLDCOR,CLDIW,      &
              AERSP,NDXAER,L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18,      &
-             IRAN,NICA, JCOUNT,LDARK,WTQCA)
+             IRAN,NICA, JCOUNT,LDARK,WTQCA,RC)
 
 !---Current recommendation for best average J's is
 !     1) cloud decorellation w/ max-overlap blocks:  LNRG = 6 and CLDCOR = 0.33
@@ -128,10 +128,11 @@
       integer, intent(out)                     :: NICA
       integer, intent(out)                     :: JCOUNT
       logical, intent(out)                     :: LDARK
+      integer, intent(out)                     :: RC
 !-----------------------------------------------------------------------
       character(len=255)          :: thisloc
       logical  LPRTJ0
-      integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX, rc
+      integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX
       real*8   CLDFR, XRAN, FSCALE, QCAOD, WTRAN
       real*8,  dimension(L1U)     :: LWPX,IWPX,REFFLX,REFFIX
       real*8,  dimension(LWEPAR)  :: CLTL,CLTI, CLT,CLDX
@@ -219,7 +220,7 @@
 !-----------------------------------------------------------------------
          call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,       &
                   DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,       &
-                  NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, LDARK)
+                  NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, LDARK, RC)
          if (.not.LDARK) then
             JCOUNT = JCOUNT + 1
          endif
@@ -261,12 +262,12 @@
 !---CLT(cloud ice+liq OD) & IWPX & LWPX adjusted to quantized cld fr
 !-------------------------------------------------------------------------
          call ICA_NR(LPRTJ0,CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,CBIN_,ICA_, &
-             CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
+             CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,RC)
 
 !---call ICA_ALL to generate the weight and cloud total OD of each ICA
 !-------------------------------------------------------------------------
          call ICA_ALL(LPRTJ0,CLDX,CLT,LTOP,CBIN_,ICA_, CFBIN,     &
-            CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
+            CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL,RC)
 
          if(LPRTJ0) then
             write(6,*) ' cloud-J v7.7  internal print:  #ICAs = ',NICA
@@ -299,7 +300,7 @@
                enddo
 
                call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
-                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
+                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
 
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
@@ -324,7 +325,7 @@
 !-----------------------------------------------------------------------
                call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
                      DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,        &
-                     NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK)
+                     NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
                if (.not.LDARK) then
                   JCOUNT = JCOUNT + 1
                endif
@@ -354,7 +355,7 @@
          if (CLDFLAG .eq. 6) then
 
             call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
-                         WTQCA, ISORT,NQ1,NQ2,NDXQS)
+                         WTQCA, ISORT,NQ1,NQ2,NDXQS,RC)
 
             if (LPRTJ0) then
                write(6,'(a)') ' quadrature QCAs(mid-pt): wt/range/index/OD'
@@ -370,7 +371,7 @@
                   I = ISORT(NDXQS(N))
 
                   call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
-                                GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
+                                GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
 
 !---zero out cloud water paths which are not in the selected QCA
                   do L = 1, LTOP
@@ -386,7 +387,7 @@
 !-----------------------------------------------------------------------
                   call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH, &
                    DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,     &
-                   NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK)
+                   NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK, RC)
                   if (.not.LDARK) then
                      JCOUNT = JCOUNT + 1
                   endif
@@ -417,7 +418,7 @@
          if (CLDFLAG .eq. 7) then
 
             call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
-                         WTQCA, ISORT,NQ1,NQ2,NDXQS)
+                         WTQCA, ISORT,NQ1,NQ2,NDXQS,RC)
 
             if (LPRTJ0) then
                write(6,'(a)') ' quadrature QCAs(avg-cld): wt/range/index/OD'
@@ -435,7 +436,7 @@
                         I = ISORT(II)
 
                         call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
-                                      GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
+                                      GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
 
                         if (LPRTJ0) then
                            write(6,'(a,3i5,2f8.4,f9.3)') &
@@ -469,7 +470,7 @@
 !-----------------------------------------------------------------------
                call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
                     DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,         &
-                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK)
+                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
                      if (.not.LDARK) then
                         JCOUNT = JCOUNT + 1
                      endif
@@ -508,7 +509,7 @@
             endif
             do I = 1, NICA
                call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
-                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
+                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
                   LWPX(L) = LWP(L)
@@ -523,7 +524,7 @@
 !-----------------------------------------------------------------------
                call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
                     DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,         &
-                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK)
+                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
                if (.not.LDARK) then
                   JCOUNT = JCOUNT + 1
                endif
@@ -556,7 +557,7 @@
 
 !-----------------------------------------------------------------------
       SUBROUTINE ICA_NR(LPRTJ0,CLDF,CLTAU,IWPX,LWPX,ZZZ,CLDIW,LTOP,CBIN_, &
-            ICA_,CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
+            ICA_,CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,RC)
 !-----------------------------------------------------------------------
 !---revised in v7.7 (02/2020) fixed MAX-RAN (#0 & #3) set CLDCOR=0 if need be
 !---Read in the cloud fraction (CLDF), cloud OD (CLTAU), cloud index (CLDIW)
@@ -611,6 +612,7 @@
       integer, intent(out), dimension(9) :: GBOT,GTOP,GLVL,GNR,GCMX
       integer, intent(out), dimension(9,CBIN_+1) :: GFNR
       real*8,  intent(out), dimension(CBIN_) :: CFBIN
+      integer, intent(out) :: RC
 
       character(len=255)        :: thisloc
       real*8   FBIN, FSCALE, CLF_MIN, CLF_MAX, FSCALE2
@@ -623,6 +625,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ICA_NR in module cldj_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       NRG   = 0
       NICA  = 0
       NCLDF = 0
@@ -941,7 +944,7 @@
 
 !-----------------------------------------------------------------------
       SUBROUTINE ICA_ALL(LPRTJ0,CLF,CLT,LTOP,CBINU,ICAU, CFBIN,CLDCOR,NCLDF,  &
-           GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
+           GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL,RC)
 !-----------------------------------------------------------------------
 !    OCOL() = cloud optical depth (total) in each ICA
 !    WCOL() = weight(fract area) of ICA,
@@ -967,6 +970,7 @@
       real*8,  intent(in), dimension(CBINU) :: CFBIN
       real*8,  intent(in)                   :: CLDCOR
       real*8,  intent(out),dimension(ICAU)  :: WCOL,OCOL
+      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
       real*8  ODCOL,WTCOL,CF0(51),  FWT(10,51),FWTC(10,51),FWTCC(10,51)
@@ -977,6 +981,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ICA_ALL in module cldj_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       WCOL = 0.d0
       OCOL = 0.d0
 
@@ -1093,7 +1098,7 @@
 
 !-----------------------------------------------------------------------
       SUBROUTINE ICA_III(LPRTJ0, CLT,  LTOP, CBINU, III,  NCLDF, GFNR, &
-                         GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
+                         GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
 !-----------------------------------------------------------------------
 !    see ICA_ALL, this subroutine picks out the ICA atmosphere #III
 !      and loads the REFF/WPs for a FAST_JX calculation.
@@ -1105,6 +1110,7 @@
       integer, intent(in), dimension(9,CBINU+1) :: GFNR
       real*8,  intent(in), dimension(LTOP)  :: CLT
       real*8,  intent(out),dimension(LTOP)  :: TTCOL
+      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
       integer II, IG, G, L
@@ -1112,6 +1118,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ICA_III in module cldj_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       TTCOL = 0.d0
 
       TTCOL = 0.d0
@@ -1131,7 +1138,7 @@
 
 !-----------------------------------------------------------------------
       SUBROUTINE ICA_QUD(WCOL,OCOL, ICAU,NQDU,NICA, &
-                         WTQCA, ISORT,NQ1,NQ2,NDXQS)
+                         WTQCA, ISORT,NQ1,NQ2,NDXQS,RC)
 !-----------------------------------------------------------------------
 !---Take the full set of ICAs and group into the NQD_ ranges of total OD
 !---Create the Cumulative Prob Fn and select the mid-point ICA for each group
@@ -1144,6 +1151,7 @@
       real*8, intent(out), dimension(NQDU)      :: WTQCA
       integer, intent(out), dimension(ICAU)     :: ISORT
       integer, intent(out), dimension(NQDU)     :: NQ1,NQ2,NDXQS
+      integer, intent(out) :: RC
 
       character(len=255)       :: thisloc
       real*8,  dimension(ICA_) :: OCDFS, OCOLS
@@ -1154,6 +1162,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ICA_QUD in module cldj_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       ISORT = 0
       NQ1   = 0
       NQ2   = 0
@@ -1172,7 +1181,7 @@
         ISORT(1) = 1
         OCOLS(1) = OCOL(1)
       else
-        call HEAPSORT_A (NICA,OCOL,OCOLS,ISORT,ICA_)
+        call HEAPSORT_A (NICA,OCOL,OCOLS,ISORT,ICA_,RC)
       endif
         OCDFS(1) = WCOL(ISORT(1))
       do I = 2,NICA
@@ -1213,7 +1222,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE HEAPSORT_A (N,A,AX,IX,ND)
+      SUBROUTINE HEAPSORT_A (N,A,AX,IX,ND,RC)
 !-----------------------------------------------------------------------
 !  classic heapsort, sorts real*8 array A(N) into ASCENDING order,
 !     places sorted array AX(N):   AX(1) .le. AX(N)
@@ -1226,6 +1235,8 @@
       real*8, dimension(ND),intent(in)  :: A
       real*8, dimension(ND),intent(out) :: AX
       integer,dimension(ND),intent(out) :: IX
+      integer, intent(out) ::RC
+
       character(len=255) :: thisloc
       integer :: I,J,L,IR,IA
       real*8 :: RA
@@ -1233,6 +1244,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at HEAPSORT_A in module cldj_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       AX = 0.d0
       IX = 0
 
