@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Added CLOUDJ_STANDALONE c-proprocessor switch to generalize code to use instead within a parent model
+- Added integer status flag RC to most subroutines and pass it back up to parent model with error messages
+- Added subroutine CLOUDJ_ERROR to print error message and set integer status flag RC
+
+### Removed
+- Removed subroutine EXITC and replaced it with CLOUDJ_ERROR_STOP in standalone and CLOUDJ_ERROR elsewhere
 
 ## [7.7.1] - 2024-04-02
 ### Changed
