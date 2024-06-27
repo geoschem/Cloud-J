@@ -13,6 +13,7 @@
       program standalone
 
       USE CLDJ_CMN_MOD
+      USE CLDJ_ERROR_MOD
       USE CLDJ_INIT_MOD
       USE CLDJ_FJX_SUB_MOD
       USE CLDJ_SUB_MOD, ONLY : CLOUD_JX
@@ -21,7 +22,7 @@
       implicit none
 !---------------key params in/out of CLOUD_J-------------------------
       logical                    :: LPRTJ, LDARK
-      integer                    :: IRAN
+      integer                    :: IRAN, RC
       integer                    :: JVNU,ANU,L1U
       integer                    :: NICA,JCOUNT
       real*8                     :: U0,SZA,SOLF
@@ -60,6 +61,7 @@
 
       write(6,'(a)') '>>>begin Cloud-J v7.7 Standalone'
 
+      RC = CLDJ_SUCCESS
       NLEVELS = 57
       ANU = AN_
       JVNU = JVN_
@@ -67,7 +69,7 @@
       amIRoot = .true.
 !---read in & store all fast-JX data:   single call at set up
 !-----------------------------------------------------------------------      
-      call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,LWEPAR,TITLJXX,JVNU,NJXX)
+      call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,LWEPAR,TITLJXX,JVNU,NJXX,RC)
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case
@@ -109,7 +111,7 @@
         enddo
 !---sets climatologies for O3, T, D & Z
 !-----------------------------------------------------------------------
-      call ACLIM_FJX (YLAT,MONTH,PPP, TTT,O3,CH4, L1_)
+      call ACLIM_FJX (YLAT,MONTH,PPP, TTT,O3,CH4, L1_, RC)
 !-----------------------------------------------------------------------
       do L = 1,L_
 !!!       TTT(L) = TI(L)  keep climatology T's and O3's
@@ -130,7 +132,7 @@
        OOO(L) = DDD(L)*O3(L)*1.d-6
        CCC(L) = DDD(L)*CH4(L)*1.d-9
 !-----------------------------------------------------------------------
-!       call ACLIM_RH (PL, TL, QL, HHH, L1U)
+!       call ACLIM_RH (PL, TL, QL, HHH, L1U, RC)
 !-----------------------------------------------------------------------
 ! quick fix Rel Humidity
        HHH(:) = 0.50d0
@@ -234,7 +236,7 @@
       if (LPRTJ) then
           write(6,'(a,f8.3,3f8.5)')'SZA SOLF U0 albedo' &
                 ,SZA,SOLF,U0,RFL(5,18)
-        call JP_ATM0(PPP,TTT,DDD,OOO,ZZZ, L_)
+        call JP_ATM0(PPP,TTT,DDD,OOO,ZZZ, L_, RC)
           write(6,*) ' wvl  albedo u1:u4 & u0'
         do K=1,NS2
           write(6,'(i5,f8.1,5f8.4)') K,WL(K), (RFL(J,K), J=1,5)
@@ -250,7 +252,7 @@
        call CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,       &
                RRR,OOO,CCC,  LWP,IWP,REFFL,REFFI, CLF,CLDCOR,CLDIW,    &
                AERSP,NDXAER,L1U,ANU,JVNU, VALJXX,SKPERD,SWMSQ,OD18,    &
-               IRAN,NICA, JCOUNT,LDARK,WTQCA)
+               IRAN,NICA, JCOUNT,LDARK,WTQCA,RC)
 !=======================================================================
 
 

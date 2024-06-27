@@ -131,7 +131,7 @@
 !-----------------------------------------------------------------------
       subroutine PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ, PPP,ZZZ,TTT,HHH,    &
                        DDD,RRR,OOO, CCC, LWP,IWP,REFFL,REFFI,AERSP,    &
-                       NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, LDARK)
+                       NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, LDARK,RC)
 !  PHOTO_JX is the gateway to fast-JX calculations:
 !    calc J's for a single column atmosphere (aka Indep Colm Atmos or ICA)
 !    needs P, T, O3, clds, aersls; adds top-of-atmos layer from climatology
@@ -167,6 +167,7 @@
       real*8,  intent(out), dimension(6)       :: SWMSQ  ! cloud-j output
       real*8,  intent(out), dimension(L1U)     :: OD18   ! cloud-j output
       logical, intent(out)                     :: LDARK  ! cloud-j output
+      integer, intent(out)                     :: RC     ! cloud-j output
 
 !-----------------------------------------------------------------------
       character(len=255)  ::  thisloc
@@ -216,6 +217,7 @@
 
       ! Initialize location and outputs
       thisloc = ' -> at PHOTO_JX in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       VALJXX = 0.d0
       SKPERD = 0.d0
       SWMSQ  = 0.d0
@@ -270,12 +272,12 @@
 !   indep of wavelength (refracted path assumes visible index of refraction)
 !-----------------------------------------------------------------------
       if (ATM0 .eq. 0) then
-         call SPHERE1F (U0,RAD,ZZJ,ZZHT,AMF, L1U)  ! flat Earth, AMF=1/u0
+         call SPHERE1F (U0,RAD,ZZJ,ZZHT,AMF, L1U,RC)  ! flat Earth, AMF=1/u0
       elseif (ATM0 .eq. 1) then
-         call SPHERE1N (U0,RAD,ZZJ,ZZHT,AMF, L1U)  ! spherical straight-line
+         call SPHERE1N (U0,RAD,ZZJ,ZZHT,AMF, L1U,RC)  ! spherical straight-line
                                                    ! paths
       else     ! 2 or 3
-         call SPHERE1R (U0,RAD,ZZJ,ZZHT,AMF, L1U)  ! spherical w/refraction
+         call SPHERE1R (U0,RAD,ZZJ,ZZHT,AMF, L1U,RC)  ! spherical w/refraction
       endif
 !-----------------------------------------------------------------------
 
@@ -285,10 +287,10 @@
 !SJ! needed in Solar-J version
 !      if (W_r .ne. 0)then
 !         if (W_r .eq. W_rrtmg)  call RRTMG_SW_INP(IYEAR,L1U,PPJ,ZZJ,DDJ,&
-!                                                  TTJ,HHJ,OOJ,CCJ,TAUG_RRTMG)
+!                                                  TTJ,HHJ,OOJ,CCJ,TAUG_RRTMG,RC)
 !         if (W_r .eq. W_Clirad) call FJX_CLIRAD_H2O(L1U,PPJ,TTJ,HHJ,&
-!                                                    TAUG_CLIRAD)
-!         if (W_r .eq. W_LLNL)   call FJX_GGLLNL_H2O(L1U,PPJ,TTJ,HHJ,TAUG_LLNL)
+!                                                    TAUG_CLIRAD,RC)
+!         if (W_r .eq. W_LLNL)   call FJX_GGLLNL_H2O(L1U,PPJ,TTJ,HHJ,TAUG_LLNL,RC)
 !         write(6,'(a,I5,a,I5,a,I5,a,I5)')'W_r=    ', W_r, 'W_rrtmg=', &
 !               W_rrtmg, 'W_clirad=', W_clirad, 'W_LLNL=', W_LLNL
 
@@ -333,7 +335,7 @@
             RE_LIQ = REFFL(L)
             TE_ICE = TTT(L)
 
-            call OPTICL (RE_LIQ,TE_ICE, DDENS, QQEXT,SSALB,SSLEG)
+            call OPTICL (RE_LIQ,TE_ICE, DDENS, QQEXT,SSALB,SSLEG,RC)
 !---extinction K(m2/g) = 3/4 * Q / [Reff(micron) * density(g/cm3)]
             do K = 1,S_
                ODL = LWP(L) * 0.75d0 * QQEXT(K) / (RE_LIQ * DDENS)
@@ -360,7 +362,7 @@
             RE_ICE = REFFI(L)
             TE_ICE = TTT(L)
 
-            call OPTICI (RE_ICE,TE_ICE, DDENS, QQEXT,SSALB,SSLEG)
+            call OPTICI (RE_ICE,TE_ICE, DDENS, QQEXT,SSALB,SSLEG,RC)
 !---extinction K(m2/g) = 3/4 * Q / [Reff(micron) * density(g/cm3)]
             do K = 1,S_
                ODL = IWP(L) * 0.75d0 * QQEXT(K) / (RE_ICE * DDENS)
@@ -391,7 +393,7 @@
                PATH = AERSP(L,M)
                if (PATH .gt. 0.d0) then
 
-                  call OPTICS (OPTX,SSALB,SSLEG, PATH,NAER)
+                  call OPTICS (OPTX,SSALB,SSLEG, PATH,NAER,RC)
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
                      SSA(K,L) = SSA(K,L) + SSALB(K)*OPTX(K)
@@ -417,7 +419,7 @@
                PATH = AERSP(L,M)
                if (PATH .gt. 0.d0) then
 
-                  call OPTICG (OPTX,SSALB,SSLEG, PATH,NAER)
+                  call OPTICG (OPTX,SSALB,SSLEG, PATH,NAER,RC)
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
                      SSA(K,L) = SSA(K,L) + SSALB(K)*OPTX(K)
@@ -446,7 +448,7 @@
             PATH = AERSP(L,M)
             if (PATH .gt. 0.d0) then
                if (NAER.gt.2 .and. NAER.lt.1000) then
-                  call OPTICA (OPTX,SSALB,SSLEG, PATH,RH, NAER)
+                  call OPTICA (OPTX,SSALB,SSLEG, PATH,RH, NAER,RC)
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
                      SSA(K,L) = SSA(K,L) + SSALB(K)*OPTX(K)
@@ -470,7 +472,7 @@
             if (PATH .gt. 0.d0) then
                if (NAER .lt. 0) then
 
-                  call OPTICM (OPTX,SSALB,SSLEG, PATH,RH, -NAER)
+                  call OPTICM (OPTX,SSALB,SSLEG, PATH,RH, -NAER,RC)
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
                      SSA(K,L) = SSA(K,L) + SSALB(K)*OPTX(K)
@@ -493,9 +495,9 @@
          do K = 1,W_
             TTTX = TTJ(L)
             call X_interp (TTTX,XQO2, TQQ(1,1),QO2(K,1), TQQ(2,1), &
-                           QO2(K,2),  TQQ(3,1),QO2(K,3), LQQ(1))
+                           QO2(K,2),  TQQ(3,1),QO2(K,3), LQQ(1), RC)
             call X_interp (TTTX,XQO3, TQQ(1,2),QO3(K,1), TQQ(2,2), &
-                           QO3(K,2),  TQQ(3,2),QO3(K,3), LQQ(2))
+                           QO3(K,2),  TQQ(3,2),QO3(K,3), LQQ(2), RC)
             ODABS = XQO3*OOJ(L) + XQO2*DDJ(L)*0.20948d0
             OD(K,L)  = OD(K,L)  + ODABS
 !SJ!       if (LPRTJ) then
@@ -569,13 +571,13 @@
 
 !---Using aerosol+cloud OD/layer in visible (600 nm) calculate how to add layers
 !-----------------------------------------------------------------------
-      call EXTRAL1(OD600,L1U,N_,ATAU,ATAU0, JXTRA)
+      call EXTRAL1(OD600,L1U,N_,ATAU,ATAU0, JXTRA, RC)
 !-----------------------------------------------------------------------
 !---complete calculation of actinic and net fluxes for all L & wavelengths
 ! (incl W_+W_r)
 !-----------------------------------------------------------------------
       call OPMIE (DTAUX,POMEGAX,U0,RFL,AMF,AMG,JXTRA, &
-              AVGF,FJTOP,FJBOT,FIBOT,FSBOT,FJFLX,FLXD,FLXD0, LDOKR,LU)
+              AVGF,FJTOP,FJBOT,FIBOT,FSBOT,FJFLX,FLXD,FLXD0, LDOKR,LU,RC)
 
 !-----------------------------------------------------------------------
       FFF   = 0.d0
@@ -613,7 +615,7 @@
 !done in main code
 
 !-----------------------------------------------------------------------
-      call JRATET(PPJ,TTJ,FFF, VALJXX, LU,NJXU)
+      call JRATET(PPJ,TTJ,FFF, VALJXX, LU,NJXU,RC)
 !-----------------------------------------------------------------------
 
 ! accumulate data on solar fluxes:  energy and solar heating (!:S_),
@@ -711,7 +713,7 @@
             enddo
          enddo
          write(6,'(a)') 'Fast-J  v7.6 ---PHOTO_JX internal print: Atmosphere--'
-         call JP_ATM(PPJ,TTJ,DDJ,OOJ,ZZJ,DTAU600,POMG600,JXTRA, LU)
+         call JP_ATM(PPJ,TTJ,DDJ,OOJ,ZZJ,DTAU600,POMG600,JXTRA, LU,RC)
 !SJ!         if (LRRTMG .or. LCLIRAD .or. LGGLLNL) then
 !SJ!            write(ParaSummary(26:200),'(a, 10f10.4)') &
 !SJ!               ' RFL(,18)/SZA/u0/maxOD600/F-incd/F-refl/: ', &
@@ -862,7 +864,7 @@
 !<<<<<<<<<<<<<<<<<<<<<<<begin core scattering subroutines<<<<<<<<<<<<<<<
 !-----------------------------------------------------------------------
       subroutine OPMIE (DTAUX,POMEGAX,U0,RFL,AMF,AMG,JXTRA, &
-              FJACT,FJTOP,FJBOT,FIBOT,FSBOT,FJFLX,FLXD,FLXD0, LDOKR,LU)
+              FJACT,FJTOP,FJBOT,FIBOT,FSBOT,FJFLX,FLXD,FLXD0, LDOKR,LU,RC)
 !-----------------------------------------------------------------------
 
       real*8, intent(in)  ::  DTAUX(L1_,W_+W_r),POMEGAX(M2_,L1_,W_+W_r)
@@ -872,11 +874,12 @@
       real*8, intent(out) ::  FJACT(L1_,W_+W_r),FIBOT(5,W_+W_r)
       real*8, intent(out) ::  FJTOP(W_+W_r),FJBOT(W_+W_r),FSBOT(W_+W_r)
       real*8, intent(out) ::  FJFLX(L1_,W_+W_r),FLXD(L1_,W_+W_r),FLXD0(W_+W_r)
+      integer, intent(out) :: RC
 
       character(len=255) ::  thisloc
       integer JADDTO,L2LEV(L1_+1)
       integer I,II,J,K,L,LL,LL0,IX,JK,   L2,L22,LZ,LZZ,ND
-      integer L1U,  LZ0,LZ1,LZMID, rc
+      integer L1U,  LZ0,LZ1,LZMID
       real*8   SUMT,SUMJ,DIVT, FBTMLOG
 
       real*8  TTAU(L1_+1)
@@ -1222,7 +1225,7 @@
       enddo  ! k wavelength loop end
 
 !-----------------------------------------------------------------------
-       call MIESCT(FJ,FJTOP,FJBOT,FIBOT, POMEGA,FZ,ZTAU,FSBOT,RFL,U0,LDOKR,ND)
+       call MIESCT(FJ,FJTOP,FJBOT,FIBOT, POMEGA,FZ,ZTAU,FSBOT,RFL,U0,LDOKR,ND,RC)
 !-----------------------------------------------------------------------
 
 !---Integrate average std layer-L intensity from scatter array FJ(LZ=1:ND)
@@ -1270,7 +1273,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine MIESCT(FJ,FJT,FJB,FIB, POMEGA,FZ,ZTAU,FSBOT,RFL,U0,LDOKR,ND)
+      subroutine MIESCT(FJ,FJT,FJB,FIB, POMEGA,FZ,ZTAU,FSBOT,RFL,U0,LDOKR,ND,RC)
 !-----------------------------------------------------------------------
 
       integer, intent(in)  ::  LDOKR(W_+W_r),ND
@@ -1278,6 +1281,8 @@
                                ZTAU(N_,W_+W_r),RFL(5,W_+W_r),U0,FSBOT(W_+W_r)
       real*8,  intent(out) ::  FJ(N_,W_+W_r),FJT(W_+W_r)
       real*8,  intent(out) ::  FJB(W_+W_r),FIB(5,W_+W_r)
+      integer, intent(out) :: RC
+
       character(len=255)   ::  thisloc
       real*8  PM(M_,M2_),PM0(M2_)
       integer I, IM  ,K
@@ -1299,6 +1304,7 @@
 
       ! initialize location and outputs for safetly
       thisloc  = ' -> at MIESCT in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       FJ  = 0.d0
       FJT = 0.d0
       FJB = 0.d0
@@ -1312,7 +1318,7 @@
       enddo
 
 
-!---Note that U0 scattering does not change with altitude
+      !---Note that U0 scattering does not change with altitude
       call LEGND0 (-U0,PM0,M2_)
       do IM=1,M2_
          PM0(IM) = 0.25d0*PM0(IM)
@@ -1320,7 +1326,7 @@
 
 !---BLKSLV now called with all the wavelength arrays (K=1:W_)
 
-      call BLKSLV(FJ,POMEGA,FZ,ZTAU,FSBOT,RFL,PM,PM0,FJT,FJB,FIB,LDOKR,ND)
+      call BLKSLV(FJ,POMEGA,FZ,ZTAU,FSBOT,RFL,PM,PM0,FJT,FJB,FIB,LDOKR,ND,RC)
 
       END SUBROUTINE MIESCT
 
@@ -1355,7 +1361,7 @@
 
 !-----------------------------------------------------------------------
       subroutine BLKSLV &
-         (FJ,POMEGA,FZ,ZTAU,FSBOT,RFL,PM,PM0,FJTOP,FJBOT,FIBOT,LDOKR,ND)
+         (FJ,POMEGA,FZ,ZTAU,FSBOT,RFL,PM,PM0,FJTOP,FJBOT,FIBOT,LDOKR,ND,RC)
 !-----------------------------------------------------------------------
 !  Sets up and solves the block tri-diagonal system:
 !               A(I)*X(I-1) + B(I)*X(I) + C(I)*X(I+1) = H(I)
@@ -1369,6 +1375,7 @@
                               RFL(5,W_+W_r),FSBOT(W_+W_r)
       real*8, intent(out) ::  FJ(N_,W_+W_r),FJTOP(W_+W_r),FJBOT(W_+W_r), &
                               FIBOT(5,W_+W_r)
+      integer, intent(out) :: RC
 
       character(len=255)  ::  thisloc
       real*8, dimension(M_,N_,W_+W_r)    ::  A,C,H,   RR
@@ -1380,6 +1387,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at BLKSLV in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       FJ    = 0.d0
       FJTOP = 0.d0
       FJBOT = 0.d0
@@ -1389,7 +1397,7 @@
       if (LDOKR(K) .gt. 0) then
        call GEN_ID (POMEGA(1,1,K),FZ(1,K),ZTAU(1,K),FSBOT(K),RFL(1,K), &
              PM,PM0, B(1,1,1,K),CC(1,1,1,K),AA(1,1,1,K), &
-                     A(1,1,K),H(1,1,K),C(1,1,K), ND)
+                     A(1,1,K),H(1,1,K),C(1,1,K), ND, RC)
       endif
       enddo
 
@@ -1650,7 +1658,7 @@
 
 !-----------------------------------------------------------------------
       subroutine GEN_ID(POMEGA,FZ,ZTAU,ZFLUX,RFL,PM,PM0 &
-                    ,B,CC,AA,A,H,C,  ND)
+                    ,B,CC,AA,A,H,C,  ND,RC)
 !-----------------------------------------------------------------------
 !  Generates coefficient matrices for the block tri-diagonal system:
 !               A(I)*X(I-1) + B(I)*X(I) + C(I)*X(I+1) = H(I)
@@ -1663,6 +1671,7 @@
 
       real*8, intent(out),dimension(M_,M_,N_) ::  B,AA,CC
       real*8, intent(out),dimension(M_,N_) ::  A,C,H
+      integer, intent(out) :: RC
 
       character(len=255)  ::  thisloc
       integer I, J, K, L1,L2,LL
@@ -1674,6 +1683,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at GEN_ID in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       B  = 0.d0
       AA = 0.d0
       CC = 0.d0
@@ -1924,7 +1934,7 @@
 !<<<<<begin fastJX subroutines called from PHOTO_JX or OPMIE<<<<<<<<<<<<
 
 !------------------------------------------------------------------------------
-      subroutine OPTICL (REFF,TEFF, DDENS,QQEXT,SSALB,SSLEG)
+      subroutine OPTICL (REFF,TEFF, DDENS,QQEXT,SSALB,SSLEG,RC)
 !------------------------------------------------------------------------------
 ! new for FJ v7.5  for LIQUID water clouds only  interpolate properties to R_eff
 ! every S-bin has its own optical properties
@@ -1938,6 +1948,7 @@
       real*8, intent(out)::    QQEXT(S_)    ! optical depth of layer
       real*8, intent(out)::    SSALB(S_)    ! single-scattering albedo
       real*8, intent(out)::    SSLEG(8,S_)  ! scatt phase fn (Leg coeffs)
+      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
       integer I,J,K,L, NR
@@ -1945,6 +1956,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at OPTICL in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       DDENS = 0.d0
       QQEXT = 0.d0
       SSALB = 0.d0
@@ -1973,7 +1985,7 @@
 
 
 !------------------------------------------------------------------------------
-      subroutine OPTICI (REFF,TEFF, DDENS,QQEXT,SSALB,SSLEG)
+      subroutine OPTICI (REFF,TEFF, DDENS,QQEXT,SSALB,SSLEG,RC)
 !------------------------------------------------------------------------------
 ! new for FJ v7.5, parallel with liquid water, but two types of ice-water
 ! phase functions from a single calculation of Mishchenko, other opticals
@@ -1987,6 +1999,7 @@
       real*8, intent(out)::    QQEXT(S_)    ! optical depth of layer
       real*8, intent(out)::    SSALB(S_)    ! single-scattering albedo
       real*8, intent(out)::    SSLEG(8,S_)  ! scatt phase fn (Leg coeffs)
+      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
       integer I,J,K,L, NR
@@ -1994,6 +2007,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at OPTICI in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       DDENS = 0.d0
       QQEXT = 0.d0
       SSALB = 0.d0
@@ -2027,7 +2041,7 @@
 
 
 !------------------------------------------------------------------------------
-      subroutine OPTICS (OPTD,SSALB,SLEG, PATH,K)
+      subroutine OPTICS (OPTD,SSALB,SLEG, PATH,K,RC)
 !------------------------------------------------------------------------------
 !---for the UCI SSA (stratospheric sulfate aerosol) data sets
 !---UCI aersols optical data  v-7.4+
@@ -2042,9 +2056,10 @@
       real*8, intent(out)::    OPTD(S_)    ! optical depth of layer
       real*8, intent(out)::    SSALB(S_)   ! single-scattering albedo
       real*8, intent(out)::    SLEG(8,S_) ! scatt phase fn (Leg coeffs)
+      integer, intent(out) :: RC
 
       character(len=255)::     thisloc
-      integer I,J, KK, rc
+      integer I,J, KK
       real*8  XTINCT, REFF,RHO
 
       ! initialize location and outputs for safety
@@ -2080,7 +2095,7 @@
 
 
 !------------------------------------------------------------------------------
-      subroutine OPTICG (OPTD,SSALB,SLEG, PATH,K)
+      subroutine OPTICG (OPTD,SSALB,SLEG, PATH,K,RC)
 !------------------------------------------------------------------------------
 !---for the GEOMIP SSA (stratospheric sulfate aerosol) data sets
 ! K = 1001:1015 corresponds to R-eff = 0.02 0.04 0.08 0.10 ...  1.4 2.0 3.0
@@ -2092,6 +2107,7 @@
       real*8, intent(out)::    OPTD(S_)    ! optical depth of layer
       real*8, intent(out)::    SSALB(S_)   ! single-scattering albedo
       real*8, intent(out)::    SLEG(8,S_)  ! scatt phase fn (Leg coeffs)
+      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
       integer I,J, KK
@@ -2099,6 +2115,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at OPTICG in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       OPTD  = 0.d0
       SSALB = 0.d0
       SLEG  = 0.d0
@@ -2120,7 +2137,7 @@
 
 
 !------------------------------------------------------------------------------
-      subroutine OPTICA (OPTD,SSALB,SLEG, PATH,RELH,K)
+      subroutine OPTICA (OPTD,SSALB,SLEG, PATH,RELH,K,RC)
 !------------------------------------------------------------------------------
 !---v-7.6+ no StratSulfAers (use OPTICS)  also interp/extrap a 1/wavelength
 !         std 5 wavelengths:200-300-400-600-999nm
@@ -2131,8 +2148,10 @@
         real*8, intent(in)::     PATH        ! path (g/m2) of aerosol/cloud
         real*8, intent(in)::     RELH        ! relative humidity (0.00->1.00+)
         integer,intent(inout)::     K        ! index of cloud/aerosols
+        integer, intent(out) :: RC
+
         character(len=255) ::    thisloc
-        integer I,J,JMIE, rc
+        integer I,J,JMIE
         real*8  XTINCT, REFF,RHO,WAVE, QAAX,SAAX,WAAX
 
         ! initialize location and outputs for safety
@@ -2192,7 +2211,7 @@
 
 
 !------------------------------------------------------------------------------
-      subroutine OPTICM (OPTD,SSALB,SLEG, PATH,RELH,LL)
+      subroutine OPTICM (OPTD,SSALB,SLEG, PATH,RELH,LL,RC)
 !------------------------------------------------------------------------------
 !---U Michigan aerosol data sets, this generate fast-JX data formats.
 !---Approximates the Legendre expansion(L) of the scattering phase fn as
@@ -2210,9 +2229,10 @@
       real*8, intent(in)::     PATH       ! path (g/m2) of aerosol/cloud
       real*8, intent(in)::     RELH       ! relative humidity (0.00->1.00)
       integer,intent(in)::     LL         ! index of cloud/aerosols
+      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
-      integer KR,J,L, JMIE, rc
+      integer KR,J,L, JMIE
       real*8  R,FRH, GCOS, XTINCT, WAVE
 
       ! initialize location and outputs for safety
@@ -2262,7 +2282,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine JRATET(PPJ,TTJ,FFF, VALJL,LU,NJXU)
+      subroutine JRATET(PPJ,TTJ,FFF, VALJL,LU,NJXU,RC)
 !-----------------------------------------------------------------------
 ! in:
 !        PPJ(L_+1) = pressure profile at edges
@@ -2276,12 +2296,13 @@
       real*8, intent(in)  ::  PPJ(LU+1),TTJ(LU+1)
       real*8, intent(inout)  ::  FFF(W_,LU)
       real*8, intent(out), dimension(LU,NJXU) ::  VALJL
+      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
       real*8  VALJ(X_)
       real*8  QO2TOT, QO3TOT, QO31DY, QO31D, QQQT, TFACT
       real*8  TT,PP,DD,TT200,TFACA,TFAC0,TFAC1,TFAC2,QQQA,QQ2,QQ1A,QQ1B
-      integer J,K,L, IV, rc
+      integer J,K,L, IV
 
       ! initialize location and outputs for safety
       thisloc = ' -> at JRATET in module cldj_fjx_sub_mod.F90'
@@ -2317,11 +2338,11 @@
 !     for J=1:3  O2, O3(total), & O3(O1D)
         do K = 1,W_
           call X_interp (TT, QO2TOT, TQQ(1,1),QO2(K,1), TQQ(2,1), QO2(K,2), &
-                         TQQ(3,1),QO2(K,3), LQQ(1))
+                         TQQ(3,1),QO2(K,3), LQQ(1), RC)
           call X_interp (TT,QO3TOT, TQQ(1,2),QO3(K,1),TQQ(2,2),QO3(K,2), &
-                         TQQ(3,2),QO3(K,3), LQQ(2))
+                         TQQ(3,2),QO3(K,3), LQQ(2), RC)
           call X_interp (TT,QO31DY, TQQ(1,3),Q1D(K,1),TQQ(2,3),Q1D(K,2), &
-                         TQQ(3,3),Q1D(K,3), LQQ(3))
+                         TQQ(3,3),Q1D(K,3), LQQ(3), RC)
           QO31D  = QO31DY*QO3TOT
           VALJ(1) = VALJ(1) + QO2TOT*FFF(K,L)
           VALJ(2) = VALJ(2) + QO3TOT*FFF(K,L)
@@ -2333,10 +2354,10 @@
 !---also need to allow for Pressure interpolation if SQQ(J) = 'p'
             if (SQQ(J) .eq.'p') then
               call X_interp (PP,QQQT, TQQ(1,J),QQQ(K,1,J), &
-                   TQQ(2,J),QQQ(K,2,J), TQQ(3,J),QQQ(K,3,J), LQQ(J))
+                   TQQ(2,J),QQQ(K,2,J), TQQ(3,J),QQQ(K,3,J), LQQ(J), RC)
             else
               call X_interp (TT,QQQT, TQQ(1,J),QQQ(K,1,J), &
-                   TQQ(2,J),QQQ(K,2,J), TQQ(3,J),QQQ(K,3,J), LQQ(J))
+                   TQQ(2,J),QQQ(K,2,J), TQQ(3,J),QQQ(K,3,J), LQQ(J), RC)
             endif
               VALJ(J) = VALJ(J) + QQQT*FFF(K,L)
            enddo
@@ -2352,7 +2373,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine X_interp (TINT,XINT, T1,X1, T2,X2, T3,X3, L123)
+      subroutine X_interp (TINT,XINT, T1,X1, T2,X2, T3,X3, L123,RC)
 !-----------------------------------------------------------------------
 !  up-to-three-point linear interpolation function for X-sections
 !-----------------------------------------------------------------------
@@ -2360,12 +2381,14 @@
       real*8, intent(in)::  TINT,T1,T2,T3, X1,X2,X3
       integer,intent(in)::  L123
       real*8, intent(out)::  XINT
+      integer, intent(out) :: RC
 
       character(len=255)::  thisloc
       real*8  TFACT
 
       ! initialize location and outputs for safety
       thisloc = ' -> at X_interp in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       XINT = 0.d0
 
       if (L123 .le. 1) then
@@ -2387,7 +2410,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine JP_ATM(PPJ,TTJ,DDJ,OOJ,ZZJ,DTAU6,POMEG6,JXTRA,LU)
+      subroutine JP_ATM(PPJ,TTJ,DDJ,OOJ,ZZJ,DTAU6,POMEG6,JXTRA,LU,RC)
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
@@ -2398,6 +2421,7 @@
       real*8, intent(in), dimension(LU+1) :: TTJ,DDJ,OOJ,DTAU6
       real*8, intent(in), dimension(8,LU+1) :: POMEG6
       integer,intent(in), dimension(LU+1) :: JXTRA
+      integer, intent(out) :: RC
 !-----------------------------------------------------------------------
       character(len=255)  ::  thisloc
       integer  I,J,K,L
@@ -2405,6 +2429,7 @@
 
       ! initialize
       thisloc = ' -> at JP_ATM in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
 
       write(6,'(4a)') '   L z(km)     p      T   ', &
        '    d(air)   d(O3)','  col(O2)  col(O3)     d-TAU   SS-alb', &
@@ -2432,7 +2457,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine JP_ATM0(PPJ,TTJ,DDJ,OOJ,ZZJ, LU)
+      subroutine JP_ATM0(PPJ,TTJ,DDJ,OOJ,ZZJ, LU,RC)
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
@@ -2442,12 +2467,14 @@
       integer,intent(in)                  :: LU
       real*8, intent(in), dimension(LU+2) :: PPJ,ZZJ
       real*8, intent(in), dimension(LU+1) :: TTJ,DDJ,OOJ
+      integer, intent(out) :: RC
 !-----------------------------------------------------------------------
       character(len=255)  ::  thisloc
       integer  I,J,K,L
       real*8   XCOLO2,XCOLO3,ZKM,DELZ,ZTOP
 
       thisloc = ' -> at JP_ATM0 in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
 
       write(6,'(4a)') '   L z(km)     p      T   ', &
        '    d(air)   d(O3)','  col(O2)  col(O3)     d-TAU   SS-alb', &
@@ -2473,7 +2500,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine SPHERE1R (U0,RAD,ZHL,ZZHT,AMF, L1U)
+      subroutine SPHERE1R (U0,RAD,ZHL,ZZHT,AMF, L1U,RC)
 !-----------------------------------------------------------------------
 !  version 7.6  - SPHERE1N = drops the mid-layer (v6.2) for comp cost
 !     also 7.6  - SPHERE1R = adds refraction (complex ray tracing)
@@ -2505,6 +2532,7 @@
       integer, intent(in) ::   L1U
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
+      integer, intent(out) :: RC
 
       character(len=255)  ::   thisloc
       integer  L,L0, K,K0, LTOP
@@ -2515,9 +2543,9 @@
       real*8, dimension(L1_+1) :: RZ,DIVZ,RATZ,RD,RN, PATH1,PATH2,ZANG1
 
       ! initialize location and outputs for safety
-      thisloc = ' -> at SPHERE1R in module cldj_fjx_sub_mod.F90'
+      thisloc = " -> at SPHERE1R in module cldj_fjx_sub_mod.F90"
+      rc = CLDJ_SUCCESS
       AMF = 0.d0
-
 !-----------------------------------------------------------------------
 !  this versions sets a density scale ht of DDHT=8km, and a
 !        refractive index of 1.000300 at radius = RAD,
@@ -2710,7 +2738,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine SPHERE1N (U0,RAD,ZHL,ZZHT,AMF, L1U)
+      subroutine SPHERE1N (U0,RAD,ZHL,ZZHT,AMF, L1U,RC)
 !-----------------------------------------------------------------------
 !  version 7.6a  - SPHERE1N = drops the mid-layer (v6.2) for comp cost
 !     also 7.6b  - SPHERE1R = adds refraction (complex ray tracing)
@@ -2735,6 +2763,7 @@
       integer, intent(in) ::   L1U
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
+      integer, intent(out) :: RC
 
       character(len=255)  ::   thisloc
       integer  L, J, JUP, LTOP, K
@@ -2744,6 +2773,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at SPHERE1N in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       AMF = 0.d0
 
       LTOP = L1U
@@ -2826,7 +2856,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine SPHERE1F (U0,RAD,ZHL,ZZHT,AMF, L1U)
+      subroutine SPHERE1F (U0,RAD,ZHL,ZZHT,AMF, L1U,RC)
 !-----------------------------------------------------------------------
 !     needed for testing flat-disk errors
 !  version 7.6a  - SPHERE1N = drops the mid-layer (v6.2) for comp cost
@@ -2848,6 +2878,7 @@
       integer, intent(in) ::   L1U
       real*8, intent(in)  ::   U0,RAD,ZHL(L1_+1),ZZHT
       real*8, intent(out) ::   AMF(L1_+1,L1_+1)
+      integer, intent(out) :: RC
 
       character(len=255)  ::   thisloc
       integer  L, J, LTOP
@@ -2855,6 +2886,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at SPHERE1F in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       AMF = 0.d0
 
       LTOP = L1U
@@ -2875,7 +2907,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine EXTRAL1(DTAU600,L1X,NX,ATAU,ATAU0, JXTRA)
+      subroutine EXTRAL1(DTAU600,L1X,NX,ATAU,ATAU0, JXTRA,RC)
 !-----------------------------------------------------------------------
 !     version 7.6 replaces v 6.2 and drops back to no mid-layer J(odd) points.
 !   Purpose:  reduce spurious negative heating at top of thick clouds.
@@ -2902,8 +2934,10 @@
       real*8,  intent(in) ::  DTAU600(L1X)     !cloud+3aerosol OD in each layer
       real*8,  intent(in) ::  ATAU,ATAU0
       integer, intent(out)::  JXTRA(L1X)    !number of sub-layers to be added
+      integer, intent(out) :: RC
+
       character(len=255)  ::  thisloc
-      integer JTOTL,JX,L,LL, rc
+      integer JTOTL,JX,L,LL
       real*8  ATAULN,ATAU0X,AJX,DTAU0X
 
       ! initialize location and outputs for safety
@@ -2947,7 +2981,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine SOLAR_JX(GMTIME,NDAY,YGRDJ,XGRDI, SZA,COSSZA,SOLFX)
+      subroutine SOLAR_JX(GMTIME,NDAY,YGRDJ,XGRDI, SZA,COSSZA,SOLFX,RC)
 !-----------------------------------------------------------------------
 ! >>>>>>>> warning tnot specific for SOLAR-J, is it old FAST_J call
 !     GMTIME = UT for when J-values are wanted
@@ -2963,12 +2997,14 @@
       real*8,  intent(in)  ::  GMTIME,YGRDJ,XGRDI
       integer, intent(in)  ::  NDAY
       real*8,  intent(out) ::  SZA,COSSZA,SOLFX
+      integer, intent(out) :: RC
 !
       character(len=255)   ::  thisloc
       real*8  LOCT
       real*8  SINDEC, SOLDEK, COSDEC, SINLAT, SOLLAT, COSLAT, COSZ
 
       thisloc = ' -> at SOLAR_JX in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
 
       SINDEC = 0.3978d0*sin(0.9863d0*(dble(NDAY)-80.d0)*CPI180)
       SOLDEK = asin(SINDEC)
@@ -2990,12 +3026,13 @@
 !SJ!    !!!!!!!!!!!!!!!!! SOLAR-J specific subroutines
 
 !---------------------------------------------------------------------
-      subroutine  FJX_CLIRAD_H2O(nlayers, PPP, TTT, HHH, TAUG_CLIRAD)
+      subroutine  FJX_CLIRAD_H2O(nlayers, PPP, TTT, HHH, TAUG_CLIRAD,RC)
 !---------------------------------------------------------------------
 
       integer,  intent(in):: nlayers
       real*8 ,  intent(in) :: PPP(nlayers+1), TTT(nlayers), HHH(nlayers)
       real*8 ,  intent(out):: TAUG_CLIRAD(nlayers, 0:30)
+      integer, intent(out) :: RC
 
       character(len=255)  :: thisloc
       integer G, K, INDKG, L
@@ -3045,6 +3082,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at FJX_CLIRAD_H2O in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       TAUG_CLIRAD = 0.d0
 
 ! 0:0 will assign to bin 18 which is 0 for CLIRAD
@@ -3081,12 +3119,13 @@
 
 !!!!!!!!!!!!!!!!!!! SOLAR-J specific subroutines
 !---------------------------------------------------------------------
-      subroutine  FJX_GGLLNL_H2O(nlayers, PPP, TTT, HHH, TAUG_LLNL)
+      subroutine  FJX_GGLLNL_H2O(nlayers, PPP, TTT, HHH, TAUG_LLNL,RC)
 !---------------------------------------------------------------------
 
       integer,  intent(in):: nlayers
       real*8 ,  intent(in) :: PPP(nlayers+1), TTT(nlayers), HHH(nlayers)
       real*8 ,  intent(out):: TAUG_LLNL(nlayers, 0:21)
+      integer, intent(out) :: RC
 
       character(len=255)  :: thisloc
       integer G, K, INDKG, L
@@ -3124,6 +3163,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at FJX_GGLLNL_H2O in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       TAUG_LLNL = 0.d0
 
       ! 0:0 will assign to bin 18 which is 0 for CLIRAD
@@ -3163,7 +3203,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine ACLIM_FJX (YLATD,MONTH,PPP, TTT,O3,CH4, L1U)
+      subroutine ACLIM_FJX (YLATD,MONTH,PPP, TTT,O3,CH4, L1U,RC)
 !-----------------------------------------------------------------------
 !  Load fast-JX climatology - T & O3 - for latitude & month & pressure grid
 !-----------------------------------------------------------------------
@@ -3172,6 +3212,8 @@
       integer, intent(in)  :: MONTH, L1U
       real*8,  intent(in),  dimension(L1U+1) :: PPP
       real*8,  intent(out), dimension(L1U)   :: TTT,O3,CH4
+      integer, intent(out) :: RC
+
       real*8, dimension(LREF)   :: OREF2,TREF2,HREF2,CREF2
       real*8, dimension(LREF+1) :: PSTD
       character(len=255)  ::  thisloc
@@ -3180,6 +3222,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ACLIM_FJX in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       TTT = 0.d0
       O3  = 0.d0
       CH4 = 0.d0
@@ -3235,7 +3278,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine ACLIM_RH (PL, TL, QL, RH, L1U)
+      subroutine ACLIM_RH (PL, TL, QL, RH, L1U,RC)
 !-----------------------------------------------------------------------
 !  Calculates RH profile given PL(mid-pressure), TL(K), QL (spec hum)
 !  May nee RH @ L1U (top layer, not CTM) so aerosol calls are stable
@@ -3244,6 +3287,7 @@
       integer, intent(in):: L1U
       real*8,  intent(in),  dimension(L1U) :: PL,TL,QL
       real*8,  intent(out), dimension(L1U) :: RH
+      integer, intent(out) :: RC
 ! local variables
       character(len=255)  ::  thisloc
       real*8  T, eps, es, qs
@@ -3251,6 +3295,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ACLIM_RH in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       RH = 0.d0
 
       eps=287.04d0/461.50d0
@@ -3272,7 +3317,7 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine ACLIM_GEO (YLATD,MONTH,PPP, AERS,NAER, L1U)
+      subroutine ACLIM_GEO (YLATD,MONTH,PPP, AERS,NAER, L1U,RC)
 !-----------------------------------------------------------------------
 !  Load GEOMIP SSA climatology (vs P) for latitude & month given pressure grid
 !-----------------------------------------------------------------------
@@ -3284,6 +3329,7 @@
       real*8,  intent(in),  dimension(L1U+1) :: PPP
       real*8,  intent(out), dimension(L1U)   :: AERS
       integer, intent(out), dimension(L1U)   :: NAER
+      integer, intent(out) :: RC
 
       character(len=255)  ::  thisloc
       real*8, dimension(LGREF+2) :: RREF2,XREF2,PREF2    ! param LGREF=19
@@ -3293,6 +3339,7 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ACLIM_GEO in module cldj_fjx_sub_mod.F90'
+      rc = CLDJ_SUCCESS
       AERS = 0.d0
       NAER = 0
 
