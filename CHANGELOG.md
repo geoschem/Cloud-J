@@ -4,6 +4,15 @@ This file documents all notable changes to the Cloud-J repository since the init
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.7.2] - TBD
+
+### Added
+- Added integer status flag RC to most subroutines and pass it back up to parent model
+- Added subroutine CLOUDJ_ERROR to print error message and set integer status flag RC
+
+### Removed
+- Removed subroutine EXITC and replaced it with CLOUDJ_ERROR
+
 ## [7.7.1] - 2024-04-02
 ### Changed
 - Changed arguments of Init_Cldj to include root thread logical and LUT data directory
