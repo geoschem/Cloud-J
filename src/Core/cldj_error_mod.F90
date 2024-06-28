@@ -25,13 +25,17 @@ CONTAINS
     character(len=*), intent(in) :: loc
 
     character(len=1023) :: msg
+#if defined( MAPL_ESMF )
+    integer :: rc
+#endif
 
     ! Define message
     msg = 'CLOUDJ_ERROR_STOP: '//TRIM(errmsg)//' --> LOCATION: '//TRIM(loc)
 
     ! Stop run
 #if defined( MAPL_ESMF )
-    __Iam__(msg)
+    RC = CLDJ_FAILURE
+    _ASSERT(RC==CLDJ_SUCCESS,TRIM(msg))
 #elif defined( MODEL_CESM )
     call endrun(msg)
 #elif defined( MODEL_GCCLASSIC )
@@ -52,7 +56,7 @@ CONTAINS
 #elif MAPL_ESMF
 #include "MAPL_Generic.h"
     USE ESMF
-    USE MAPL_Mod
+    USE MAPLBase_Mod
 #endif
 
     CHARACTER(LEN=*), INTENT(IN   )  :: errmsg  ! Message to display
