@@ -47,6 +47,8 @@
       integer, parameter :: JVN_ = 166
 #elif CLOUDJ_STANDALONE
       integer, parameter :: JVN_ = 101
+#else
+#error "Invalid model selection: parameters only defined for CLOUDJ_STANDALONE and MODEL_GEOSCHEM. Add parameters for additional models in cldj_cmn_mod.F90."
 #endif
 
       ! mAN_ :  max # FJX aerosols in layer (needs NDX for each)
