@@ -46,7 +46,7 @@
 
       if (AMIROOT) write(6,*) ' Solar/Cloud-J  ver-7.7 initialization'
 
-#ifndef CLOUDJ_STANDALONE )
+#ifndef CLOUDJ_STANDALONE
       ! Set cldj_cmn_mod variables based on input numbers of levels
       L_    = NLEVELS
       L1_   = L_ + 1
