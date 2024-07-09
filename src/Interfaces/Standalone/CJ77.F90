@@ -53,6 +53,7 @@
       integer LTOP, NJXX,JP04,JP09, NLEVELS
       character*6,  dimension(JVN_)  ::  TITLJXX
       character*11, dimension(4)     ::  TITJX
+      character*64                   ::  thisloc
       real*8 VJOSA(L2_,2),VJSTD(L2_,2)
       logical :: amIRoot
 
@@ -67,9 +68,13 @@
       JVNU = JVN_
       L1U = L1_
       amIRoot = .true.
+      thisloc = 'standalone program in CJ77.F90'
 !---read in & store all fast-JX data:   single call at set up
 !-----------------------------------------------------------------------      
       call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,LWEPAR,TITLJXX,JVNU,NJXX,RC)
+      if ( RC /= CLDJ_SUCCESS ) then
+         call CLOUDJ_ERROR_STOP( 'Failure in INIT_CLDJ', thisloc )
+      endif
 !-----------------------------------------------------------------------
 
 !--P, T, Cld & Aersl profiles, simple test input case
@@ -112,6 +117,9 @@
 !---sets climatologies for O3, T, D & Z
 !-----------------------------------------------------------------------
       call ACLIM_FJX (YLAT,MONTH,PPP, TTT,O3,CH4, L1_, RC)
+      if ( RC /= CLDJ_SUCCESS ) then
+         call CLOUDJ_ERROR_STOP( 'Failure in ACLIM_FJX', thisloc )
+      endif
 !-----------------------------------------------------------------------
       do L = 1,L_
 !!!       TTT(L) = TI(L)  keep climatology T's and O3's
@@ -133,6 +141,9 @@
        CCC(L) = DDD(L)*CH4(L)*1.d-9
 !-----------------------------------------------------------------------
 !       call ACLIM_RH (PL, TL, QL, HHH, L1U, RC)
+!       if ( RC /= CLDJ_SUCCESS ) then
+!          call CLOUDJ_ERROR_STOP( 'Failure in ACLIM_RH', thisloc )
+!       endif
 !-----------------------------------------------------------------------
 ! quick fix Rel Humidity
        HHH(:) = 0.50d0
@@ -237,6 +248,9 @@
           write(6,'(a,f8.3,3f8.5)')'SZA SOLF U0 albedo' &
                 ,SZA,SOLF,U0,RFL(5,18)
         call JP_ATM0(PPP,TTT,DDD,OOO,ZZZ, L_, RC)
+        if ( RC /= CLDJ_SUCCESS ) then
+           call CLOUDJ_ERROR_STOP( 'Failure in JP_ATM0', thisloc )
+        endif
           write(6,*) ' wvl  albedo u1:u4 & u0'
         do K=1,NS2
           write(6,'(i5,f8.1,5f8.4)') K,WL(K), (RFL(J,K), J=1,5)
@@ -253,6 +267,9 @@
                RRR,OOO,CCC,  LWP,IWP,REFFL,REFFI, CLF,CLDCOR,CLDIW,    &
                AERSP,NDXAER,L1U,ANU,JVNU, VALJXX,SKPERD,SWMSQ,OD18,    &
                IRAN,NICA, JCOUNT,LDARK,WTQCA,RC)
+       if ( RC /= CLDJ_SUCCESS ) then
+          call CLOUDJ_ERROR_STOP( 'Failure in CLOUD_JX', thisloc )
+       endif
 !=======================================================================
 
 
