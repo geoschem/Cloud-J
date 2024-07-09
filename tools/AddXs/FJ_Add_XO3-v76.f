@@ -328,7 +328,7 @@ c   XNEW = cross section (cm2) as a function of WW and XT (and XP, XM)
 c   INIT = initialization:
 c     if INIT.eq.0 .then reads in any tables and sets Xsect name to TITLNEW
 c-----------------------------------------------------------------------
-      implicit none
+
       real*8, intent(in) :: WW,XT
       real*8, intent(out) :: XNEW
       integer, intent(in) :: INIT
@@ -380,7 +380,7 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       subroutine Q_O3 (INIT, WW,XT,QNEW, TITLNEW,TITLTBL)
 c-----------------------------------------------------------------------
-      implicit none
+
       real*8, intent(in) :: WW,XT
       real*8, intent(out) :: QNEW
       integer, intent(inout) :: INIT

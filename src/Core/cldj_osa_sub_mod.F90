@@ -17,8 +17,6 @@ MODULE CLDJ_OSA_SUB_MOD
 
 SUBROUTINE OSA(WAVEL,WIND,CHLORa, Cangles, OSA_dir)
 
-IMPLICIT NONE
-
 ! Number of wavelength (200nm - 4000nm by 10nm apart)
 INTEGER, PARAMETER   :: NNWL = 381
 
