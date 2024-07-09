@@ -170,7 +170,7 @@
       integer, intent(out)                     :: RC     ! cloud-j output
 
 !-----------------------------------------------------------------------
-      character(len=255)  ::  thisloc
+      character(len=255)  ::  thisloc, errmsg
 !---key LOCAL atmospheric data needed to solve plane-parallel J & Heating
 !-----these are dimensioned L1_
       real*8, dimension(L1_+1) :: PPJ,ZZJ
@@ -279,6 +279,13 @@
       else     ! 2 or 3
          call SPHERE1R (U0,RAD,ZZJ,ZZHT,AMF, L1U,RC)  ! spherical w/refraction
       endif
+      if ( rc /= CLDJ_SUCCESS ) then
+         call CLOUDJ_ERROR( 'Error calculating spherical weighting functions', &
+              thisloc, rc )
+         return
+      endif
+
+
 !-----------------------------------------------------------------------
 
       TAUG_RRTMG  = 0.d0
@@ -336,6 +343,12 @@
             TE_ICE = TTT(L)
 
             call OPTICL (RE_LIQ,TE_ICE, DDENS, QQEXT,SSALB,SSLEG,RC)
+            if ( rc /= CLDJ_SUCCESS ) then
+               errmsg = 'Error computing optics of liquid water cloud'
+               call CLOUDJ_ERROR( errmsg, thisloc, rc )
+               return
+            endif
+
 !---extinction K(m2/g) = 3/4 * Q / [Reff(micron) * density(g/cm3)]
             do K = 1,S_
                ODL = LWP(L) * 0.75d0 * QQEXT(K) / (RE_LIQ * DDENS)
@@ -363,7 +376,13 @@
             TE_ICE = TTT(L)
 
             call OPTICI (RE_ICE,TE_ICE, DDENS, QQEXT,SSALB,SSLEG,RC)
-!---extinction K(m2/g) = 3/4 * Q / [Reff(micron) * density(g/cm3)]
+            if ( rc /= CLDJ_SUCCESS ) then
+               errmsg = 'Error computing optics of ice water cloud'
+               call CLOUDJ_ERROR( errmsg, thisloc, rc )
+               return
+            endif
+
+      !---extinction K(m2/g) = 3/4 * Q / [Reff(micron) * density(g/cm3)]
             do K = 1,S_
                ODL = IWP(L) * 0.75d0 * QQEXT(K) / (RE_ICE * DDENS)
                OD(K,L)  = OD(K,L)  + ODL
@@ -394,6 +413,12 @@
                if (PATH .gt. 0.d0) then
 
                   call OPTICS (OPTX,SSALB,SSLEG, PATH,NAER,RC)
+                  if ( rc /= CLDJ_SUCCESS ) then
+                     errmsg = 'Error computing optics of strat sulfate aerosol cloud'
+                     call CLOUDJ_ERROR( errmsg, thisloc, rc )
+                     return
+                  endif
+
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
                      SSA(K,L) = SSA(K,L) + SSALB(K)*OPTX(K)
@@ -420,6 +445,13 @@
                if (PATH .gt. 0.d0) then
 
                   call OPTICG (OPTX,SSALB,SSLEG, PATH,NAER,RC)
+                  if ( rc /= CLDJ_SUCCESS ) then
+                     errmsg = 'Error computing optics of GEOMIP enhanced '// &
+                          'strat sulfate aerosols'
+                     call CLOUDJ_ERROR( errmsg, thisloc, rc )
+                     return
+                  endif
+
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
                      SSA(K,L) = SSA(K,L) + SSALB(K)*OPTX(K)
@@ -449,6 +481,12 @@
             if (PATH .gt. 0.d0) then
                if (NAER.gt.2 .and. NAER.lt.1000) then
                   call OPTICA (OPTX,SSALB,SSLEG, PATH,RH, NAER,RC)
+                  if ( rc /= CLDJ_SUCCESS ) then
+                     errmsg = 'Error computing optics of aerosols'
+                     call CLOUDJ_ERROR( errmsg, thisloc, rc )
+                     return
+                  endif
+
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
                      SSA(K,L) = SSA(K,L) + SSALB(K)*OPTX(K)
@@ -473,6 +511,12 @@
                if (NAER .lt. 0) then
 
                   call OPTICM (OPTX,SSALB,SSLEG, PATH,RH, -NAER,RC)
+                  if ( rc /= CLDJ_SUCCESS ) then
+                     errmsg = 'Error computing optics of U Michigan aerosols'
+                     call CLOUDJ_ERROR( errmsg, thisloc, rc )
+                     return
+                  endif
+
                   do K = 1,S_
                      OD(K,L)  = OD(K,L)  + OPTX(K)
                      SSA(K,L) = SSA(K,L) + SSALB(K)*OPTX(K)
@@ -496,8 +540,18 @@
             TTTX = TTJ(L)
             call X_interp (TTTX,XQO2, TQQ(1,1),QO2(K,1), TQQ(2,1), &
                            QO2(K,2),  TQQ(3,1),QO2(K,3), LQQ(1), RC)
+            if ( rc /= CLDJ_SUCCESS ) then
+               call CLOUDJ_ERROR( 'Error in X_interp: 1', thisloc, rc )
+               return
+            endif
+
             call X_interp (TTTX,XQO3, TQQ(1,2),QO3(K,1), TQQ(2,2), &
-                           QO3(K,2),  TQQ(3,2),QO3(K,3), LQQ(2), RC)
+                 QO3(K,2),  TQQ(3,2),QO3(K,3), LQQ(2), RC)
+            if ( rc /= CLDJ_SUCCESS ) then
+               call CLOUDJ_ERROR( 'Error in X_interp: 2', thisloc, rc )
+               return
+            endif
+
             ODABS = XQO3*OOJ(L) + XQO2*DDJ(L)*0.20948d0
             OD(K,L)  = OD(K,L)  + ODABS
 !SJ!       if (LPRTJ) then
@@ -572,12 +626,26 @@
 !---Using aerosol+cloud OD/layer in visible (600 nm) calculate how to add layers
 !-----------------------------------------------------------------------
       call EXTRAL1(OD600,L1U,N_,ATAU,ATAU0, JXTRA, RC)
+      if ( rc /= CLDJ_SUCCESS ) then
+         errmsg = 'Error using aerosol+cloud OD/layer in visible (600 nm) to '//&
+              'calculate how to add layers'
+         call CLOUDJ_ERROR( errmsg, thisloc, rc )
+         return
+      endif
+
 !-----------------------------------------------------------------------
 !---complete calculation of actinic and net fluxes for all L & wavelengths
 ! (incl W_+W_r)
 !-----------------------------------------------------------------------
       call OPMIE (DTAUX,POMEGAX,U0,RFL,AMF,AMG,JXTRA, &
               AVGF,FJTOP,FJBOT,FIBOT,FSBOT,FJFLX,FLXD,FLXD0, LDOKR,LU,RC)
+      if ( rc /= CLDJ_SUCCESS ) then
+         errmsg = 'Error computing actinic and net fluxes for all L '// &
+              'and wavelengths'
+         call CLOUDJ_ERROR( errmsg, thisloc, rc )
+         return
+      endif
+
 
 !-----------------------------------------------------------------------
       FFF   = 0.d0
@@ -616,6 +684,11 @@
 
 !-----------------------------------------------------------------------
       call JRATET(PPJ,TTJ,FFF, VALJXX, LU,NJXU,RC)
+      if ( rc /= CLDJ_SUCCESS ) then
+         call CLOUDJ_ERROR( 'Error computing J-values', thisloc, rc )
+         return
+      endif
+
 !-----------------------------------------------------------------------
 
 ! accumulate data on solar fluxes:  energy and solar heating (!:S_),
@@ -714,6 +787,11 @@
          enddo
          write(6,'(a)') 'Fast-J  v7.6 ---PHOTO_JX internal print: Atmosphere--'
          call JP_ATM(PPJ,TTJ,DDJ,OOJ,ZZJ,DTAU600,POMG600,JXTRA, LU,RC)
+         if ( rc /= CLDJ_SUCCESS ) then
+            call CLOUDJ_ERROR( 'Error calling JP_ATM', thisloc, rc )
+            return
+         endif
+
 !SJ!         if (LRRTMG .or. LCLIRAD .or. LGGLLNL) then
 !SJ!            write(ParaSummary(26:200),'(a, 10f10.4)') &
 !SJ!               ' RFL(,18)/SZA/u0/maxOD600/F-incd/F-refl/: ', &
@@ -984,7 +1062,7 @@
       enddo
       ND = 2*L1U + 2*JADDTO + 1
       if(ND .gt. N_) then
-        call CloudJ_Error(' overflow of scatter arrays: ND > N_', thisloc, rc)
+        call CloudJ_Error('Overflow of scatter arrays: ND > N_', thisloc, rc)
         return
      endif
 !---L2LEV(L) = L-index for old layer-edge L in the expanded JXTRA-grid
@@ -1226,6 +1304,11 @@
 
 !-----------------------------------------------------------------------
        call MIESCT(FJ,FJTOP,FJBOT,FIBOT, POMEGA,FZ,ZTAU,FSBOT,RFL,U0,LDOKR,ND,RC)
+      if ( rc /= CLDJ_SUCCESS ) then
+         call CLOUDJ_ERROR( 'Error in MIESCT', thisloc, rc )
+         return
+      endif
+
 !-----------------------------------------------------------------------
 
 !---Integrate average std layer-L intensity from scatter array FJ(LZ=1:ND)
@@ -1327,6 +1410,10 @@
 !---BLKSLV now called with all the wavelength arrays (K=1:W_)
 
       call BLKSLV(FJ,POMEGA,FZ,ZTAU,FSBOT,RFL,PM,PM0,FJT,FJB,FIB,LDOKR,ND,RC)
+      if ( rc /= CLDJ_SUCCESS ) then
+         call CLOUDJ_ERROR( 'Error in BLKSLV', thisloc, rc )
+         return
+      endif
 
       END SUBROUTINE MIESCT
 
@@ -1398,6 +1485,10 @@
        call GEN_ID (POMEGA(1,1,K),FZ(1,K),ZTAU(1,K),FSBOT(K),RFL(1,K), &
              PM,PM0, B(1,1,1,K),CC(1,1,1,K),AA(1,1,1,K), &
                      A(1,1,K),H(1,1,K),C(1,1,K), ND, RC)
+      if ( rc /= CLDJ_SUCCESS ) then
+         call CLOUDJ_ERROR( 'Error in GEN_ID', thisloc, rc )
+         return
+      endif
       endif
       enddo
 
@@ -2074,7 +2165,7 @@
       elseif (K .eq. 2) then
         KK = 13   ! volcanic,   220K, 70 wt%
       else
-         call CloudJ_Error('OPTICS: SSA index out-of-range', thisloc, rc)
+         call CloudJ_Error('SSA index out-of-range', thisloc, rc)
          return
       endif
 
@@ -2164,7 +2255,7 @@
 ! K=1&2 are the SSA values, not used here any more, make sure they are not
 !asked for.
         if (K.gt.NAA .or. K.lt.3) then
-           call CloudJ_Error('OPTICA: aerosol index out-of-range', thisloc, rc)
+           call CloudJ_Error('Aerosol index out-of-range', thisloc, rc)
            return
         endif
         REFF = RAA(K)
@@ -2246,7 +2337,7 @@
 !---extrapolate phase fn from first term (g)
       L = LL
       if (L.lt.1 .or. L.gt.33) then
-         call CloudJ_Error('OPTICM: aerosol index out-of-range', thisloc, rc)
+         call CloudJ_Error('Aerosol index out-of-range', thisloc, rc)
          return
       endif
 !---pick nearest Relative Humidity
@@ -2311,7 +2402,7 @@
 
       if (NJXU .lt. NJX) then
         write(6,'(A,2I5)')  'NJXU<NJX',NJXU,NJX
-        call CloudJ_Error(' JRATET:  CTM has not enough J-values dimensioned', thisloc, rc)
+        call CloudJ_Error('CTM has not enough J-values dimensioned', thisloc, rc)
         return
       endif
 
@@ -2337,12 +2428,27 @@
 
 !     for J=1:3  O2, O3(total), & O3(O1D)
         do K = 1,W_
-          call X_interp (TT, QO2TOT, TQQ(1,1),QO2(K,1), TQQ(2,1), QO2(K,2), &
-                         TQQ(3,1),QO2(K,3), LQQ(1), RC)
-          call X_interp (TT,QO3TOT, TQQ(1,2),QO3(K,1),TQQ(2,2),QO3(K,2), &
-                         TQQ(3,2),QO3(K,3), LQQ(2), RC)
-          call X_interp (TT,QO31DY, TQQ(1,3),Q1D(K,1),TQQ(2,3),Q1D(K,2), &
-                         TQQ(3,3),Q1D(K,3), LQQ(3), RC)
+           call X_interp (TT, QO2TOT, TQQ(1,1),QO2(K,1), TQQ(2,1), QO2(K,2), &
+                TQQ(3,1),QO2(K,3), LQQ(1), RC)
+           if ( rc /= CLDJ_SUCCESS ) then
+              call CLOUDJ_ERROR( 'Error in X_interp, J=1', thisloc, rc )
+              return
+           endif
+           
+           call X_interp (TT,QO3TOT, TQQ(1,2),QO3(K,1),TQQ(2,2),QO3(K,2), &
+                TQQ(3,2),QO3(K,3), LQQ(2), RC) 
+           if ( rc /= CLDJ_SUCCESS ) then
+              call CLOUDJ_ERROR( 'Error in X_interp, J=2 ', thisloc, rc )
+              return
+           endif
+           
+           call X_interp (TT,QO31DY, TQQ(1,3),Q1D(K,1),TQQ(2,3),Q1D(K,2), &
+                TQQ(3,3),Q1D(K,3), LQQ(3), RC)
+           if ( rc /= CLDJ_SUCCESS ) then
+              call CLOUDJ_ERROR( 'Error in X_interp, J=3', thisloc, rc )
+              return
+           endif
+
           QO31D  = QO31DY*QO3TOT
           VALJ(1) = VALJ(1) + QO2TOT*FFF(K,L)
           VALJ(2) = VALJ(2) + QO3TOT*FFF(K,L)
@@ -2353,11 +2459,21 @@
           do K = 1,W_
 !---also need to allow for Pressure interpolation if SQQ(J) = 'p'
             if (SQQ(J) .eq.'p') then
-              call X_interp (PP,QQQT, TQQ(1,J),QQQ(K,1,J), &
-                   TQQ(2,J),QQQ(K,2,J), TQQ(3,J),QQQ(K,3,J), LQQ(J), RC)
+               call X_interp (PP,QQQT, TQQ(1,J),QQQ(K,1,J), &
+                    TQQ(2,J),QQQ(K,2,J), TQQ(3,J),QQQ(K,3,J), LQQ(J), RC)
+               if ( rc /= CLDJ_SUCCESS ) then
+                  call CLOUDJ_ERROR( 'Error in X_interp when SQQ==p', thisloc, rc )
+                  return
+               endif
+
             else
               call X_interp (TT,QQQT, TQQ(1,J),QQQ(K,1,J), &
                    TQQ(2,J),QQQ(K,2,J), TQQ(3,J),QQQ(K,3,J), LQQ(J), RC)
+              if ( rc /= CLDJ_SUCCESS ) then
+                 call CLOUDJ_ERROR( 'Error in X_interp when SQQ/=p ', thisloc, rc )
+                 return
+              endif
+
             endif
               VALJ(J) = VALJ(J) + QQQT*FFF(K,L)
            enddo

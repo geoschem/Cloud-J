@@ -174,7 +174,8 @@
 !---CLOUD_JX:   different cloud schemes
 !-----------------------------------------------------------------------
       if (CLDFLAG.lt.1 .or. CLDFLAG.gt.8)then
-         call CLOUDJ_ERROR('>>>stop, incorrect cloud index', thisloc, rc)
+         call CLOUDJ_ERROR('Incorrect cloud index: must be between 1 and 8'// &
+              ' except 4', thisloc, rc)
       endif
 
 !--------------------CLDFLAG =  1, 2, 3---------------------------------
@@ -221,6 +222,10 @@
          call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,       &
                   DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,       &
                   NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, LDARK, RC)
+         if ( rc /= CLDJ_SUCCESS ) then
+            call CLOUDJ_ERROR( 'Error calling PHOTO_JX', thisLoc, rc )
+            return
+         endif
          if (.not.LDARK) then
             JCOUNT = JCOUNT + 1
          endif
@@ -263,11 +268,21 @@
 !-------------------------------------------------------------------------
          call ICA_NR(LPRTJ0,CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,CBIN_,ICA_, &
              CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,RC)
+         if ( rc /= CLDJ_SUCCESS ) then
+            call CLOUDJ_ERROR( 'Error generating max-ran cloud overlap groups', &
+                 thisLoc, rc )
+            return
+         endif
 
 !---call ICA_ALL to generate the weight and cloud total OD of each ICA
 !-------------------------------------------------------------------------
          call ICA_ALL(LPRTJ0,CLDX,CLT,LTOP,CBIN_,ICA_, CFBIN,     &
             CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL,RC)
+         if ( rc /= CLDJ_SUCCESS ) then
+            call CLOUDJ_ERROR( 'Error generating weight and cloud total OD', &
+                 thisLoc, rc )
+            return
+         endif
 
          if(LPRTJ0) then
             write(6,*) ' cloud-J v7.7  internal print:  #ICAs = ',NICA
@@ -276,7 +291,7 @@
 !-----------------------------------------------------------------------
 ! 4 = average direct beam over all ICAs  DISCONTINUED
          if (CLDFLAG .eq. 4) then
-            call CLOUDJ_ERROR(' CLD FLAG = 4 not allowed', thisloc, rc)
+            call CLOUDJ_ERROR('CLD FLAG = 4 not supported', thisloc, rc)
          endif
 
 !-----------------------------------------------------------------------
@@ -301,6 +316,10 @@
 
                call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
                              GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
+               if ( rc /= CLDJ_SUCCESS ) then
+                  call CLOUDJ_ERROR( 'Error using cloud flag 5', thisLoc, rc )
+                  return
+               endif
 
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
@@ -326,6 +345,10 @@
                call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
                      DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,        &
                      NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
+               if ( rc /= CLDJ_SUCCESS ) then
+                  call CLOUDJ_ERROR( 'Error using cloud flag 5', thisLoc, rc )
+                  return
+               endif
                if (.not.LDARK) then
                   JCOUNT = JCOUNT + 1
                endif
@@ -356,6 +379,10 @@
 
             call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
                          WTQCA, ISORT,NQ1,NQ2,NDXQS,RC)
+            if ( rc /= CLDJ_SUCCESS ) then
+               call CLOUDJ_ERROR( 'Error using cloud flag 6', thisLoc, rc )
+               return
+            endif
 
             if (LPRTJ0) then
                write(6,'(a)') ' quadrature QCAs(mid-pt): wt/range/index/OD'
@@ -372,6 +399,10 @@
 
                   call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
                                 GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
+                  if ( rc /= CLDJ_SUCCESS ) then
+                     call CLOUDJ_ERROR( 'Error using cloud flag 6', thisLoc, rc )
+                     return
+                  endif
 
 !---zero out cloud water paths which are not in the selected QCA
                   do L = 1, LTOP
@@ -388,6 +419,10 @@
                   call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH, &
                    DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,     &
                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK, RC)
+                  if ( rc /= CLDJ_SUCCESS ) then
+                     call CLOUDJ_ERROR( 'Error using cloud flag 6', thisLoc, rc )
+                     return
+                  endif
                   if (.not.LDARK) then
                      JCOUNT = JCOUNT + 1
                   endif
@@ -419,6 +454,10 @@
 
             call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
                          WTQCA, ISORT,NQ1,NQ2,NDXQS,RC)
+         if ( rc /= CLDJ_SUCCESS ) then
+            call CLOUDJ_ERROR( 'Error using cloud flag 7', thisLoc, rc )
+            return
+         endif
 
             if (LPRTJ0) then
                write(6,'(a)') ' quadrature QCAs(avg-cld): wt/range/index/OD'
@@ -437,6 +476,10 @@
 
                         call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
                                       GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
+                        if ( rc /= CLDJ_SUCCESS ) then
+                           call CLOUDJ_ERROR( 'Error using cloud flag 7', thisLoc, rc )
+                           return
+                        endif
 
                         if (LPRTJ0) then
                            write(6,'(a,3i5,2f8.4,f9.3)') &
@@ -468,9 +511,14 @@
                      endif
 
 !-----------------------------------------------------------------------
-               call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
-                    DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,         &
-                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
+                     call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
+                          DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,         &
+                          NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
+                     if ( rc /= CLDJ_SUCCESS ) then
+                        call CLOUDJ_ERROR( 'Error using cloud flag 7', thisLoc, rc )
+                        return
+                     endif
+               
                      if (.not.LDARK) then
                         JCOUNT = JCOUNT + 1
                      endif
@@ -510,6 +558,10 @@
             do I = 1, NICA
                call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
                              GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
+               if ( rc /= CLDJ_SUCCESS ) then
+                  call CLOUDJ_ERROR( 'Error using cloud flag 8', thisLoc, rc )
+                  return
+               endif
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
                   LWPX(L) = LWP(L)
@@ -525,6 +577,11 @@
                call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
                     DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,         &
                     NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
+               if ( rc /= CLDJ_SUCCESS ) then
+                  call CLOUDJ_ERROR( 'Error using cloud flag 8', thisLoc, rc )
+                  return
+               endif
+               
                if (.not.LDARK) then
                   JCOUNT = JCOUNT + 1
                endif
@@ -1182,6 +1239,10 @@
         OCOLS(1) = OCOL(1)
       else
         call HEAPSORT_A (NICA,OCOL,OCOLS,ISORT,ICA_,RC)
+        if ( rc /= CLDJ_SUCCESS ) then
+           call CLOUDJ_ERROR( 'Error sorting ICAs', thisLoc, rc )
+           return
+        endif
       endif
         OCDFS(1) = WCOL(ISORT(1))
       do I = 2,NICA
