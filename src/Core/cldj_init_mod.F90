@@ -28,13 +28,15 @@
       CONTAINS
 
 !-----------------------------------------------------------------------
-      subroutine INIT_CLDJ (AMIROOT,DATADIR,NLEVELS,TITLEJXX,NJXU,NJXX)
+      subroutine INIT_CLDJ (AMIROOT,DATADIR,NLEVELS,NLEVELS_WITH_CLOUD, &
+                            TITLEJXX,NJXU,NJXX)
 !-----------------------------------------------------------------------
       implicit none
 
       logical, intent(in)          :: AMIROOT
       character(LEN=*), intent(in) :: DATADIR
       integer, intent(in)          :: NLEVELS
+      integer, intent(in)          :: NLEVELS_WITH_CLOUD
       integer, intent(in)          :: NJXU
       integer, intent(out)         :: NJXX
       character*6, intent(out), dimension(NJXU) :: TITLEJXX
@@ -44,11 +46,12 @@
 
       if (AMIROOT) write(6,*) ' Solar/Cloud-J  ver-7.7 initialization'
 
-#if defined ( MODEL_GEOSCHEM )
+#ifndef CLOUDJ_STANDALONE
       ! Set cldj_cmn_mod variables based on input numbers of levels
       L_    = NLEVELS
       L1_   = L_ + 1
       L2_   = L_ + 2
+      LWEPAR= NLEVELS_WITH_CLOUD
 #endif
 
       JVL_  = L_

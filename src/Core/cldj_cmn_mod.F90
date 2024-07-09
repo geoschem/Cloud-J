@@ -23,18 +23,17 @@
 
       ! Can be changed as needed. Must be exact atmospheric dimensions.
 
-#ifdef MODEL_GEOSCHEM
-      integer :: L_    !  # of CTM layers, set at run-time
-      integer :: L1_   !  L_+1 = # of CTM layer edges (radii)
-      integer :: L2_   !  L_+2 = total # of layer edges counting top (TAU=0)
+#ifdef CLOUDJ_STANDALONE
+      integer, parameter :: L_  = 57    !  # of CTM layers, set at build-time
+      integer, parameter :: L1_ = L_+1  !  L_+1 = # of CTM layer edges (radii)
+      integer, parameter :: L2_ = L_+2  !  L_+2 = total # of layer edges counting top (TAU=0)#
+      integer, parameter :: LWEPAR = 34 !  # layers that have clouds (LWEPAR < L_)
 #else
-      integer, parameter :: L_  = 57   !  # of CTM layers, set at build-time
-      integer, parameter :: L1_ = L_+1 !  L_+1 = # of CTM layer edges (radii)
-      integer, parameter :: L2_ = L_+2 !  L_+2 = total # of layer edges counting top (TAU=0)
+      integer :: L_     !  # of CTM layers, set at run-time
+      integer :: L1_    !  L_+1 = # of CTM layer edges (radii)
+      integer :: L2_    !  L_+2 = total # of layer edges counting top (TAU=0)
+      integer :: LWEPAR !  # layers that have clouds (LWEPAR < L_)
 #endif
-
-      !  # layers that have clouds (LWEPAR < L_)
-      integer, parameter :: LWEPAR = 34        
 
 !------------------------------------------------------------------------------
 ! Additional parameters
@@ -46,14 +45,16 @@
       ! JVN_ :  max # of J-values
 #ifdef MODEL_GEOSCHEM
       integer, parameter :: JVN_ = 166
-#else
+#elif CLOUDJ_STANDALONE
       integer, parameter :: JVN_ = 101
+#else
+#error "Invalid model selection: parameters only defined for CLOUDJ_STANDALONE and MODEL_GEOSCHEM. Add parameters for additional models in cldj_cmn_mod.F90."
 #endif
 
-      ! mAN_ :  max # FJX aerosols in layer (needs NDX for each)
+      ! AN_ :  max # FJX aerosols in layer (needs NDX for each)
 #ifdef MODEL_GEOSCHEM
       integer, parameter :: AN_=37
-#else
+#elif CLOUDJ_STANDALONE
       integer, parameter :: AN_=25
 #endif
 
@@ -94,7 +95,7 @@
       ! X_   = dim = max no. of X-section data sets (input data)
 #ifdef MODEL_GEOSCHEM
       integer, parameter ::  X_=123
-#else
+#elif CLOUDJ_STANDALONE
       integer, parameter ::  X_=72
 #endif
 
@@ -102,7 +103,7 @@
       !        clouds and SSA
 #ifdef MODEL_GEOSCHEM
       integer, parameter ::  A_=56
-#else
+#elif CLOUDJ_STANDALONE
       integer, parameter ::  A_=40
 #endif
 
