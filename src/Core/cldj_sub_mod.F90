@@ -1178,7 +1178,6 @@
       rc = CLDJ_SUCCESS
       TTCOL = 0.d0
 
-      TTCOL = 0.d0
       II = max(1, min(NICA,III))
       do G = 1,NRG
           IG = mod(II-1, GNR(G)) + 1
