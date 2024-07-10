@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Changed FJX_scat-aer.dat format to expect 1 character greater width for PAA (data columns 3-9)
 - Limit prints to single core
 - Renamed all modules to use .F90 suffix and cldj_ prefix
+- Modified the cmake files for Standalone to build on mac successfully
 
 ## Added
 - Added CMake support
@@ -33,7 +34,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added C pre-processor blocks for compatibility with GEOS-Chem offline CTM, GCHP, GEOS, and CESM
 - Added new global variables RNAMES and BRANCH for species info
 - Added GitHub config and PR/issue templates
-- Added GitHub action for build tests
+- Added GitHub action to test builds on Ubuntu
+- Added GitHub action to test builds on Mac
 
 ### Fixed
 - Fixed bugs for compatibility with gfortran compilers
