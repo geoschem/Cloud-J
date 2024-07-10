@@ -68,4 +68,5 @@
   68 CH3COCH3  PHOTON    CH3CO     CH3                     1.000 /Acet-a/
   69 CH3COCH3  PHOTON    CH3       CH3       CO            1.000 /Acet-b/
   71 C2H5OOH   PHOTON    C2H5O     OH                      0.500 /CH3OOH/
+  72 PPN       PHOTON    RCO3      NO2       NO3           1.000 /PPN   /
 9999
