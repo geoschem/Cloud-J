@@ -5,6 +5,9 @@ This file documents all notable changes to the Cloud-J repository since the init
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [7.7.2] - TBD
+### Added
+- `.zenodo.json` file for auto-creation of DOI upon issuing a new release
+
 ### Changed
 - Changed hard-coding LWEPAR in cldj_cmn_mod to be passed from parent model unless using standalone
 
