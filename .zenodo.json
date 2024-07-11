@@ -1,39 +1,31 @@
 {
     "access_right": "open",
     "creators": [
- 	{
-	    "affiliation": "Harvard University",
-            "name": "Elizabeth W. Lundgren"
+        {
+            "name": "Elizabeth Lundgren",
+            "affiliation": "Harvard University"
         },
-	{
-	    "affiliation": "University of California Irvine",
-	    "name": "Michael J. Prather"
-	},
-	{
-	    "affiliation": "Harvard University",
-	    "name": "Daniel J. Jacob"
-	}
+        {
+            "name": "Michael Prather",
+            "affiliation": "University of California, Irvine"
+        },
+        {
+            "name": "Daniel Jacob",
+            "affiliation": "Harvard University"
+        }
     ],
-    "contributors": [
-	{
-	    "affiliation": "Harvard University",
-	    "name": "Haipeng Lin"
-	},
- 	{
-	    "affiliation": "National Center for Atmospheric Research",
-	    "name": "Kyle Shores"
-	}
-    ],
-    "description": "Cloud-J multi-scattering radiative transfer model for solar radiation",
+    "description": "Cloud-J: A multi-scattering eight-stream radiative transfer model for solar radiation.",
     "keywords": [
-	"atmospheric-chemistry",
-	"atmospheric-composition",
-	"atmospheric-modeling",
-	"photolysis",
-	"radiative-transfer",
-	"atmospheric-computing",
-	"scientific-computing"
+        "radiative-transfer",
+        "clouds",
+        "geos-chem",
+        "atmospheric-chemistry",
+        "atmospheric-modeling",
+        "photolysis",
+        "atmospheric-composition",
+        "aerosols",
+        "earth-system-modeling"
     ],
-    "license": "gpl-3.0-license",
-    "upload_type": "software"
+    "upload_type": "software",
+    "license": "GPL-3.0"
 }
