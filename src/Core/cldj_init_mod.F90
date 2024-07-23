@@ -1,5 +1,7 @@
 !<<<<<<<<<<<<<<<<<<fastJX initialization codes:  need to be called only once
-! Solar/Cloud/Fast-J v 7.7, minor edits, added !SJ! lines
+! Solar/Cloud/Fast-J
+! v 7.7, minor edits, added !SJ! lines
+! v 8.0 - added QH2O for UV abs
 
 ! INTERFACE:
 
@@ -47,7 +49,7 @@
 
       thisloc = ' -> at INIT_CLDJ in module cldj_init_mod.F90'
       rc = CLDJ_SUCCESS
-      if (AMIROOT) write(6,*) ' Solar/Cloud-J  ver-7.7 initialization'
+      if (AMIROOT) write(6,*) ' Solar/Cloud-J  ver-8.0 initialization parameters'
 
 #ifndef CLOUDJ_STANDALONE
       ! Set cldj_cmn_mod variables based on input numbers of levels
@@ -57,92 +59,83 @@
       LWEPAR= NLEVELS_WITH_CLOUD
 #endif
 
-      JVL_  = L_
-      mxlay = L1_
+      ! removed by prather
+      !JVL_  = L_
+      !mxlay = L1_
 
-      ! Use channel 8 to read fastJX data files:
-      JXUNIT  = 8
+! ewl: prather removed
+      !! Use channel 8 to read fastJX data files:
+      !JXUNIT  = 8
+      !
+      !NUN = JXUNIT
+      !open (NUN,FILE=TRIM(DATADIR)//'CJ77_inp.dat',status='old', &
+      !      form='formatted')
+      !read (NUN,'(a120)',err=4) TIT_SPEC
+      !   if (AMIROOT) write(6,'(a)') trim(TIT_SPEC)
+      !read (NUN,'(e10.3)',err=4) RAD
+      !read (NUN,'(e10.3)',err=4) ZZHT
+      !read (NUN,'(e10.3)',err=4) ATAU
+      !read (NUN,'(e10.3)',err=4) ATAU0
+      !read (NUN,'(e10.3)',err=4) CLDCOR
+      !read (NUN,'(i10  )',err=4) NWBIN
+      !read (NUN,'(i10  )',err=4) NSBIN
+      !read (NUN,'(i10  )',err=4) LNRG
+      !read (NUN,'(i10  )',err=4) NRANDO
+      !read (NUN,'(i10  )',err=4) ATM0
+      !read (NUN,'(i10  )',err=4) CLDFLAG
+      !   if (AMIROOT) write(6,'(a,3i5)') ' finish params LNRG ATM0 CLDFLAG',LNRG,ATM0,CLDFLAG
+      !close (NUN)
+      !
+      !! Uncomment below to set cloud scheme to clear sky for testing
+      !!CLDFLAG = 1
+      !NSJSUB(:) = 0
+      !SJSUB(:,:) = 0.d0   ! default set up for wavelengths when no sub-bins
+      !SJSUB(:,1) = 1.d0
+      !
+! Clou!d-J default with added near IR bins (if S_ > W)) but no sub bins
+      !LRRTMG = .false.
+      !LCLIRAD =.false.
+      !LGGLLNL =.false.
+      !NSJSUB(1:S_)= NGC(1:S_)
 
-      NUN = JXUNIT
-      open (NUN,FILE=TRIM(DATADIR)//'CJ77_inp.dat',status='old', &
-            form='formatted')
-      read (NUN,'(a120)',err=4) TIT_SPEC
-         if (AMIROOT) write(6,'(a)') trim(TIT_SPEC)
-      read (NUN,'(e10.3)',err=4) RAD
-      read (NUN,'(e10.3)',err=4) ZZHT
-      read (NUN,'(e10.3)',err=4) ATAU
-      read (NUN,'(e10.3)',err=4) ATAU0
-      read (NUN,'(e10.3)',err=4) CLDCOR
-      read (NUN,'(i10  )',err=4) NWBIN
-      read (NUN,'(i10  )',err=4) NSBIN
-      read (NUN,'(i10  )',err=4) LNRG
-      read (NUN,'(i10  )',err=4) NRANDO
-      read (NUN,'(i10  )',err=4) ATM0
-      read (NUN,'(i10  )',err=4) CLDFLAG
-         if (AMIROOT) write(6,'(a,3i5)') ' finish params LNRG ATM0 CLDFLAG',LNRG,ATM0,CLDFLAG
-      close (NUN)
+      ! new: these are hard-coded now. Do we want that??? I don't think so, at least for all. For ones
+      ! we want configurable should pass from parent model, and add to geoschem_config.yml.
+       RAD      = 6375.0d5
+       ZZHT     =    5.0d5
+       ATAU     =  1.050d0
+       ATAU0    =  0.005d0
+       CLDCOR   =   0.33d0
+       NWBIN    =       18
+       LNRG     =       06
+       NRANDO   =       50
+       ATM0     =        2
+       CLDFLAG  =        7
 
-      ! Uncomment below to set cloud scheme to clear sky for testing
-      !CLDFLAG = 1
-      NSJSUB(:) = 0
-      SJSUB(:,:) = 0.d0   ! default set up for wavelengths when no sub-bins
-      SJSUB(:,1) = 1.d0
+! a v7.7 fix was done within sub ICA_NR, this is now mopved up front and must be correct in setup
+      if (LNRG.ne.6) then
+        CLDCOR = 0.d0         ! v7.7 safety fix for LNRG=0 or 3
+      endif
 
-! Cloud-J default with added near IR bins (if S_ > W)) but no sub bins
-      LRRTMG = .false.
-      LCLIRAD =.false.
-      LGGLLNL =.false.
-      NSJSUB(1:S_)= NGC(1:S_)
+      write(6,'(a,1p,2e12.5)') ' params RAD ZZHT',RAD, ZZHT
+      write(6,'(a,3f8.4)') ' params CLDCOR',CLDCOR
+      write(6,'(a,4i5)') ' params NWBIN LNRG CLDFLAG',NWBIN,LNRG,CLDFLAG
+      write(6,'(a,f8.4,a,f8.4,a,i2)') 'params ATAU0=',ATAU0,'  ATAU=',ATAU,'   option(ATM0)= ', ATM0
+      write(6,'(a,i3,a,i3,a,i3)') 'params W_=',W_,'  S_=',S_,'  W_r=',W_r
 
-! while CLIRAD could be configured to run in Cloud-J, it cannot without
-! custom fixes.
-!sJ!      if (W_rrtmg .gt. 0) then
-!sJ!! use RRTMG gas absorption/NGC is set at cmn_fjx_
-!sJ!         NSJSUB(1:SX_)= NGC(1:SX_)
-!sJ!         W_r=   W_rrtmg
-!sJ!         LRRTMG  =.true.
-!sJ!         LCLIRAD =.false.
-!sJ!         LGGLLNL =.false.
-!sJ!      elseif (W_clirad .gt. 0) then
-!sJ!! use CLIRAD gas absorption
-!sJ!         NSJSUB(1:W_)=1
-!sJ!         NSJSUB(W_+1:SX_)=10
-!sJ!         W_r = W_clirad
-!sJ!         LRRTMG  =.false.
-!sJ!         LCLIRAD =.true.
-!sJ!         LGGLLNL =.false.
-!sJ!      elseif (W_LLNL .gt. 0) then
-!sJ!! use GG-LLNL gas absorption
-!sJ!         NSJSUB(1:W_)=1
-!sJ!         NSJSUB(W_+1:SX_)= 7
-!sJ!         W_r = W_LLNL
-!sJ!         LRRTMG  =.false.
-!sJ!         LCLIRAD =.false.
-!sJ!         LGGLLNL =.true.
-!sJ!      endif
-      if (AMIROOT) write(6,'(a,3l2)')'LRRTMG/LCLIRAD/LGGLLNL=', LRRTMG, LCLIRAD, LGGLLNL
-
-!  inital RRTMG setup is done in subrotine CHEM_IN of p-input.f
-!  note that (if(LRRTMG) call RRTMG_SW_INI(cpdair)) is in CHEM_in of p-input.f
-!  lock indexing of RRTMg superbins (1:W_+W_r) onto std bins fluxes (1:S_)
-      if (AMIROOT) write(6,'(a,i3,a,i3,a,i3,a,i3)') 'W_rrtmg= ',W_rrtmg,'  S_=',S_, &
-            '  W_r=',W_r,'  W_+ W_r= ',W_+W_r
-      if (AMIROOT) write(6,'(a,f8.4,a,f8.4,a,i2)') 'ATAU0=',ATAU0,'  ATAU=',ATAU, &
-            '   option(ATM0)= ', ATM0
-
-! with Cloud-J v7.6, NO wavelength truncation for trop only, internal fixes
-! remain
       if (W_ .ne. 18) then
         call CLOUDJ_ERROR('Invalid no. wavelengths', thisloc, rc)
         return
       endif
 
-! set up angles of diffuse radiance at ocean surface
-      ANGLES(1) = sngl(EMU(1))
-      ANGLES(2) = sngl(EMU(2))
-      ANGLES(3) = sngl(EMU(3))
-      ANGLES(4) = sngl(EMU(4))
-      ANGLES(5) = 0.e0 ! assgin U0 in photol_mod.f90
+! Cloud-J default:  can have added near IR bins (if S_ > W_) but no sub bins
+      NSJSUB(1:S_)= NGC(1:S_)
+      SJSUB(:,:) = 0.d0   ! default set up for wavelengths when no sub-bins
+      SJSUB(:,1) = 1.d0
+      do I = W_,  S_
+         SJSUB(I,1)   = 1.d0
+         SJSUB(I,2:16)= 0.d0
+      enddo
+      write(6,'(a/(30i3))')'NJSUB=', NSJSUB
 
 ! Read in Fast/Solar-J X-sections (spectral data)
       call RD_XXX(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_spec.dat',rc)
@@ -151,34 +144,26 @@
          return
       endif
 
-      if (.not.(LRRTMG .or. LCLIRAD .or. LGGLLNL)) then
-         do I = W_,  S_
-            SJSUB(I,1)   = 1.d0
-            SJSUB(I,2:16)= 0.d0
-         enddo
-      endif
+! KR = 1:sum(NSJSUB), LDOKR = 0 = FLux=0 & skip this bin (sub-bin): primarily for Solar-J
       KDOKR(:)=0
       KR = 0
       do K = 1,S_
          do J = 1,NSJSUB(K)
             KR = KR+1
             KDOKR(KR) = K
-            if (AMIROOT) write(6,'(A,2I5)')'KR/KDOKR(KR)',KR, KDOKR(KR)
+            if (FL(K) .gt. 0.d0) then
+               LDOKR(KR) = 1
+            else
+               LDOKR(KR) = 0
+            endif
+            write(6,'(A,3I5)')'KR/KDOKR(KR)/LDOKR(KR)',KR, KDOKR(KR), LDOKR(KR)
          enddo
       enddo
       if (KR .ne. W_+W_r) then
          CALL CLOUDJ_ERROR('>>>error w/ RRTM sub bins: KDOKR', thisloc, rc)
          return
       endif
-      do KR = 1, W_+W_r
-         K = KDOKR(KR)
-         if (FL(K) .gt. 0.d0) then ! FL is read in call RD_XXX
-            LDOKR(KR) = 1
-         else
-            LDOKR(KR) = 0
-         endif
-      enddo
-
+      
 ! Read in cloud scattering data
       call RD_CLD(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-cld.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
@@ -248,14 +233,6 @@
          return
       endif
 
-!---for full ASAD:
-!     call RD_JS(JXUNIT,TRIM(DATADIR)//'ratj.d', TITLEJXX,NJXX,TSPECI,JPSPEC  &
-!                ,MJVAL,TJVAL,MJX,rc)
-!      if ( rc /= CLDJ_SUCCESS ) then
-!         call CLOUDJ_ERROR('Error in RD_JS', thisloc, rc)
-!         return
-!      endif
-
 !---setup the random number sequence RAN4
       RANSEED = 66
       call RANSET (NRAN_,RAN4,RANSEED,RC)
@@ -281,6 +258,7 @@
 !-----------------------------------------------------------------------
 !  Read in wavelength bins, solar fluxes, Rayleigh, T-dep X-sections.
 !
+!>>>>NEW v-8.0  added xH2O cross sections for near UV absorption        
 !>>>>NEW v-7.6+ added Solar-J bins for some to expand to S_
 !     NOTE:  W_=18, use NWBIN 8,12,18 to zero flux for wavelengths only in strat
 !>>>>NEW v-7.3  expanded input, full names & notes
@@ -298,6 +276,7 @@
 !     WL       Centres of wavelength bins - 'effective wavelength'
 !     FL       Solar flux incident on top of atmosphere (cm-2.s-1)
 !     QRAYL    Rayleigh parameters (effective cross-section) (cm2)
+!     QH2O     H2O cross-sections,  UV-blue absorption, 290-350 nm        
 !     QO2      O2 cross-sections
 !     QO3      O3 cross-sections
 !     Q1D      O3 => O(1D) quantum yield
@@ -334,21 +313,23 @@
 
       read (NUN,'(a120)',err=4) TIT_SPEC
       read (NUN,*,err=4)
-      read (NUN,'(i5,5x,i5)',err=4) NWWW, NSSS
+      read (NUN,'(i5,5x,i5)',err=4) NWWW, NSSS ! dimensions for data set
 
       if (AMIROOT) write(6,'(a)') adjustl(trim(TIT_SPEC))
       if (AMIROOT) write(6,'(i5,A20,i5,A20)')  NWWW, ' photo-chem wl bins ', &
             NSSS, ' solar heating bins '
 
-      if (NWWW.gt.WX_ .or. NSSS.gt.SX_) then
-         call CLOUDJ_ERROR(' WX_ or SX_ not large enough', thisloc, rc)
+      !---these are the dimensions for readin of the solar data sets, it does NOT mean that bin 19:27 need
+      ! be calculated
+      if (NWWW.ne.WX_ .or. NSSS.ne.SX_) then
+         call CLOUDJ_ERROR(' WX_ or SX_ -- incompatible data sets w.r.t parameters', thisloc, rc)
          return
       endif
 
       NW1 = 1
-      NW2 = NWWW
+      NW2 = W_
       NS1 = 1
-      NS2 = NSSS
+      NS2 = S_
 
 !----w-params:  1=w-eff  2=w-bins, 3=solar(photons), 4=solar(W/m2), 5=Y-PAR,
 ! 6=Rayleigh, 7=SJ sub-bins
@@ -387,22 +368,25 @@
                                         ' notes: ', adjustl(trim(TIT_J1N))
       read (NUN,'(5x,6e10.3)',err=4)    (QRAYL(IW),IW=1,NSSS)
 
-!7 SJ-sub-bins
+!SJ! SJ-sub-bins for RRMTG, CLIRAD, GGLLNL
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
          if (AMIROOT) write(6,'(1x,a6,1x,a16,a8,a)') trim(TIT_J1S),trim(TIT_J1L), &
                                            ' notes: ',adjustl(trim(TIT_J1N))
-      do I = 1,NSSS
+      do I= NWWW, NSSS  ! fraction of solar radiation for each sub-bin
+         read  (NUN,'(5x,5f10.5)',err=4) (SJSUB(I,IW),IW=1,15)
+            write(6,'(5x,5f10.6)') (SJSUB(I,IW),IW=1,15)
+      enddo
+!SJ! SJSUB needs to be reset to 1's, since in Cloud-J, only the first sub-bin is used
+     do I = 1,NSSS
         SJSUB(I,1)    = 1.0d0
         SJSUB(I,2:15) = 0.0d0
-      enddo
-      if ((NSSS .eq. 27) .or. (NSSS .eq. 21)) then
-!SJ! this is different in SJ, allows for SJSBU(:,1:16)  ? RRTM
-         do I= NWWW, NSSS  ! fraction of solar radiation for each sub-bin
-            read  (NUN,'(5x,5f10.5)',err=4) (SJSUB(I,IW),IW=1,15)
-               if (AMIROOT) write(6,'(5x,5f10.6)') (SJSUB(I,IW),IW=1,15)
-         enddo
-      endif
-
+     enddo
+!---Read H2O X-sects  *** v8.0
+      read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
+      read (NUN,'(5x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
+          (QH2O(IW),IW=1,NWWW)
+        write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+     
 !---Read O2 X-sects, O3 X-sects, O3=>O(1D) quant yields (each at 3 temps)
 !---NB the O3 and q-O3-O1D are at different temperatures and cannot be combined
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
@@ -556,8 +540,8 @@
          endif
       enddo
 
-!---if FL(K) =0, then scattering skipped, method for dropping to 8 or 12
-!trop-only bins
+!---if FL(K) =0, then R.T calc skipped, method for dropping to 8 or 12 trop-only bins
+!           Note that the 'X' cross sections are also skipped
       if (NWBIN .eq. 12) then
          do IW = 1,4
             FL(IW) = 0.d0
@@ -1095,7 +1079,7 @@
 !-----------------------------------------------------------------------
       subroutine RD_GEO(AMIROOT,NUN,NAMFIL,RC)
 !-----------------------------------------------------------------------
-!-------GEOMIP SSA scattering data set for fast-JX ver 7.5 ONLY RRTMG 27 bins
+!-------GEOMIP SSA scattering data set for fast-JX ver 7.5 ONLY FOR Cloud-J & RRTMG 27 bins
 !-----------------------------------------------------------------------
 !     NAMFIL   Name of scattering data file (e.g., FJX_scat-geo.dat)
 !     NUN      Channel number for reading data file

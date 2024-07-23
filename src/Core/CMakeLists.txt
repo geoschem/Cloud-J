@@ -6,7 +6,7 @@ add_library(CloudJ_Core STATIC EXCLUDE_FROM_ALL
         cldj_init_mod.F90
         cldj_sub_mod.F90
         cldj_fjx_sub_mod.F90
-        cldj_osa_sub_mod.F90
+        cldj_fjx_osa_mod.F90
 )
 target_link_libraries(CloudJ_Core
 	PUBLIC CloudJBuildProperties
