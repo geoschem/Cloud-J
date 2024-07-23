@@ -1,7 +1,7 @@
-FJX_spec.dat for Solar/Cloud-J: v76d new bin edges 17&18 (345-485-778 nm) plus 19-27 (778- ) for RRTMG
+FJX_spec.dat: Solar/Cloud-J v8.0 >>>>>>>test copy w/o xH2O
 NEW FMT: Jshort(a6)|Jlong(a16)
    18 NWWW   27 NSSS (18 J-bins + 9 S-bins )
-w-eff !wavelength (nm) ! wtd by SPhot for 1:18, by SWatt for 19:21
+w-eff !wavelength (nm) ! wtd by SPhot for 1:18, by SWatt for 19:27
 01:06      187.      191.      194.      196.      202.      208.
 07:12      211.      214.      262.      272.      283.      295.
 13:18      303.      310.      316.      333.      429.      631.
@@ -37,7 +37,7 @@ X-Rayl!Rayleigh Scatter! flux weighted (SPhot for 1:18, SWATT for 19:21) mean X-
     c 5.424E-26 4.925E-26 4.516E-26 3.644E-26 1.387E-26 3.136E-27 X-Rayl phot
     d 5.381E-28 1.557E-28 9.572E-29 4.231E-29 2.344E-29 1.440E-29 X-Rayl watt
     e 7.258E-30 3.099E-30 8.047E-31                               X-Rayl watt
-SJbins|SJ bin fractions| sub-bin breakdown of SJ bins 18-27
+SJbins|SJ bin fractions| sub-bin breakdown of SJ bins 18-27  Not used is S_=18
  S18a   0.97128   0.02462   0.00253   0.00135   0.00023
  S18b   0.00000   0.00000   0.00000   0.00000   0.00000
  S18c   0.00000   0.00000   0.00000   0.00000   0.00000
@@ -68,6 +68,10 @@ SJbins|SJ bin fractions| sub-bin breakdown of SJ bins 18-27
  S27a   0.10309   0.16604   0.15331   0.13887   0.21275
  S27b   0.14442   0.06474   0.00988   0.00347   0.00239
  S27c   0.00091   0.00013   0.00000   0.00000   0.00000
+H2O   !H2O UV absorpt  ! ZEROED out for testing
+ 300a 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 xH2O
+ 300b 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 xH2O
+ 300c 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 xH2O
 O2    !O2=O+O          ! JPL10
  180a 1.727E-21 1.989E-22 3.004E-23 9.833E-24 7.306E-24 6.827E-24 O2
  180b 6.238E-24 5.748E-24 1.153E-25 5.030E-25 4.150E-25 0.000E+00 O2
@@ -542,114 +546,3 @@ Acet-b!                !
  298c 1.092E-21 4.079E-22 1.496E-22 7.707E-24 0.000E+00 0.000E+00 Acet-b
 endofJ
 ------must have 'endofJ' to closeout the readin
-
-Notes:
-
-rev 7.6d (2/2020)
-     fixed interp of XO3 and others, small changes, added Watt-wtd option
-rev 7.6c (6/2019)
-     changed 17-18 wavelength boundary to 485nm to group non-O3 Xsects into bin 17
-
-
-rev 7.4 (8/2015)
-     extended wavelength bins (19:27) in some data: solar, rayleigh,
-     plus setup for readin of the sub-bins for 18:27 from RRTMG
-     This is still a Cloud-J code and not yet ready to do full solar heating.
-     Note that here and in Solar-J (tbd) only bins 1:18 contribute to J's.
-        (2/2016)
-     Small fixes to NO2 and O3 and O3(1D) to make absolutely consistent
-     with the JPL tables.
-
-rev 7.3c (8/2015 = final version for Cloud-J v7.3c)
-     new integrated solar fluxes and weighted X-sections for Rayleigh (only)
-     in preparation for the 27 super-bins of Solar-J
-     this should still reproduce Cloud-J v7.3 to <1%.
-     not released ver 7.3b (6/2015)
-     last FJ bin#18 cut at 778 nm to match RRTM, scaled Xsects by 2.131/1.805
-     should be almost identical to results from 7.3
-
-rev 7.3 (6/2014)
-     initial dataset for Cloud-J v7.3 GMDD paper, revised for GMD paper to 7.3c
-     needs v 7.2a code or later (Cloud-J)
-     reformatted for unlimited read in (check dimension in read)
-     long-name(A16) added to short-name(a6) plus notes
-     each record is uniquly identified
-
-rev 6.8d (6/2014)
-    Acetaldehyde (CH3CO) fixed to account for Stern-Volmer q-yields (IUPAC P2 2013)
-
-rev 6.8c (3/2013)
-    Acetone major fixes - mistake with q-yields.
-        NEW J-Acet-a (CH3O) is 3x (0km) to 5x (5km) faster than ver 6.8b
-        NEW J-Acet-b (CO)   is 0.60x slower
-        NEW in lower trop:  J-b / J-a = 0.28 (0km) to 0.18 (4km)
-
-rev 6.8b (3/2012)
-     Small fixes to correct short-w extrap.
-     JPL 2010 rev 3/2012 VOC updates and change in Stern-Volmer method
-        T is used to get p (or M) from the mean trop lapse rate
-        thus VOCs are restricted to trop for accurate J's.
-     Q-yields caclulated from Stern-Volmer relation at 3 tropospheric points.
-        alt=   0 km      5 km      13 km
-        M=   2.46E+19   1.50E+19   5.8E+18
-        T=     295K      272K       220K
-        p =    999 hPa   566 hPa    177 hPa
-     X-sections can be interpolated as fn(T) or as fn(p) -
-       thus each X-section block is identified by nnn(K) or pnnn(hPa)
-
-==============================VOCs================================
-
-PAN    = Peroxyacetyl nitrate = CH3C(O)COONO2
-               CH3C(O)O2 + NO2   0.70   (Q fixed)
-               CH3C(O)O + NO3    0.30
-
-CH3NO3 = Methyl nitrate = CH3ONO2
-               CH3O + NO2
-
-ActAld = Acetaldehyde = CH3CHO      (IUPAC)
-         Q-yield based on tables at 1 bar, only w > 300 nm
-               CH4+CO     (1)  0.00    (Q fixed)
-               CH3+HCO    (2)  0.88
-               H+CH3CO    (3)  0.12
-
-MeVK   = Methylvinyl ketone = CH3C(O)CH=CH2
-         Q-yield = exp[-0.055*(w-308)]/5.5+9.2e-19*[M])
-               C3H6+CO         0.60     (Q fixed)
-               CH2CHCO+CH3     0.20
-               CH3CO + C2H3    0.20
-
-MeAcr  = Methacrolein CH2C(CH3)CHO
-               CH2=C(CH3)+HCO  (recommended, uses q=0.003 everywhere)
-
-GlyAld = Glycol aldehyde = HOCH2CHO
-               CH2OH + HCO  (1)  0.83   (Q fixed)
-               CH3OH + CO   (2)  0.10
-               OH + CH2CHO  (3)  0.07
-
-MEKeto = Methylethyl ketone = CH3COC2H5     (IUPAC)
-               C2H5+CH3CO    0.85        (Q fixed)
-               CH3+C2H5CO    0.15
-
-PrAld  = Propionaldehyde (or propanal) = C2H5CHO
-               C2H5 + HCO
-
-MGlyxl = Methyl glyoxal = CH3COC(O)H
-               CH3CO + HCO
-
-Glyxl  = Glyoxal (CHO)2 or CHOCHO
-               Glyxla   => HCO + HCO  (1) (Q by Xsects)
-               Glyxlb   => H2 + 2 CO  (2)
-               Glyxlc   => HCHO + CO  (3)
-
-C3H6O = Acet = Acetone = CH3C(O)CH3
-               Acet-a   => CH3CO+CH3     (Q by Xsects)
-               Acet-b   => CH3+CH3+CO
-
-===========================================================================
-
----------------------------------------------------------------------------
-NO3 Xsections from JPL-2010:
-   NO3a => NO2+O      (405 - 640 nm)  J_TOA = 0.2075 (190K)  0.1648 (298K)
-   NO3b => NO+O2      (586 - 640 nm)  J_TOA = 0.0295 (190K)  0.0209 (298K)
-     ratio = b/(a+b) = 0.1245 (190K)  0.1124 (298K)
-recommend fixed Q-yield NO3b = 0.118,  NO3a = 0.882
