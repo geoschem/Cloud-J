@@ -31,7 +31,8 @@
 
 !-----------------------------------------------------------------------
       subroutine INIT_CLDJ (AMIROOT,DATADIR,NLEVELS,NLEVELS_WITH_CLOUD, &
-                            TITLEJXX,NJXU,NJXX,RC)
+           TITLEJXX,NJXU,ATAU_in,ATAU0_in,CLDCOR_in,   &
+           NWBIN_in, LNRG_in, CLDFLAG_in, NJXX,RC)
 !-----------------------------------------------------------------------
 
       character(len=255)           :: thisloc
@@ -40,6 +41,12 @@
       integer, intent(in)          :: NLEVELS
       integer, intent(in)          :: NLEVELS_WITH_CLOUD
       integer, intent(in)          :: NJXU
+      real*8,  intent(in)          :: ATAU_in
+      real*8,  intent(in)          :: ATAU0_in
+      real*8,  intent(in)          :: CLDCOR_in
+      integer, intent(in)          :: NWBIN_in
+      integer, intent(in)          :: LNRG_in
+      integer, intent(in)          :: CLDFLAG_in
       integer, intent(out)         :: NJXX
       integer, intent(out)         :: RC
       character*6, intent(out), dimension(NJXU) :: TITLEJXX
@@ -59,6 +66,13 @@
       LWEPAR= NLEVELS_WITH_CLOUD
 #endif
 
+      ! Set global variables from inputs
+      ATAU     =  ATAU_in
+      ATAU0    =  ATAU0_in
+      CLDCOR   =  CLDCOR_in
+      NWBIN    =  NWBIN_in
+      LNRG     =  LNRG_in
+      CLDFLAG  =  CLDFLAG_in
       ! removed by prather
       !JVL_  = L_
       !mxlay = L1_

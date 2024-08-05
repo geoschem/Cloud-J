@@ -23,8 +23,11 @@
       public
 
 !------------------------------------------------------------------------------
+! Physical constants
 !------------------------------------------------------------------------------
 
+      real*8, parameter:: RAD      = 6375.0d5  ! Radius of Earth (cm)
+      real*8, parameter:: ZZHT     =    5.0d5  ! Scale height (cm) used above top of CTM ZHL(LPAR+1)
       ! ewl: removed by Prather
       !! Logicals set in cldj_init_mod based on W_rrtmg
       !logical  LRRTMG
@@ -50,6 +53,59 @@
       integer :: L2_    !  L_+2 = total # of layer edges counting top (TAU=0)
       integer :: LWEPAR !  # layers that have clouds (LWEPAR < L_)
 #endif
+
+!-----------------------------------------------------------------------
+! General configuration settings
+!-----------------------------------------------------------------------
+
+      ! ATM0: Option for spherical corrections: 0=flat 1=sphr 2=refr 3=geom
+      ! standard spherical atmosphere is OK, but refractive and geometric can be used
+      ! see  Prather & Hsu, 2019, A round Earth for climate models, PNAS, 116(39): 1933019335
+      integer, parameter :: ATM0 = 2
+
+      ! ATAU: Factor increase in cloud optical depth (OD) from layer to next below
+      real*8  :: ATAU
+
+      ! ATAU0: Minimum cloud OD in uppermost inserted layer
+      real*8  :: ATAU0
+
+      ! Cloud flag options:
+      !       CLDFLAG = 1  :  Clear sky J's
+      !       CLDFLAG = 2  :  Averaged cloud cover
+      !       CLDFLAG = 3  :  cloud-fract**3/2, then average cloud cover
+      !       CLDFLAG = 4  :  ****not used (old direct beam avg)
+      !       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent Column Atmos.)
+      !       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs (mid-pts of QCA bin)
+      !       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds in layer within each Q-bin)
+      !       CLDFLAG = 8  :  Calculate J's for ALL ICAs (up to 20,000 per cell!)      
+      integer :: CLDFLAG
+
+      ! String description of comments to print to log
+      character*25, dimension(8), parameter :: TITCLD =  &
+         ['clear sky - no clouds       ', &
+          'avg cloud cover             ', &
+          'avg cloud cover^3/2         ', &
+          'ICAs - avg direct beam*VOID*', &
+          'ICAs - random N ICAs        ', &
+          'QCAs - midpt of bins        ', &
+          'QCAs - avg clouds in bins   ', &
+          'ICAs - use all ICAs***      ']
+
+      ! CLDCOR: Cloud decorellation between max-overlap blocks (0.00 = random)
+      ! Only used for cloud flags ___, etc
+      real*8  :: CLDCOR
+
+      ! LNRG: Number of max-overlap blocks, can be 0 (max-ran @ gaps) or 3 (alt blocks)
+      ! Only used for cloud flags ___, etc
+      integer :: LNRG
+
+      ! Dimensions of readin spec - NWBIN can zero out strat-wavels
+      ! NWBIN = 18 = std full Fast-J, for TROP-ONLY =12 (0% err in trop, 33% savings)
+      ! = 08 big savings, but 1-2% error in J-O2 and J-OCS in upper trop
+      integer  NWBIN
+
+      ! what is this?
+      integer, parameter :: NSBIN = 27
 
 !------------------------------------------------------------------------------
 ! Additional parameters
@@ -174,48 +230,6 @@
       ! HeatFac_: convert watt/m2 to K/day
       real*8, parameter:: HeatFac_ = 86400.d0*9.80616d0/1.00464d5
 
-!-----------------------------------------------------------------------
-! Parameters read from primary Cloud-J config file CJ77_inp.dat
-!-----------------------------------------------------------------------
-
-      ! Dimensions of readin spec - NWBIN can zero out strat-wavels
-      integer  NWBIN
-      integer  NSBIN
-
-      ! These key parameters should be set in the FJX_INIT_MOD.F90, they are not parameters
-      ! RAD      = 6375.0d5  ! Radius of Earth (cm)
-      ! ZZHT     =    5.0d5  ! Scale height (cm) used above top of CTM ZHL(LPAR+1)
-      ! ATAU     =  1.050d0  ! Factor increase in cloud optical depth (OD) from layer to next below
-      ! ATAU0    =  0.005d0  ! Minimum cloud OD in uppermost inserted layer
-      ! CLDCOR   =   0.33d0  ! Cloud decorellation between max-overlap blocks (0.00 = random)
-      ! NWBIN    =       18  ! NWBIN = 18 = std full Fast-J, for TROP-ONLY =12 (0% err in trop, 33% savings)
-                             ! = 08 big savings, but 1-2% error in J-O2 and J-OCS in upper trop
-      ! LNRG     =       06  ! Number of max-overlap blocks, can be 0 (max-ran @ gaps) or 3 (alt blocks)
-      ! NRANDO   =       50  ! # of random selections of ICAs to get average used for
-      !                      ! CLDFLG=5  RARELY, not recommended!
-      ! ATM0     =        2  ! Option for spherical corrections: 0=flat 1=sphr 2=refr 3=geom
-      ! CLDFLAG  =        7
-      !       CLDFLAG = 1  :  Clear sky J's
-      !       CLDFLAG = 2  :  Averaged cloud cover
-      !       CLDFLAG = 3  :  cloud-fract**3/2, then average cloud cover
-      !       CLDFLAG = 4  :  ****not used (old direct beam avg)
-      !       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent Column Atmos.)
-      !       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs (mid-pts of QCA bin)
-      !       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds in layer within each Q-bin)
-      !       CLDFLAG = 8  :  Calculate J's for ALL ICAs (up to 20,000 per cell!)      
-
-      real*8 ZZHT, RAD, ATAU, ATAU0, CLDCOR
-      integer ATM0, NRANDO, LNRG, CLDFLAG
-      
-      character*25, dimension(8), parameter :: TITCLD =  &
-         ['clear sky - no clouds       ', &
-          'avg cloud cover             ', &
-          'avg cloud cover^3/2         ', &
-          'ICAs - avg direct beam*VOID*', &
-          'ICAs - random N ICAs        ', &
-          'QCAs - midpt of bins        ', &
-          'QCAs - avg clouds in bins   ', &
-          'ICAs - use all ICAs***      ']
 
 !------------------------------------------------------------------------------
 ! Variables in file 'FJX_spec.dat' (RD_XXX)

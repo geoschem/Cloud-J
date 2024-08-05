@@ -132,7 +132,7 @@
 !-----------------------------------------------------------------------
       character(len=255)          :: thisloc
       logical  LPRTJ0
-      integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX
+      integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX, NRANDO
       real*8   CLDFR, XRAN, FSCALE, QCAOD, WTRAN
       real*8,  dimension(L1U)     :: LWPX,IWPX,REFFLX,REFFIX
       real*8,  dimension(LWEPAR)  :: CLTL,CLTI, CLT,CLDX
@@ -286,6 +286,8 @@
 ! 5 = random pick of NRANDO(#) ICAs (selected based on fractional area)
          if (CLDFLAG .eq. 5) then
 
+            ! # of random selections of ICAs to get average
+            NRANDO = 50
             if(LPRTJ0) then
                write(6,*) ' Average over random selection of ICAs:',NRANDO
             endif
@@ -294,6 +296,7 @@
             do I = 2,NICA
                OCDFS(I) = OCDFS(I-1) + WCOL(I)
             enddo
+            !Random select NRANDO ICA's from all(Independent Column Atmos.)
             do N=1,NRANDO
                IRANX = mod (IRAN+N-1, NRAN_) + 1
                XRAN = RAN4(IRANX)
