@@ -31,8 +31,8 @@
 
 !-----------------------------------------------------------------------
       subroutine INIT_CLDJ (AMIROOT,DATADIR,NLEVELS,NLEVELS_WITH_CLOUD, &
-           TITLEJXX,NJXU,ATAU_in,ATAU0_in,CLDCOR_in,   &
-           NWBIN_in, LNRG_in, CLDFLAG_in, NJXX,RC)
+           TITLEJXX,NJXU,ATAU_in,ATAU0_in, NWBIN_in, CLDFLAG_in,        &
+           CLDCOR_in,LNRG_in,NJXX,RC )
 !-----------------------------------------------------------------------
 
       character(len=255)           :: thisloc
@@ -43,10 +43,10 @@
       integer, intent(in)          :: NJXU
       real*8,  intent(in)          :: ATAU_in
       real*8,  intent(in)          :: ATAU0_in
-      real*8,  intent(in)          :: CLDCOR_in
       integer, intent(in)          :: NWBIN_in
-      integer, intent(in)          :: LNRG_in
       integer, intent(in)          :: CLDFLAG_in
+      real*8,  intent(in)          :: CLDCOR_in
+      integer, intent(in)          :: LNRG_in
       integer, intent(out)         :: NJXX
       integer, intent(out)         :: RC
       character*6, intent(out), dimension(NJXU) :: TITLEJXX
