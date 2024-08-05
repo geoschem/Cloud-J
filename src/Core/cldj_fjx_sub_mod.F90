@@ -662,12 +662,6 @@ MODULE CLDJ_FJX_SUB_MOD
             return
          endif
 
-!SJ!         if (LRRTMG .or. LCLIRAD .or. LGGLLNL) then
-!SJ!            write(ParaSummary(26:200),'(a, 10f10.4)') &
-!SJ!               ' RFL(,18)/SZA/u0/maxOD600/F-incd/F-refl/: ', &
-!SJ!               (RFL(i,18),i=1,5),SZA, U0, MAXVAL(OD600), FREFI, FREFL
-!SJ!            write(6,'(a)') ParaSummary(1:200)
-!SJ!         endif
          write(6,'(a)') &
             'Fast-J  v7.6 ---PHOTO_JX internal print: Solar fluxes (W/m2)--'
          write(6,'(a11,f12.4)')    ' inc TOTAL ',SWMSQ(1)
