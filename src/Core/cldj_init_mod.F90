@@ -73,57 +73,6 @@
       NWBIN    =  NWBIN_in
       LNRG     =  LNRG_in
       CLDFLAG  =  CLDFLAG_in
-      ! removed by prather
-      !JVL_  = L_
-      !mxlay = L1_
-
-! ewl: prather removed
-      !! Use channel 8 to read fastJX data files:
-      !JXUNIT  = 8
-      !
-      !NUN = JXUNIT
-      !open (NUN,FILE=TRIM(DATADIR)//'CJ77_inp.dat',status='old', &
-      !      form='formatted')
-      !read (NUN,'(a120)',err=4) TIT_SPEC
-      !   if (AMIROOT) write(6,'(a)') trim(TIT_SPEC)
-      !read (NUN,'(e10.3)',err=4) RAD
-      !read (NUN,'(e10.3)',err=4) ZZHT
-      !read (NUN,'(e10.3)',err=4) ATAU
-      !read (NUN,'(e10.3)',err=4) ATAU0
-      !read (NUN,'(e10.3)',err=4) CLDCOR
-      !read (NUN,'(i10  )',err=4) NWBIN
-      !read (NUN,'(i10  )',err=4) NSBIN
-      !read (NUN,'(i10  )',err=4) LNRG
-      !read (NUN,'(i10  )',err=4) NRANDO
-      !read (NUN,'(i10  )',err=4) ATM0
-      !read (NUN,'(i10  )',err=4) CLDFLAG
-      !   if (AMIROOT) write(6,'(a,3i5)') ' finish params LNRG ATM0 CLDFLAG',LNRG,ATM0,CLDFLAG
-      !close (NUN)
-      !
-      !! Uncomment below to set cloud scheme to clear sky for testing
-      !!CLDFLAG = 1
-      !NSJSUB(:) = 0
-      !SJSUB(:,:) = 0.d0   ! default set up for wavelengths when no sub-bins
-      !SJSUB(:,1) = 1.d0
-      !
-! Clou!d-J default with added near IR bins (if S_ > W)) but no sub bins
-      !LRRTMG = .false.
-      !LCLIRAD =.false.
-      !LGGLLNL =.false.
-      !NSJSUB(1:S_)= NGC(1:S_)
-
-      ! new: these are hard-coded now. Do we want that??? I don't think so, at least for all. For ones
-      ! we want configurable should pass from parent model, and add to geoschem_config.yml.
-       RAD      = 6375.0d5
-       ZZHT     =    5.0d5
-       ATAU     =  1.050d0
-       ATAU0    =  0.005d0
-       CLDCOR   =   0.33d0
-       NWBIN    =       18
-       LNRG     =       06
-       NRANDO   =       50
-       ATM0     =        2
-       CLDFLAG  =        7
 
 ! a v7.7 fix was done within sub ICA_NR, this is now mopved up front and must be correct in setup
       if (LNRG.ne.6) then
@@ -706,7 +655,6 @@
       read (NUN,*)
       if (AMIROOT) write(6,'(i6,a)') NSS, ' types of strat sulf aerosols'
       do K = 1,NSS
-!SJ! *** the SSA file for LCLIRAD in SJ has different format  '(a12, 3f8,4,...
          read (NUN,'(a10, 3f8.4, 2f8.1)')    &
               TITLSS(K),RSS(K),GSS(K),DSS(K),TSS(K),WSS(K)
          if (AMIROOT) write(6,'(i4,1x,a12,2f10.4,2f8.1)') K,TITLSS(K),RSS(K),DSS(K),&

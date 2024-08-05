@@ -28,11 +28,6 @@
 
       real*8, parameter:: RAD      = 6375.0d5  ! Radius of Earth (cm)
       real*8, parameter:: ZZHT     =    5.0d5  ! Scale height (cm) used above top of CTM ZHL(LPAR+1)
-      ! ewl: removed by Prather
-      !! Logicals set in cldj_init_mod based on W_rrtmg
-      !logical  LRRTMG
-      !logical  LCLIRAD
-      !logical  LGGLLNL
       
 !------------------------------------------------------------------------------
 ! Basic vertical grid
@@ -111,10 +106,6 @@
 ! Additional parameters
 !------------------------------------------------------------------------------
 
-      ! ewl: Removed by prather
-      !! JVL_ :  vertical(levels) dim for J-values sent to CTM
-      !integer :: JVL_
-
       ! JVN_ :  max # of J-values
 #ifdef MODEL_GEOSCHEM
       integer, parameter :: JVN_ = 166
@@ -155,15 +146,6 @@
       !     rates.  then S_ = sum(NGC(1:27) = 100
       
       integer, parameter ::  W_r = S_-W_  ! # of bins that is added for solar IR on top of W_
-
-
-      ! ewl: removed by prather
-      !!SJ! this is defined in cldj_init_mod      integer :: W_r
-      !integer, parameter ::  W_RRTMG = 0  !  = 82 for std RRTMG
-      !
-      !integer, parameter ::  W_CLIRAD = 0
-      !
-      !integer, parameter ::  W_LLNL = 0
 
       integer, parameter, dimension(27) :: NGC = &
           (/1, 1, 1, 1, 1, 1, 1, 1, 1, 1, &    ! these are Cloud-J, no sub-bins
@@ -535,14 +517,5 @@
 
       ! Random number set
       real*4   RAN4(NRAN_)
-
-! ewl: removed by prather
-!!------------------------------------------------------------------------------
-!! Extras for Cloud-J
-!!------------------------------------------------------------------------------
-!
-!      integer ::  mxlay
-!
-!      integer, parameter::  ngptsw = S_+1
 
       END MODULE CLDJ_CMN_MOD
