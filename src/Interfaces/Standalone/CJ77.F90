@@ -170,7 +170,7 @@
 !---read in & setup fast-JX data and parameters:   single call at set up
 !-----------------------------------------------------------------------      
       call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,LWEPAR,TITLJXX,JVNU, &
-           ATAU_in, ATAU0_in, CLDCOR_in, NWBIN_in, LNRG_in, CLDFLAG_in, NJXX,RC)
+           ATAU_in, ATAU0_in, NWBIN_in, CLDFLAG_in, CLDCOR_in, LNRG_in, NJXX,RC )
       if ( RC /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR_STOP( 'Failure in INIT_CLDJ', thisloc )
       endif
