@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Added gcc 14 to github action to build Cloud-J on mac
 
+### Changed
+- Minimized usage and checks of error codes to speed up the model
+
 ### Removed
 - Removed gcc 11 from github action to build Cloud-J on mac
 
