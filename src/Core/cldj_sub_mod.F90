@@ -176,6 +176,7 @@
       if (CLDFLAG.lt.1 .or. CLDFLAG.gt.8)then
          call CLOUDJ_ERROR('Incorrect cloud index: must be between 1 and 8'// &
               ' except 4', thisloc, rc)
+         return
       endif
 
 !--------------------CLDFLAG =  1, 2, 3---------------------------------
@@ -222,10 +223,6 @@
          call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,       &
                   DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,       &
                   NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, LDARK, RC)
-         if ( rc /= CLDJ_SUCCESS ) then
-            call CLOUDJ_ERROR( 'Error calling PHOTO_JX', thisLoc, rc )
-            return
-         endif
          if (.not.LDARK) then
             JCOUNT = JCOUNT + 1
          endif
@@ -267,22 +264,12 @@
 !---CLT(cloud ice+liq OD) & IWPX & LWPX adjusted to quantized cld fr
 !-------------------------------------------------------------------------
          call ICA_NR(LPRTJ0,CLDX,CLT,IWPX,LWPX,ZZZ, CLDIW,LTOP,CBIN_,ICA_, &
-             CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,RC)
-         if ( rc /= CLDJ_SUCCESS ) then
-            call CLOUDJ_ERROR( 'Error generating max-ran cloud overlap groups', &
-                 thisLoc, rc )
-            return
-         endif
+             CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
 
 !---call ICA_ALL to generate the weight and cloud total OD of each ICA
 !-------------------------------------------------------------------------
          call ICA_ALL(LPRTJ0,CLDX,CLT,LTOP,CBIN_,ICA_, CFBIN,     &
-            CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL,RC)
-         if ( rc /= CLDJ_SUCCESS ) then
-            call CLOUDJ_ERROR( 'Error generating weight and cloud total OD', &
-                 thisLoc, rc )
-            return
-         endif
+            CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
 
          if(LPRTJ0) then
             write(6,*) ' cloud-J v7.7  internal print:  #ICAs = ',NICA
@@ -292,6 +279,7 @@
 ! 4 = average direct beam over all ICAs  DISCONTINUED
          if (CLDFLAG .eq. 4) then
             call CLOUDJ_ERROR('CLD FLAG = 4 not supported', thisloc, rc)
+            return
          endif
 
 !-----------------------------------------------------------------------
@@ -315,11 +303,7 @@
                enddo
 
                call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
-                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
-               if ( rc /= CLDJ_SUCCESS ) then
-                  call CLOUDJ_ERROR( 'Error using cloud flag 5', thisLoc, rc )
-                  return
-               endif
+                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
@@ -345,10 +329,6 @@
                call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
                      DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,        &
                      NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
-               if ( rc /= CLDJ_SUCCESS ) then
-                  call CLOUDJ_ERROR( 'Error using cloud flag 5', thisLoc, rc )
-                  return
-               endif
                if (.not.LDARK) then
                   JCOUNT = JCOUNT + 1
                endif
@@ -378,11 +358,7 @@
          if (CLDFLAG .eq. 6) then
 
             call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
-                         WTQCA, ISORT,NQ1,NQ2,NDXQS,RC)
-            if ( rc /= CLDJ_SUCCESS ) then
-               call CLOUDJ_ERROR( 'Error using cloud flag 6', thisLoc, rc )
-               return
-            endif
+                         WTQCA, ISORT,NQ1,NQ2,NDXQS)
 
             if (LPRTJ0) then
                write(6,'(a)') ' quadrature QCAs(mid-pt): wt/range/index/OD'
@@ -398,11 +374,7 @@
                   I = ISORT(NDXQS(N))
 
                   call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
-                                GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
-                  if ( rc /= CLDJ_SUCCESS ) then
-                     call CLOUDJ_ERROR( 'Error using cloud flag 6', thisLoc, rc )
-                     return
-                  endif
+                                GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 
 !---zero out cloud water paths which are not in the selected QCA
                   do L = 1, LTOP
@@ -419,10 +391,6 @@
                   call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH, &
                    DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,     &
                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK, RC)
-                  if ( rc /= CLDJ_SUCCESS ) then
-                     call CLOUDJ_ERROR( 'Error using cloud flag 6', thisLoc, rc )
-                     return
-                  endif
                   if (.not.LDARK) then
                      JCOUNT = JCOUNT + 1
                   endif
@@ -453,11 +421,7 @@
          if (CLDFLAG .eq. 7) then
 
             call ICA_QUD(WCOL,OCOL,ICA_,NQD_,NICA, &
-                         WTQCA, ISORT,NQ1,NQ2,NDXQS,RC)
-         if ( rc /= CLDJ_SUCCESS ) then
-            call CLOUDJ_ERROR( 'Error using cloud flag 7', thisLoc, rc )
-            return
-         endif
+                         WTQCA, ISORT,NQ1,NQ2,NDXQS)
 
             if (LPRTJ0) then
                write(6,'(a)') ' quadrature QCAs(avg-cld): wt/range/index/OD'
@@ -475,11 +439,7 @@
                         I = ISORT(II)
 
                         call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR, &
-                                      GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
-                        if ( rc /= CLDJ_SUCCESS ) then
-                           call CLOUDJ_ERROR( 'Error using cloud flag 7', thisLoc, rc )
-                           return
-                        endif
+                                      GNR,    GBOT, GTOP, NRG,   NICA, TTCOL  )
 
                         if (LPRTJ0) then
                            write(6,'(a,3i5,2f8.4,f9.3)') &
@@ -514,10 +474,6 @@
                      call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
                           DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,         &
                           NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
-                     if ( rc /= CLDJ_SUCCESS ) then
-                        call CLOUDJ_ERROR( 'Error using cloud flag 7', thisLoc, rc )
-                        return
-                     endif
                
                      if (.not.LDARK) then
                         JCOUNT = JCOUNT + 1
@@ -557,11 +513,7 @@
             endif
             do I = 1, NICA
                call ICA_III( LPRTJ0, CLT,  LTOP, CBIN_, I,    NCLDF, GFNR,  &
-                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
-               if ( rc /= CLDJ_SUCCESS ) then
-                  call CLOUDJ_ERROR( 'Error using cloud flag 8', thisLoc, rc )
-                  return
-               endif
+                             GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 !---zero out cloud water paths which are not in the selected random ICA
                do L = 1, LTOP
                   LWPX(L) = LWP(L)
@@ -576,11 +528,7 @@
 !-----------------------------------------------------------------------
                call PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ0, PPP,ZZZ,TTT,HHH,     &
                     DDD,RRR,OOO,CCC, LWPX,IWPX,REFFLX,REFFIX,AERSP,         &
-                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK,RC)
-               if ( rc /= CLDJ_SUCCESS ) then
-                  call CLOUDJ_ERROR( 'Error using cloud flag 8', thisLoc, rc )
-                  return
-               endif
+                    NDXAER, L1U,ANU,NJXU, VALJXXX,SKPERDD,SWMSQQ,OD18Q, LDARK, RC)
                
                if (.not.LDARK) then
                   JCOUNT = JCOUNT + 1
@@ -614,7 +562,7 @@
 
 !-----------------------------------------------------------------------
       SUBROUTINE ICA_NR(LPRTJ0,CLDF,CLTAU,IWPX,LWPX,ZZZ,CLDIW,LTOP,CBIN_, &
-            ICA_,CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,RC)
+            ICA_,CFBIN,CLDCOR,NCLDF, GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA)
 !-----------------------------------------------------------------------
 !---revised in v7.7 (02/2020) fixed MAX-RAN (#0 & #3) set CLDCOR=0 if need be
 !---Read in the cloud fraction (CLDF), cloud OD (CLTAU), cloud index (CLDIW)
@@ -669,7 +617,6 @@
       integer, intent(out), dimension(9) :: GBOT,GTOP,GLVL,GNR,GCMX
       integer, intent(out), dimension(9,CBIN_+1) :: GFNR
       real*8,  intent(out), dimension(CBIN_) :: CFBIN
-      integer, intent(out) :: RC
 
       character(len=255)        :: thisloc
       real*8   FBIN, FSCALE, CLF_MIN, CLF_MAX, FSCALE2
@@ -682,7 +629,6 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ICA_NR in module cldj_sub_mod.F90'
-      rc = CLDJ_SUCCESS
       NRG   = 0
       NICA  = 0
       NCLDF = 0
@@ -1001,7 +947,7 @@
 
 !-----------------------------------------------------------------------
       SUBROUTINE ICA_ALL(LPRTJ0,CLF,CLT,LTOP,CBINU,ICAU, CFBIN,CLDCOR,NCLDF,  &
-           GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL,RC)
+           GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
 !-----------------------------------------------------------------------
 !    OCOL() = cloud optical depth (total) in each ICA
 !    WCOL() = weight(fract area) of ICA,
@@ -1027,24 +973,20 @@
       real*8,  intent(in), dimension(CBINU) :: CFBIN
       real*8,  intent(in)                   :: CLDCOR
       real*8,  intent(out),dimension(ICAU)  :: WCOL,OCOL
-      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
       real*8  ODCOL,WTCOL,CF0(51),  FWT(10,51),FWTC(10,51),FWTCC(10,51)
-      real*8  FIG1,FIG2,GCORR,GCOWT,CORRFAC, FCMX(10) ,CLTOT(100)
+      real*8  FIG1,FIG2,GCORR,GCOWT,CORRFAC, FCMX(10)
       integer I, II, IG1,IG2, G, L,  IGNR(10),GCLDY(10),GRP1,GRP2
       logical L_CLR1,L_CLR2  ,LSKIP   ,LGR_CLR(10)
 !-----------------------------------------------------------------------
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ICA_ALL in module cldj_sub_mod.F90'
-      rc = CLDJ_SUCCESS
       WCOL = 0.d0
       OCOL = 0.d0
 
-      CLTOT = 0.d0
-
-        CF0(1) = 0.d0
+      CF0(1) = 0.d0
       do L = 1,CBINU
         CF0(L+1) = CFBIN(L)
       enddo
@@ -1155,7 +1097,7 @@
 
 !-----------------------------------------------------------------------
       SUBROUTINE ICA_III(LPRTJ0, CLT,  LTOP, CBINU, III,  NCLDF, GFNR, &
-                         GNR,    GBOT, GTOP, NRG,   NICA, TTCOL, RC )
+                         GNR,    GBOT, GTOP, NRG,   NICA, TTCOL )
 !-----------------------------------------------------------------------
 !    see ICA_ALL, this subroutine picks out the ICA atmosphere #III
 !      and loads the REFF/WPs for a FAST_JX calculation.
@@ -1167,7 +1109,6 @@
       integer, intent(in), dimension(9,CBINU+1) :: GFNR
       real*8,  intent(in), dimension(LTOP)  :: CLT
       real*8,  intent(out),dimension(LTOP)  :: TTCOL
-      integer, intent(out) :: RC
 
       character(len=255) :: thisloc
       integer II, IG, G, L
@@ -1175,7 +1116,6 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ICA_III in module cldj_sub_mod.F90'
-      rc = CLDJ_SUCCESS
       TTCOL = 0.d0
 
       II = max(1, min(NICA,III))
@@ -1194,7 +1134,7 @@
 
 !-----------------------------------------------------------------------
       SUBROUTINE ICA_QUD(WCOL,OCOL, ICAU,NQDU,NICA, &
-                         WTQCA, ISORT,NQ1,NQ2,NDXQS,RC)
+                         WTQCA, ISORT,NQ1,NQ2,NDXQS)
 !-----------------------------------------------------------------------
 !---Take the full set of ICAs and group into the NQD_ ranges of total OD
 !---Create the Cumulative Prob Fn and select the mid-point ICA for each group
@@ -1207,7 +1147,6 @@
       real*8, intent(out), dimension(NQDU)      :: WTQCA
       integer, intent(out), dimension(ICAU)     :: ISORT
       integer, intent(out), dimension(NQDU)     :: NQ1,NQ2,NDXQS
-      integer, intent(out) :: RC
 
       character(len=255)       :: thisloc
       real*8,  dimension(ICA_) :: OCDFS, OCOLS
@@ -1218,15 +1157,11 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at ICA_QUD in module cldj_sub_mod.F90'
-      rc = CLDJ_SUCCESS
       ISORT = 0
       NQ1   = 0
       NQ2   = 0
       NDXQS = 0
-
-      ISORT = 0
       WTQCA = 0.d0
-      NDXQS = 0
       OCOLS = 0.d0
 
 !---sort all the Indep Column Atmos (ICAs) in order of increasing column OD
@@ -1237,11 +1172,7 @@
         ISORT(1) = 1
         OCOLS(1) = OCOL(1)
       else
-        call HEAPSORT_A (NICA,OCOL,OCOLS,ISORT,ICA_,RC)
-        if ( rc /= CLDJ_SUCCESS ) then
-           call CLOUDJ_ERROR( 'Error sorting ICAs', thisLoc, rc )
-           return
-        endif
+        call HEAPSORT_A (NICA,OCOL,OCOLS,ISORT,ICA_)
       endif
         OCDFS(1) = WCOL(ISORT(1))
       do I = 2,NICA
@@ -1282,7 +1213,7 @@
 
 
 !-----------------------------------------------------------------------
-      SUBROUTINE HEAPSORT_A (N,A,AX,IX,ND,RC)
+      SUBROUTINE HEAPSORT_A (N,A,AX,IX,ND)
 !-----------------------------------------------------------------------
 !  classic heapsort, sorts real*8 array A(N) into ASCENDING order,
 !     places sorted array AX(N):   AX(1) .le. AX(N)
@@ -1295,7 +1226,6 @@
       real*8, dimension(ND),intent(in)  :: A
       real*8, dimension(ND),intent(out) :: AX
       integer,dimension(ND),intent(out) :: IX
-      integer, intent(out) ::RC
 
       character(len=255) :: thisloc
       integer :: I,J,L,IR,IA
@@ -1304,7 +1234,6 @@
 
       ! initialize location and outputs for safety
       thisloc = ' -> at HEAPSORT_A in module cldj_sub_mod.F90'
-      rc = CLDJ_SUCCESS
       AX = 0.d0
       IX = 0
 
