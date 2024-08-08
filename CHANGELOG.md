@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - Minimized usage and checks of error codes to speed up the model
 
+### Removed
+- Removed safety initialization of outputs where assigning all values is obvious to improve performance
+
 ## [7.7.2] - 2024-07-12
 ### Added
 - `.zenodo.json` file for auto-creation of DOI upon issuing a new release

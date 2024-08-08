@@ -976,7 +976,7 @@
 
       character(len=255) :: thisloc
       real*8  ODCOL,WTCOL,CF0(51),  FWT(10,51),FWTC(10,51),FWTCC(10,51)
-      real*8  FIG1,FIG2,GCORR,GCOWT,CORRFAC, FCMX(10) ,CLTOT(100)
+      real*8  FIG1,FIG2,GCORR,GCOWT,CORRFAC, FCMX(10)
       integer I, II, IG1,IG2, G, L,  IGNR(10),GCLDY(10),GRP1,GRP2
       logical L_CLR1,L_CLR2  ,LSKIP   ,LGR_CLR(10)
 !-----------------------------------------------------------------------
@@ -986,9 +986,7 @@
       WCOL = 0.d0
       OCOL = 0.d0
 
-      CLTOT = 0.d0
-
-        CF0(1) = 0.d0
+      CF0(1) = 0.d0
       do L = 1,CBINU
         CF0(L+1) = CFBIN(L)
       enddo
@@ -1163,10 +1161,7 @@
       NQ1   = 0
       NQ2   = 0
       NDXQS = 0
-
-      ISORT = 0
       WTQCA = 0.d0
-      NDXQS = 0
       OCOLS = 0.d0
 
 !---sort all the Indep Column Atmos (ICAs) in order of increasing column OD
