@@ -222,11 +222,8 @@
       SWMSQ  = 0.d0
       OD18   = 0.d0
       LDARK  = .FALSE.
-
-      LU = L1U - 1
       FFXTAU = 0.d0
-      SWMSQ = 0.d0
-      OD18 = 0.d0
+      LU     = L1U - 1
 
 !---check for dark conditions SZA > 98.0 deg => tan ht = 63 km
 !                        or         99.0                 80 km
@@ -1320,12 +1317,8 @@
 !    ALSO limited to 4 Gauss points, only calculates mean field! (M=1)
 !-----------------------------------------------------------------------
 
-      ! initialize location and outputs for safetly
+      ! set location
       thisloc  = ' -> at MIESCT in module cldj_fjx_sub_mod.F90'
-      FJ  = 0.d0
-      FJT = 0.d0
-      FJB = 0.d0
-      FIB = 0.d0
 
       do I = 1,M_
          call LEGND0 (EMU(I),PM0,M2_)
@@ -1361,9 +1354,8 @@
       integer I
       real*8  DEN
 
-      ! initialize location and output for safety
+      ! set location
       thisloc = ' -> at LEGNDO in module cldj_fjx_sub_mod.F90'
-      PL = 0.d0
 
 !---Always does PL(2) = P[1]
       PL(1) = 1.d0
@@ -1966,12 +1958,8 @@
       integer I,J,K,L, NR
       real*8  FNR
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at OPTICL in module cldj_fjx_sub_mod.F90'
-      DDENS = 0.d0
-      QQEXT = 0.d0
-      SSALB = 0.d0
-      SSLEG = 0.d0
 
       K = 1   ! liquid water Mie clouds
       DDENS = DCC(K)
@@ -2015,12 +2003,8 @@
       integer I,J,K,L, NR
       real*8  FNR
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at OPTICI in module cldj_fjx_sub_mod.F90'
-      DDENS = 0.d0
-      QQEXT = 0.d0
-      SSALB = 0.d0
-      SSLEG = 0.d0
 
       if (TEFF .ge. 233.15d0) then
            K = 2  ! ice irreg (warm)
@@ -2071,11 +2055,8 @@
       integer I,J, KK
       real*8  XTINCT, REFF,RHO
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at OPTICS in module cldj_fjx_sub_mod.F90'
-      OPTD  = 0.d0
-      SSALB = 0.d0
-      SLEG  = 0.d0
 
       if (K .eq. 1) then
         KK = 4    ! background, 220K, 70 wt%
@@ -2120,11 +2101,8 @@
       integer I,J, KK
       real*8  XTINCT, REFF,RHO
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at OPTICG in module cldj_fjx_sub_mod.F90'
-      OPTD  = 0.d0
-      SSALB = 0.d0
-      SLEG  = 0.d0
 
       KK = max(1, min(NGG, K-1000))
       REFF = RGG(KK)
@@ -2160,11 +2138,8 @@
         integer I,J,JMIE
         real*8  XTINCT, REFF,RHO,WAVE, QAAX,SAAX,WAAX
 
-        ! initialize location and outputs for safety
+        ! set location
         thisloc = ' -> at OPTICA in module cldj_fjx_sub_mod.F90'
-        OPTD  = 0.d0
-        SSALB = 0.d0
-        SLEG  = 0.d0
 
 ! K=1&2 are the SSA values, not used here any more, make sure they are not
 !asked for.
@@ -2240,11 +2215,8 @@
       integer KR,J,L, JMIE
       real*8  R,FRH, GCOS, XTINCT, WAVE
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at OPTICM in module cldj_fjx_sub_mod.F90'
-      OPTD  = 0.d0
-      SSALB = 0.d0
-      SLEG  = 0.d0
 
 !---calculate fast-JX properties at the std 5 wavelengths:200-300-400-600-999nm
 !---extrapolate phase fn from first term (g)
@@ -2393,9 +2365,8 @@
       character(len=255)::  thisloc
       real*8  TFACT
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at X_interp in module cldj_fjx_sub_mod.F90'
-      XINT = 0.d0
 
       if (L123 .le. 1) then
            XINT = X1
@@ -2935,9 +2906,8 @@
       integer JTOTL,JX,L,LL
       real*8  ATAULN,ATAU0X,AJX,DTAU0X
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at EXTRAL1 in module cldj_fjx_sub_mod.F90'
-      JXTRA = 0
 
 !  need to divide DTAU600 into JX layers such that DTAU600/ATAU0 = ratio =
 !       1 + ATAU + ATAU^2 + ATAU^3 + ATAU^(JX-1)  = [ATAU^JX - 1]/[ATAU - 1]
@@ -3070,9 +3040,8 @@
       real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by
 ! Avogado number
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at FJX_CLIRAD_H2O in module cldj_fjx_sub_mod.F90'
-      TAUG_CLIRAD = 0.d0
 
 ! 0:0 will assign to bin 18 which is 0 for CLIRAD
       do L=1, nlayers
@@ -3149,9 +3118,8 @@
 
       real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by Avogado number
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at FJX_GGLLNL_H2O in module cldj_fjx_sub_mod.F90'
-      TAUG_LLNL = 0.d0
 
       ! 0:0 will assign to bin 18 which is 0 for CLIRAD
       do L=1, nlayers
@@ -3206,11 +3174,8 @@
       integer  K, L, M, N
       real*8   DDDL,DLOGP,F0,T0,H0,C0,PB,PC,XC
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at ACLIM_FJX in module cldj_fjx_sub_mod.F90'
-      TTT = 0.d0
-      O3  = 0.d0
-      CH4 = 0.d0
 
 !  Select appropriate month
       M = max(1,min(12,MONTH))
@@ -3277,7 +3242,7 @@
       real*8  T, eps, es, qs
       integer  L
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at ACLIM_RH in module cldj_fjx_sub_mod.F90'
 
       eps=287.04d0/461.50d0
@@ -3318,10 +3283,8 @@
       integer  I, IGG, K, L, M, N
       real*8   R0,X0,RX0,PB,PC,XC,YN,REDGE(GGA_)
 
-      ! initialize location and outputs for safety
+      ! set location
       thisloc = ' -> at ACLIM_GEO in module cldj_fjx_sub_mod.F90'
-      AERS = 0.d0
-      NAER = 0
 
 !  Select appropriate month
       M = max(1, min(12, MONTH))
