@@ -4,6 +4,13 @@ This file documents all notable changes to the Cloud-J repository since the init
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.7.3] - 2024-08-12
+### Added
+- Added gcc 14 to github action to build Cloud-J on mac
+
+### Removed
+- Removed gcc 11 from github action to build Cloud-J on mac
+
 ## [7.7.2] - 2024-07-12
 ### Added
 - `.zenodo.json` file for auto-creation of DOI upon issuing a new release
