@@ -116,7 +116,7 @@
         enddo
 !---sets climatologies for O3, T, D & Z
 !-----------------------------------------------------------------------
-      call ACLIM_FJX (YLAT,MONTH,PPP, TTT,O3,CH4, L1_, RC)
+      call ACLIM_FJX (YLAT,MONTH,PPP, TTT,O3,CH4, L1_)
       if ( RC /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR_STOP( 'Failure in ACLIM_FJX', thisloc )
       endif
@@ -247,7 +247,7 @@
       if (LPRTJ) then
           write(6,'(a,f8.3,3f8.5)')'SZA SOLF U0 albedo' &
                 ,SZA,SOLF,U0,RFL(5,18)
-        call JP_ATM0(PPP,TTT,DDD,OOO,ZZZ, L_, RC)
+        call JP_ATM0(PPP,TTT,DDD,OOO,ZZZ, L_)
         if ( RC /= CLDJ_SUCCESS ) then
            call CLOUDJ_ERROR_STOP( 'Failure in JP_ATM0', thisloc )
         endif
