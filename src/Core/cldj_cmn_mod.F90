@@ -144,6 +144,14 @@
       !     27 includes the 9 RRTMG bins but Cloud-J only calculates heating for clouds and
       !     aerosols in these bins need full Solar-J to get water vapor lines & total heating
       !     rates.  then S_ = sum(NGC(1:27) = 100
+
+      integer, parameter :: NW1=1
+
+      integer, parameter :: NW2=W_
+
+      integer, parameter :: NS1=1
+
+      integer, parameter :: NS2=S_
       
       integer, parameter ::  W_r = S_-W_  ! # of bins that is added for solar IR on top of W_
 
@@ -432,14 +440,6 @@
       real*8, DIMENSION(LREF,JREF,12) :: CH4_REF
 
       integer NJX
-
-      integer NW1
-
-      integer NW2
-
-      integer NS1
-
-      integer NS2
 
 !------------------------------------------------------------------------------
 ! Reference monthly zonal mean profiles for GEOMIP SSA 'atmos_geomip.dat'

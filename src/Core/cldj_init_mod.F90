@@ -292,11 +292,6 @@
          return
       endif
 
-      NW1 = 1
-      NW2 = W_
-      NS1 = 1
-      NS2 = S_
-
 !----w-params:  1=w-eff  2=w-bins, 3=solar(photons), 4=solar(W/m2), 5=Y-PAR,
 ! 6=Rayleigh, 7=SJ sub-bins
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
