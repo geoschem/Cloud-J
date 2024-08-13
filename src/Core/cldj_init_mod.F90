@@ -167,7 +167,8 @@
          return
       endif
 
-! Read in T & O3 climatology used to fill e.g. upper layers or if O3 not calc.
+#ifdef MODEL_STANDALONE
+      ! Read in T & O3 climatology used to fill e.g. upper layers or if O3 not calc.
       call RD_PROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_std.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_PROF', thisloc, rc)
@@ -180,6 +181,14 @@
          call CLOUDJ_ERROR('Error in RD_TRPROF', thisloc, rc)
          return
       endif
+#else
+      ! These variables are only used in ACLIM_FJX which is only called in
+      ! Cloud-J standalone. Zero them out for safety if using external model.
+      T_REF = 0.0d0
+      O_REF = 0.0d0
+      H2O_REF = 0.0d0
+      CH4_REF = 0.0d0
+#endif
 
       ! Read in zonal mean Strat-Sulf-Aerosol monthly data
       call RD_SSAPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_geomip.dat',rc)
