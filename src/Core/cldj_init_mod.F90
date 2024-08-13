@@ -58,6 +58,9 @@
       rc = CLDJ_SUCCESS
       if (AMIROOT) write(6,*) ' Solar/Cloud-J  ver-8.0 initialization parameters'
 
+      ! Use channel 8 to read fastJ data files:
+      JXUNIT = 8
+
 #ifndef CLOUDJ_STANDALONE
       ! Set cldj_cmn_mod variables based on input numbers of levels
       L_    = NLEVELS
