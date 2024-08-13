@@ -68,6 +68,7 @@
       integer :: NWBIN_in
       integer :: LNRG_in
       integer :: CLDFLAG_in
+      logical :: Use_H2O_UV_Abs
 
 !Notes:  L_ (param), sometimes passed as LU (integer), = numer of atmosphere layers
 !        L_+1 = top layer added from P(top-of-atmos) to P=0, needs air at least.
@@ -154,6 +155,8 @@
       LNRG_in    = 06
       CLDFLAG_in = 7
 
+      ! Set whether to use UV absorption by water vapor (new feature in v8)
+      Use_H2O_UV_Abs = .true.
 ! CLDFLAG - type of cloud overlap parameterization:
 !       CLDFLAG = 1  :  Clear sky J's
 !       CLDFLAG = 2  :  Averaged cloud cover
@@ -169,8 +172,9 @@
       
 !---read in & setup fast-JX data and parameters:   single call at set up
 !-----------------------------------------------------------------------      
-      call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,LWEPAR,TITLJXX,JVNU, &
-           ATAU_in, ATAU0_in, NWBIN_in, CLDFLAG_in, CLDCOR_in, LNRG_in, NJXX,RC )
+      call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,LWEPAR,TITLJXX,JVNU,  &
+           ATAU_in, ATAU0_in, NWBIN_in, CLDFLAG_in, CLDCOR_in, LNRG_in, &
+           Use_H2O_UV_Abs, NJXX,RC )
       if ( RC /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR_STOP( 'Failure in INIT_CLDJ', thisloc )
       endif

@@ -64,6 +64,9 @@
       ! ATAU0: Minimum cloud OD in uppermost inserted layer
       real*8  :: ATAU0
 
+      ! USEH2OUV: Whether to use H2O UV absorption
+      logical :: USEH2OUV
+
       ! Cloud flag options:
       !       CLDFLAG = 1  :  Clear sky J's
       !       CLDFLAG = 2  :  Averaged cloud cover

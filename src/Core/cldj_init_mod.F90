@@ -32,7 +32,7 @@
 !-----------------------------------------------------------------------
       subroutine INIT_CLDJ (AMIROOT,DATADIR,NLEVELS,NLEVELS_WITH_CLOUD, &
            TITLEJXX,NJXU,ATAU_in,ATAU0_in, NWBIN_in, CLDFLAG_in,        &
-           CLDCOR_in,LNRG_in,NJXX,RC )
+           CLDCOR_in,LNRG_in,use_H2O_UV_abs,NJXX,RC )
 !-----------------------------------------------------------------------
 
       character(len=255)           :: thisloc
@@ -47,6 +47,7 @@
       integer, intent(in)          :: CLDFLAG_in
       real*8,  intent(in)          :: CLDCOR_in
       integer, intent(in)          :: LNRG_in
+      logical, intent(in)          :: use_H2O_UV_abs
       integer, intent(out)         :: NJXX
       integer, intent(out)         :: RC
       character*6, intent(out), dimension(NJXU) :: TITLEJXX
@@ -76,6 +77,7 @@
       NWBIN    =  NWBIN_in
       LNRG     =  LNRG_in
       CLDFLAG  =  CLDFLAG_in
+      USEH2OUV =  use_H2O_UV_abs
 
 ! a v7.7 fix was done within sub ICA_NR, this is now mopved up front and must be correct in setup
       if (LNRG.ne.6) then
@@ -346,7 +348,12 @@
       read (NUN,'(a6,1x,a16,1x,a120)',err=4) TIT_J1S,TIT_J1L,TIT_J1N
       read (NUN,'(5x,6e10.3/5x,6e10.3/5x,6e10.3)',err=4)    &
           (QH2O(IW),IW=1,NWWW)
-        write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+      if (AMIROOT) write(6,'(1x,a6,1x,a16,a8,a120)') TIT_J1S,TIT_J1L,' notes:',TIT_J1N   !print
+      ! If H2O UV absorption turned off then zero out QH2O and write note:
+      if ( .not. USEH2OUV ) then
+         QH2O = 0.0d0
+         if (AMIROOT) write(6,'(a60)') 'WARNING: H2O UV absorption is turned off in Cloud-J'
+      endif
      
 !---Read O2 X-sects, O3 X-sects, O3=>O(1D) quant yields (each at 3 temps)
 !---NB the O3 and q-O3-O1D are at different temperatures and cannot be combined
