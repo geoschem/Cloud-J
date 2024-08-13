@@ -154,18 +154,34 @@
       endif
 
       ! Read in UMich aerosol scattering data
+#ifdef MODEL_GEOSCHEM
+      ! Not used in GEOS-Chem. Set to zero for safety.
+      WMM = 0.0d0
+      UMAER = 0.0d0
+#else
       call RD_UM (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-UMa.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_UM', thisloc, rc)
          return
       endif
+#endif
 
       ! Read in GEOMIP aerosol scattering data
+#ifdef MODEL_GEOSCHEM
+      ! Not used in GEOS-Chem. Set to zero for safety.
+      NGG = 0
+      RGG = 0.0d0
+      DGG = 0.0d0
+      QGG = 0.0d0
+      SGG = 0.0d0
+      PGG = 0.0d0
+#else
       call RD_GEO (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-geo.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_GEO', thisloc, rc)
          return
       endif
+#endif
 
 #ifdef MODEL_STANDALONE
       ! Read in T & O3 climatology used to fill e.g. upper layers or if O3 not calc.
@@ -191,11 +207,20 @@
 #endif
 
       ! Read in zonal mean Strat-Sulf-Aerosol monthly data
+#ifdef MODEL_GEOSCHEM
+      ! Not used in GEOS-Chem. Set to zero for safety.
+      R_GREF = 0.0d0
+      X_GREF = 0.0d0
+      A_GREF = 0.0d0
+      Y_GREF = 0.0d0
+      P_GREF = 0.0d0
+#else
       call RD_SSAPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_geomip.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_SSAPROF', thisloc, rc)
          return
       endif
+#endif
 
       NJXX = NJX
       do J = 1,NJXX

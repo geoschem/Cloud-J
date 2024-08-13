@@ -228,6 +228,9 @@
 ! Variables in file 'FJX_spec.dat' (RD_XXX)
 !------------------------------------------------------------------------------
 
+      ! # fast-JX J-values based on number of cross-sections read in
+      integer NJX
+
       ! WL: Centres of wavelength bins - 'effective wavelength'  (nm)
       real*8  WL(SX_)
 
@@ -439,8 +442,6 @@
       real*8, DIMENSION(LREF,JREF,12) :: H2O_REF
 
       real*8, DIMENSION(LREF,JREF,12) :: CH4_REF
-
-      integer NJX
 
 !------------------------------------------------------------------------------
 ! Reference monthly zonal mean profiles for GEOMIP SSA 'atmos_geomip.dat'
