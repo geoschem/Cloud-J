@@ -130,35 +130,35 @@
          return
       endif
       
-! Read in cloud scattering data
+      ! Read in cloud scattering data
       call RD_CLD(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-cld.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_CLD', thisloc, rc)
          return
       endif
 
-! Read in strat sulf aerosols scattering data
+      ! Read in UCI strat sulf aerosols scattering data
       call RD_SSA(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-ssa.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_SSA', thisloc, rc)
          return
       endif
 
-! Read in aerosols scattering data
+      ! Read in aerosols scattering data
       call RD_MIE(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-aer.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_MIE', thisloc, rc)
          return
       endif
 
-! Read in UMich aerosol scattering data
+      ! Read in UMich aerosol scattering data
       call RD_UM (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-UMa.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_UM', thisloc, rc)
          return
       endif
 
-! Read in GEOMIP aerosol scattering data
+      ! Read in GEOMIP aerosol scattering data
       call RD_GEO (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-geo.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_GEO', thisloc, rc)
@@ -172,14 +172,14 @@
          return
       endif
 
-! Read in H2O and CH4 profiles for Solar-J
+      ! Read in H2O and CH4 profiles for Solar-J
       call RD_TRPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_h2och4.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_TRPROF', thisloc, rc)
          return
       endif
 
-! Read in zonal mean Strat-Sulf-Aerosol monthly data
+      ! Read in zonal mean Strat-Sulf-Aerosol monthly data
       call RD_SSAPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_geomip.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_SSAPROF', thisloc, rc)
@@ -191,8 +191,8 @@
         TITLEJXX(J) = TITLEJX(J)
       enddo
 
-! Read in photolysis rates used in chemistry code and mapping onto FJX J's
-!---CTM call:  read in J-values names and link to fast-JX names
+      ! Read in photolysis rates used in chemistry code and mapping onto FJX J's
+      !---CTM call:  read in J-values names and link to fast-JX names
       call RD_JS_JX(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_j2j.dat', TITLEJXX,NJXX,RC)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_JS_JX', thisloc, rc)

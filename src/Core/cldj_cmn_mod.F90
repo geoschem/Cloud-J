@@ -87,7 +87,7 @@
           'ICAs - use all ICAs***      ']
 
       ! CLDCOR: Cloud decorellation between max-overlap blocks (0.00 = random)
-      ! Only used for cloud flags ___, etc
+      ! Only used for cloud flags 5 and above
       real*8  :: CLDCOR
 
       ! LNRG: Number of max-overlap blocks, can be 0 (max-ran @ gaps) or 3 (alt blocks)
@@ -406,7 +406,7 @@
       real*8  PGG(8,SX_,GGA_)
 
 !------------------------------------------------------------------------------
-! Variables in file 'FJX_scat-UMa.dat' (RD_CLD)
+! Variables in file 'FJX_scat-UMa.dat' (RD_UM) (UMich aerosol scattering data)
 !------------------------------------------------------------------------------
 
       ! WMM: U Michigan aerosol wavelengths
@@ -417,6 +417,7 @@
 
 !------------------------------------------------------------------------------
 ! Variables in file 'atmos_std.dat' (RD_PROF) and 'atmos_h2och4.dat' (RD_TRPROF)
+! NOTE: only used in Cloud-J standalone
 !------------------------------------------------------------------------------
 
       ! layer dim. in reference profiles
@@ -425,10 +426,7 @@
       ! latitude dim. in reference profiles
       integer, parameter ::  JREF=18
 
-!------------------------------------------------------------------------------
-! T and O3, H2O, CH4
-!------------------------------------------------------------------------------
-
+      ! T, O3, H2O, CH4
       ! NOTE: ref profiles added underscore _ because TREF used in RRTMG_SW
 
       real*8, DIMENSION(LREF,JREF,12) :: T_REF
