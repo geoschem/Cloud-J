@@ -1,47 +1,40 @@
-﻿c-------FJ_Add_XO3-v76.f    modern code for integrating O3 & q1D cross sections
-! uses both photons and Watts to do weighting  Example = water liqu & ice
-! starts with pratmo full 77+SR bins and then generates the Solar-J bins (18+9)
+﻿c-------Add76_xO3.f    code for integrating O3 & q1D cross sections
+!      covers Solar-J range 1:27 bins (i.e., RRTMG-SW)
+!      starts with pratmo full 76+SR added bins and then generates the Fast-J bins(18)
+!      also puts xO3 >778 nm (bin 19) into Fast-J bin 18
 
       implicit none
-      integer, parameter :: NC_ = 99
-      integer, parameter :: NB_ = 27
+      integer, parameter :: NC_ = 199
+      integer, parameter :: NB_ = 99
       integer, parameter :: NX_ = 6785
       integer, parameter :: NY_ = 40000
 
-
-      real*8   SRB(15,8)
-      real*8, dimension(NC_) :: WCBIN
-      integer,dimension(NC_) :: IJX
-      integer  IBINX(NX_),IBINY(NY_)
-
-      real*8, dimension(NC_) ::
-     &          FFBIN,WWBIN,RRBIN,YYBIN,AABIN,BBBIN,CCBIN,DDBIN
-
-      real*8  W1(NB_),W2(NB_),WNM, RAYLAY,YPAR
-      real*8  WW
-
+      real*8  SRB(15,8)
       real*8  WX(NX_),FX(NX_)
       real*8  WY(NY_),FY(NY_)
-
-      real*8, dimension(NB_) :: FBIN,WBIN,RBIN,YBIN,ABIN,BBIN,CBIN,DBIN
+      real*8, dimension(NC_) :: WCBIN
+      integer,dimension(NC_) :: IJX
+! ABIN, BBIN, CBIN, DBIN are for wt'd sums of x-sections or Refractive Index or ...
+      real*8, dimension(NC_) ::
+     &        FFBIN,WWBIN,RRBIN,YYBIN,AABIN,BBBIN,CCBIN,DDBIN
+      real*8, dimension(NB_) ::
+     &        FBIN,WBIN,RBIN,YBIN,ABIN,BBIN,CBIN,DBIN
+      integer  I, J,J1,J2,  NC1,NC2,NC3,NC4, NB3,NB4
+      real*8  WW, WNM, RAYLAY,YPAR, W11,W22
       character*80 TITLE, TITLTBL
-      character*6  TITLNEW, TSPEC(2)
+      character*6  TITLNEW,TSPEC(2)
+      real*8   XNEW,QNEW,XT, RR18X,AA18X,CC18X
+      integer  IT1,IT2,IT3
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      real*8   XNEW,QNEW,XT, RRX,AAX,CCX
-      integer  I, J,J1,J2,  IT1,IT2,IT3
 
-      integer NC1,NC2,NC3,NC4, NB4
-      real*8 W11,W22
-
-!!!!! this reads in the full set of wavelength bins needs to map the S-R bands
+!!!!! Reads in the full set of wavelength bins needs to map the S-R bands
 !     and not-adjacent bins into the Fast-JX 18 bins plus the Solar-J bins
-!
+
       open (1, file='SolarJ_bins.dat', status='OLD')
         SRB(:,:) = 0.d0
         read(1,'(a)') TITLE
-!          write(6,'(a)') TITLE
         read(1,'(a)') TITLE
-!          write(6,'(a)') TITLE
         read(1,'(4i5)') NC1,NC2,NC3,NC4
 !   NC1=1, NC2=38 last strat bin (JX#11), NC3=76 (JX#18) last trop bin
           if (NC4 .gt. NC_) stop
@@ -57,13 +50,13 @@
           WCBIN(I) = WCBIN(I)*1.d-3
         enddo
         NB4 = IJX(NC4)
+        NB3 = IJX(NC3)
           if (NB4 .gt. NB_) stop
       close (1)
 
 
       open (2, file='SolarF_watts.dat', status='OLD')
         read(2,'(a)') TITLE
-!            write(6,'(a)') TITLE
        do I = 1,NX_
         read(2,'(5x,f10.4,3e14.3)') WX(I),FX(I)
        enddo
@@ -73,62 +66,21 @@
         FX(1) = 0.d0
         FX(NX_) = 0.d0
       close (2)
-!---now assign bin #(I=1:NC4) to each ASTM2 microbin J (1:1697)
-        IBINX(:) = 0
-      do I=1,NC4
-         W11 = WCBIN(I)
-         W22 = WCBIN(I+1)
-        do J=1,NX_
-          if (WX(J) .gt. W11) goto 11
-        enddo
-          J = NX_ + 1
-   11     J1 = J
-        do J=J1,NX_
-          if (WX(J) .gt. W22) goto 12
-        enddo
-          J = NX_ + 1
-   12     J2 = J-1
-        do J=J1,J2
-         IBINX(J) = I
-        enddo
-!      write(6,'(i6,2f8.4,2i6,2f8.4)') I,W11,W22,J1,J2,WX(J1),WX(J2)
-      enddo
-!!!!this binning does not interpolate and is OK for large WX bins
 
 
       open (3, file='SolarF_photons.dat', status='OLD')
         read(3,'(a)') TITLE
-!            write(6,'(a)') TITLE
         read(3,*)
        do I = 1,NY_
         read(3,'(f10.4,e10.3)') WNM,FY(I)
         WY(I) = 1.d-3*WNM
        enddo
       close (3)
-!---now assign bin #(I=1:NC4) to each p05nm microbin J (1:40000)
-        IBINY(:) = 0
-      do I=1,NC4
-         W11 = WCBIN(I)
-         W22 = WCBIN(I+1)
-        do J=1,NY_
-          if (WY(J) .gt. W11) goto 16
-        enddo
-          J = NY_ + 1
-   16     J1 = J
-        do J=J1,NY_
-          if (WY(J) .gt. W22) goto 17
-        enddo
-          J = NY_ + 1
-   17     J2 = J-1
-        do J=J1,J2
-         IBINY(J) = I
-        enddo
-!!      write(6,'(i6,2f8.4,2i6,2f8.4)') I,W11,W22,J1,J2,WY(J1),WY(J2)
-      enddo
-!!!! this binning does not interpolate and is OK for large bins
-!     it has 7% error in the very short wavel S-R bins of pratmo.
 !!!!!!!!!!!!!!!!!!!!!!! finished setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+
+!!!!!!!!!!!!! iniitalize the subroutine from external data tables if need be
        WW = 0.0
        XT = 200.
       call X_O3 (0, WW,XT,XNEW, TSPEC(1),TITLTBL)
@@ -137,7 +89,14 @@
        IT2 = 258
        IT3 = 298
 
-!!!! integration of refractive index at high-res for photons NY_, WY(),FY()
+!!!! Begin integration of XO3 and qO1D over wavelengths
+!!!!!!!!!  NB, the  0.05 nm bins in v76 are NOT split but fall into ONE of the 76 pratmo bins
+!!!!!!!!!     Here the microbin 635.10 nm falls into the 635.10-778.00 nm pratmo bin (#76)
+!!!!!!!!!     In some earlier versions it was triggered to fall into pratmo #75 = 560.10-635.10 nm
+!!!!!!!!!     Differences are at most 5-7% and the allocation of solar flux is consistent
+!!!!!!!!!  Thus some earlier versions of X-sections are slightly different.  Not all have been replaced
+!!!!  FFBIN = solar flux sum,
+!!!!  RRBIN,YYBIN,AABIN,BBBIN,CCBIN,DDBIN= sum for xO3, qO3 at 3 temperatures
         FFBIN(:) = 0.d0
         WWBIN(:) = 0.d0
         RRBIN(:) = 0.d0
@@ -151,6 +110,7 @@
       do while (WY(I) .lt. WCBIN(J))
        I = I+1
       enddo
+!   allow wavelength integration out to IR bands to get last Chappuis bit inot bin 18
       do J = 1,NC4
        do while (WY(I) .lt. WCBIN(J+1) .and. I .lt. NY_)
         WW = WY(I)*1.d3
@@ -188,7 +148,7 @@
       enddo
 
 
-!!!! NC4 bins: Photon weighted values for w, Rayleigh, liq-water, ice-water
+!!!! NC4 bins for pratmo, photon weighted X's
 !      write(6,'(a)') TITLNEW
       write(6,'(2a)') 'pratmbin#    solflx XO3: 218K      258K      ',
      &    '298K q1D: 218K      258K      298K '
@@ -255,12 +215,12 @@
 !     and increase the effective XO3 in SJ bin #18 (applies to Chappuis)
 
       write(6,'(a)') 'NB: Xs in bin19 are consolidated in bin18 below'
-       RRX = (RBIN(18)*FBIN(18)+RBIN(19)*FBIN(19))/FBIN(18)
-       AAX = (aBIN(18)*FBIN(18)+ABIN(19)*FBIN(19))/FBIN(18)
-       CCX = (cBIN(18)*FBIN(18)+CBIN(19)*FBIN(19))/FBIN(18)
-       RBIN(18) = RRX
-       ABIN(18) = AAX
-       CBIN(18) = CCX
+       RR18X = (RBIN(18)*FBIN(18)+RBIN(19)*FBIN(19))/FBIN(18)
+       AA18X = (aBIN(18)*FBIN(18)+ABIN(19)*FBIN(19))/FBIN(18)
+       CC18X = (cBIN(18)*FBIN(18)+CBIN(19)*FBIN(19))/FBIN(18)
+       RBIN(18) = RR18X
+       ABIN(18) = AA18X
+       CBIN(18) = CC18X
 
 
         write(6,'(a)') TSPEC(1)
@@ -313,6 +273,9 @@
         write(6,'(a1,i3,a1,1p,6e10.3,1x,a6)')
      &  ' ',IT3,'c',DBIN(13:18),TSPEC(2)
 
+! Can redo this using Wats/m2 here, see Add76_solar.f, if better
+!    heating rates in Chappuis band is wanted bins 17&18
+
       stop
       end
 
@@ -328,27 +291,25 @@ c   XNEW = cross section (cm2) as a function of WW and XT (and XP, XM)
 c   INIT = initialization:
 c     if INIT.eq.0 .then reads in any tables and sets Xsect name to TITLNEW
 c-----------------------------------------------------------------------
-
+      implicit none
+      integer, intent(in) :: INIT
       real*8, intent(in) :: WW,XT
       real*8, intent(out) :: XNEW
-      integer, intent(in) :: INIT
       character*6, intent(out) :: TITLNEW
       character*80,intent(out) :: TITLTBL
 
       character*80 FTBL,FORMW
       real*8 W1(999),W2(999),XT1(999),XT2(999)
-      real*8 XXT,T1,T2,TFACT
+      real*8 XXT,T1,T2,TFACT,WW1
       integer NW,I,IW
 
       save NW,W1,W2,XT1,XT2,T1,T2
 
-
 !---initialize O3 tables, be sure to "save" them for recall.
       if (INIT .eq. 0) then
 
-          TITLNEW = 'xO3   '
-          FTBL = 'XO3_JPL11Y.dat'
-!            write(6,'(2a)') ' species:',TITLNEW
+        TITLNEW = 'xO3   '
+        FTBL = 'XO3_JPL11Y.dat'
         open (3, file=FTBL, status='OLD')
           read(3,'(a80)') TITLTBL
             write(6,'(2a/a)') ' openfile=',FTBL, TITLTBL
@@ -363,27 +324,37 @@ c-----------------------------------------------------------------------
 
       else
 
-!---interpolate X-section vs. T, but use mean value in the wavelength bins
-!    note that W2(I) = W1(I+1) -- bins do not miss any wavelengths
+!---interpolate X-section vs. T, but use single mean value for entire wavelength bins
         XXT = min(T2, max(T1, XT))
         TFACT = (XXT - T1)/(T2 - T1)
+!  note that W2(I) = W1(I+1) -- bins do not miss any wavelengths
+!  but can cause problems when a point is on the boudary edge, so trick it:
+       WW1 = WW - 0.01d0
         IW = 1
        do I=1,NW-1
-        if (WW .gt. W2(I)) IW = I+1
+        if (WW1 .gt. W2(I)) IW = I+1
        enddo
-         XNEW = 1.d-20*( XT1(IW) + TFACT*(XT2(IW)-XT1(IW)) )
+         XNEW = (XT1(IW) + TFACT*(XT2(IW)-XT1(IW)))
+       WW1 = WW + 0.01d0
+        IW = 1
+       do I=1,NW-1
+        if (WW1 .gt. W2(I)) IW = I+1
+       enddo
+        XNEW = 0.5d-20*(XT1(IW) + TFACT*(XT2(IW)-XT1(IW)) +XNEW)
 
       endif
       return
       end
 
+
+
 c-----------------------------------------------------------------------
       subroutine Q_O3 (INIT, WW,XT,QNEW, TITLNEW,TITLTBL)
 c-----------------------------------------------------------------------
-
+      implicit none
+      integer, intent(inout) :: INIT
       real*8, intent(in) :: WW,XT
       real*8, intent(out) :: QNEW
-      integer, intent(inout) :: INIT
       character*6, intent(out) :: TITLNEW
       character*80,intent(out) :: TITLTBL
 
@@ -428,9 +399,9 @@ c--set QO1D = 0.0 for W.gt.340.,  = 0.48 at 193 nm, = 0.90 at 225 nm
          Q1 = exp(-V1/(RG*T))
          Q2 = exp(-V2/(RG*T))
          Q1Q2 = Q1/(Q1+Q2)
-         EX1 = exp( -((X1-WW)/W1)**4 )
-         EX2 = exp( -((X2-WW)/W2)**2 ) * (T/300.d0)**2
-         EX3 = exp( -((X3-WW)/W3)**2 ) * (T/300.d0)**1.5
+         EX1 = exp(-((X1-WW)/W1)**4)
+         EX2 = exp(-((X2-WW)/W2)**2) * (T/300.d0)**2
+         EX3 = exp(-((X3-WW)/W3)**2) * (T/300.d0)**1.5
          QO1D = Q1Q2*A1*EX1 + (1.d0-Q1Q2)*A2*EX2 + A3*EX3 + A4
        endif
        if (WW .lt. 220.d0) then

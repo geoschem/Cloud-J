@@ -1,6 +1,6 @@
 Solar flux (W/m2/micron) vs wavel (microns)  old ASTM2.dat = add 1/4,1/2,3/4 points 6785 pts for interp ASTM  Standard Solar  www.astm.org  w(microns), F(W/m2/micron)
-    1    0.1195     6.185E-02
-    2    0.1197     1.867E-01
+    1    0.1195     6.185E-02           looks like 2000 ASTM Std ref spectrum E-490-00 (original =1366.1 W/m2)
+    2    0.1197     1.867E-01               https://www.nrel.gov/grid/solar-resource/spectra-astm-e490.html
     3    0.1200     3.116E-01
     4    0.1202     4.365E-01
     5    0.1205     5.614E-01
