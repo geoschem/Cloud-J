@@ -56,7 +56,7 @@
       ! ATM0: Option for spherical corrections: 0=flat 1=sphr 2=refr 3=geom
       ! standard spherical atmosphere is OK, but refractive and geometric can be used
       ! see  Prather & Hsu, 2019, A round Earth for climate models, PNAS, 116(39): 1933019335
-      integer, parameter :: ATM0 = 2
+      integer, parameter :: ATM0 = 1
 
       ! ATAU: Factor increase in cloud optical depth (OD) from layer to next below
       real*8  :: ATAU
