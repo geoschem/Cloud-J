@@ -67,6 +67,7 @@
       real*8  :: CLDCOR_in
       integer :: NWBIN_in
       integer :: LNRG_in
+      integer :: ATM0_in
       integer :: CLDFLAG_in
       logical :: Use_H2O_UV_Abs
 
@@ -147,12 +148,14 @@
       ! CLDCOR correlation of cloud overlap between blocks (0.00 = random)
       ! NWBIN  # wavelength bins in uv-vis for J's <<< can be 8 or 12 also for trop only J's
       ! LNRG  correlated cloud overlap in 6 blocks,  =0=Max-Ran at gaps, =3=Max-Ran in 3 alt blocks
+      ! ATM0  spherical correction: 0=flat, 1=sphr, 2=refr, 3=geom
       ! CLDFLAG see comments below
       ATAU_in    = 1.050d0
       ATAU0_in   = 0.005d0
       CLDCOR_in  = 0.33d0
       NWBIN_in   = 18 
       LNRG_in    = 06
+      ATM0_in    = 2
       CLDFLAG_in = 7
 
       ! Set whether to use UV absorption by water vapor (new feature in v8)
@@ -174,7 +177,7 @@
 !-----------------------------------------------------------------------      
       call INIT_CLDJ (amIRoot,'./tables/',NLEVELS,LWEPAR,TITLJXX,JVNU,  &
            ATAU_in, ATAU0_in, NWBIN_in, CLDFLAG_in, CLDCOR_in, LNRG_in, &
-           Use_H2O_UV_Abs, NJXX,RC )
+           ATM0_in, Use_H2O_UV_Abs, NJXX,RC )
       if ( RC /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR_STOP( 'Failure in INIT_CLDJ', thisloc )
       endif
