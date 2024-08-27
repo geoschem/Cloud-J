@@ -86,11 +86,13 @@
         CLDCOR = 0.d0         ! v7.7 safety fix for LNRG=0 or 3
       endif
 
-      write(6,'(a,1p,2e12.5)') ' params RAD ZZHT',RAD, ZZHT
-      write(6,'(a,3f8.4)') ' params CLDCOR',CLDCOR
-      write(6,'(a,4i5)') ' params NWBIN LNRG CLDFLAG',NWBIN,LNRG,CLDFLAG
-      write(6,'(a,f8.4,a,f8.4,a,i2)') 'params ATAU0=',ATAU0,'  ATAU=',ATAU,'   option(ATM0)= ', ATM0
-      write(6,'(a,i3,a,i3,a,i3)') 'params W_=',W_,'  S_=',S_,'  W_r=',W_r
+      if (AMIROOT) then
+         write(6,'(a,1p,2e12.5)') ' params RAD ZZHT',RAD, ZZHT
+         write(6,'(a,3f8.4)') ' params CLDCOR',CLDCOR
+         write(6,'(a,4i5)') ' params NWBIN LNRG CLDFLAG',NWBIN,LNRG,CLDFLAG
+         write(6,'(a,f8.4,a,f8.4,a,i2)') 'params ATAU0=',ATAU0,'  ATAU=',ATAU,'   option(ATM0)= ', ATM0
+         write(6,'(a,i3,a,i3,a,i3)') 'params W_=',W_,'  S_=',S_,'  W_r=',W_r
+      endif
 
       if (W_ .ne. 18) then
         call CLOUDJ_ERROR('Invalid no. wavelengths', thisloc, rc)
@@ -105,10 +107,10 @@
          SJSUB(I,1)   = 1.d0
          SJSUB(I,2:16)= 0.d0
       enddo
-      write(6,'(a/(30i3))')'NJSUB=', NSJSUB
+      if (AMIROOT) write(6,'(a/(30i3))')'NJSUB=', NSJSUB
 
 ! Read in Fast/Solar-J X-sections (spectral data)
-      call RD_XXX(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_spec.dat',rc)
+      call RD_XXX(AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'FJX_spec.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_XXX', thisloc, rc)
          return
@@ -126,7 +128,7 @@
             else
                LDOKR(KR) = 0
             endif
-            write(6,'(A,3I5)')'KR/KDOKR(KR)/LDOKR(KR)',KR, KDOKR(KR), LDOKR(KR)
+            if (AMIROOT) write(6,'(A,3I5)')'KR/KDOKR(KR)/LDOKR(KR)',KR, KDOKR(KR), LDOKR(KR)
          enddo
       enddo
       if (KR .ne. W_+W_r) then
@@ -135,21 +137,21 @@
       endif
       
       ! Read in cloud scattering data
-      call RD_CLD(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-cld.dat',rc)
+      call RD_CLD(AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'FJX_scat-cld.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_CLD', thisloc, rc)
          return
       endif
 
       ! Read in UCI strat sulf aerosols scattering data
-      call RD_SSA(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-ssa.dat',rc)
+      call RD_SSA(AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'FJX_scat-ssa.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_SSA', thisloc, rc)
          return
       endif
 
       ! Read in aerosols scattering data
-      call RD_MIE(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-aer.dat',rc)
+      call RD_MIE(AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'FJX_scat-aer.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_MIE', thisloc, rc)
          return
@@ -161,7 +163,7 @@
       WMM = 0.0d0
       UMAER = 0.0d0
 #else
-      call RD_UM (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-UMa.dat',rc)
+      call RD_UM (AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'FJX_scat-UMa.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_UM', thisloc, rc)
          return
@@ -178,7 +180,7 @@
       SGG = 0.0d0
       PGG = 0.0d0
 #else
-      call RD_GEO (AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_scat-geo.dat',rc)
+      call RD_GEO (AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'FJX_scat-geo.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_GEO', thisloc, rc)
          return
@@ -187,14 +189,14 @@
 
 #ifdef MODEL_STANDALONE
       ! Read in T & O3 climatology used to fill e.g. upper layers or if O3 not calc.
-      call RD_PROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_std.dat',rc)
+      call RD_PROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'atmos_std.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_PROF', thisloc, rc)
          return
       endif
 
       ! Read in H2O and CH4 profiles for Solar-J
-      call RD_TRPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_h2och4.dat',rc)
+      call RD_TRPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'atmos_h2och4.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_TRPROF', thisloc, rc)
          return
@@ -217,7 +219,7 @@
       Y_GREF = 0.0d0
       P_GREF = 0.0d0
 #else
-      call RD_SSAPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'atmos_geomip.dat',rc)
+      call RD_SSAPROF(AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'atmos_geomip.dat',rc)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_SSAPROF', thisloc, rc)
          return
@@ -231,7 +233,7 @@
 
       ! Read in photolysis rates used in chemistry code and mapping onto FJX J's
       !---CTM call:  read in J-values names and link to fast-JX names
-      call RD_JS_JX(AMIROOT,JXUNIT,TRIM(DATADIR)//'FJX_j2j.dat', TITLEJXX,NJXX,RC)
+      call RD_JS_JX(AMIROOT,JXUNIT,TRIM(DATADIR)//'/'//'FJX_j2j.dat', TITLEJXX,NJXX,RC)
       if ( rc /= CLDJ_SUCCESS ) then
          call CLOUDJ_ERROR('Error in RD_JS_JX', thisloc, rc)
          return
@@ -373,7 +375,7 @@
                                            ' notes: ',adjustl(trim(TIT_J1N))
       do I= NWWW, NSSS  ! fraction of solar radiation for each sub-bin
          read  (NUN,'(5x,5f10.5)',err=4) (SJSUB(I,IW),IW=1,15)
-            write(6,'(5x,5f10.6)') (SJSUB(I,IW),IW=1,15)
+         if (AMIROOT) write(6,'(5x,5f10.6)') (SJSUB(I,IW),IW=1,15)
       enddo
 !SJ! SJSUB needs to be reset to 1's, since in Cloud-J, only the first sub-bin is used
      do I = 1,NSSS
