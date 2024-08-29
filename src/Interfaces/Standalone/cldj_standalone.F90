@@ -168,7 +168,7 @@
       LNRG_in    = 06
       ATM0_in    = 1
       CLDFLAG_in = 7
-      Use_H2O_UV_Abs = .false.
+      Use_H2O_UV_Abs = .true.
       
 !---read in & setup fast-JX data and parameters:   single call at set up
 !-----------------------------------------------------------------------      
