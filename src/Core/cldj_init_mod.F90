@@ -81,7 +81,7 @@
       CLDFLAG  =  CLDFLAG_in
       USEH2OUV =  use_H2O_UV_abs
 
-! a v7.7 fix was done within sub ICA_NR, this is now mopved up front and must be correct in setup
+! a v7.7 fix was done within sub ICA_NR, this is now moved up front and must be correct in setup
       if (LNRG.ne.6) then
         CLDCOR = 0.d0         ! v7.7 safety fix for LNRG=0 or 3
       endif

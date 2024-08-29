@@ -216,7 +216,7 @@
 
 !----all above have only a single, simple call for fast_JX------------
          if(LPRTJ0) then
-            write(6,'(2a)') ' cloud_J v7.7 Internal print: clouds = ',&
+            write(6,'(2a)') ' cloud_J Internal print: clouds = ',&
                          TITCLD(CLDFLAG)
          endif
 !-----------------------------------------------------------------------
@@ -272,7 +272,7 @@
             CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
 
          if(LPRTJ0) then
-            write(6,*) ' cloud-J v7.7  internal print:  #ICAs = ',NICA
+            write(6,*) ' cloud-J internal print:  #ICAs = ',NICA
          endif
 
 !-----------------------------------------------------------------------

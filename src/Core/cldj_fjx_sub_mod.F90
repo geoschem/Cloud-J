@@ -655,7 +655,7 @@ MODULE CLDJ_FJX_SUB_MOD
                POMG600(I,L) = POMEGAX(I,L,18)
             enddo
          enddo
-         write(6,'(a)') 'Fast-J  v7.6 ---PHOTO_JX internal print: Atmosphere--'
+         write(6,'(a)') 'Fast-J ---PHOTO_JX internal print: Atmosphere--'
          call JP_ATM(PPJ,TTJ,DDJ,OOJ,HHJ,ZZJ,DTAU600,POMG600,JXTRA, LU)
          if ( rc /= CLDJ_SUCCESS ) then
             call CLOUDJ_ERROR( 'Error calling JP_ATM', thisloc, rc )
@@ -663,7 +663,7 @@ MODULE CLDJ_FJX_SUB_MOD
          endif
 
          write(6,'(a)') &
-            'Fast-J  v7.6 ---PHOTO_JX internal print: Solar fluxes (W/m2)--'
+            'Fast-J ---PHOTO_JX internal print: Solar fluxes (W/m2)--'
          write(6,'(a11,f12.4)')    ' inc TOTAL ',SWMSQ(1)
          write(6,'(a11,f12.4)')    ' rfl outtop',SWMSQ(2)
          write(6,'(a11,f12.4)')    ' abs in atm',SWMSQ(3)
@@ -727,7 +727,7 @@ MODULE CLDJ_FJX_SUB_MOD
          write(6,'(a)') 'diffus flux at lower bndry'
          write(6,'(f5.2,32f8.5)') U0,(FJBOT(K), K=NW2+1,NWS2)
          write(6,*)
-         write(6,*)'Fast-J v7.6 ---PHOTO_JX Net Fluxes include SZA & solar dist'
+         write(6,*)'Fast-J ---PHOTO_JX Net Fluxes include SZA & solar dist'
          write(6,'(a,2f8.2)') ' ---NET FLUXES--- solar < 700 or 778 nm ',FREF1,FREF1+FREF2
          write(6,'(a11,18i8)')   'bins:',(K, K=NW1,NW2)
          write(6,'(a11,18f8.1)') 'wavl:',(WL(K), K=NW1,NW2)
@@ -763,17 +763,17 @@ MODULE CLDJ_FJX_SUB_MOD
          write(6,'(a11,32f8.3)') ' tau total ',(FFXTAU(K,2), K=NW2+1,NWS2)
          write(6,'(a11,32f8.3)') ' cld absorb',(FFXTAU(K,3), K=NW2+1,NWS2)
          write(6,'(a11,32f8.3)') ' cld total ',(FFXTAU(K,4), K=NW2+1,NWS2)
-         write(6,'(a)') 'heating rate profiles in K/day v7.6  180-778nm '
+         write(6,'(a)') 'heating rate profiles in K/day 180-778nm '
          write(6, '(a4, 32f7.1)')'wvl ',(WL(I),I=NW1,NW2)
          do L = LU,1,-1
             write(6,'(i4,32f7.2)') L,(SKPERD(I,L), I=NW1,NW2)
          enddo
-         write(6,'(a)') 'heating rate profiles in K/day v7.6 778-...nm plus 1:18 19:27 1:27'
+         write(6,'(a)') 'heating rate profiles in K/day 778-...nm plus 1:18 19:27 1:27'
          write(6, '(a4,32f7.1)')'wvl ',(WL(I),I=NW2+1,NWS2)
          do L = LU,1,-1
             write(6,'(i4,35f7.2)') L,(SKPERD(I,L), I=NW2+1,NWS2+2),SKPERD(S_+1,L)+SKPERD(S_+2,L)
          enddo
-         write(6,'(a)') ' Fast-J  v7.6 ----J-values----'
+         write(6,'(a)') ' Fast-J ----J-values----'
          write(6,'(1x,a,72(a6,3x))') 'L=  ',(TITLEJX(K), K=1,NJX)
          do L = LU,1,-1
             write(6,'(i3,1p, 72e9.2)') L,(VALJXX(L,K),K=1,NJX)
