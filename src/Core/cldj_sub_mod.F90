@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-!   'cldj_sub_mod.f90' for Cloud-J v7.7 (02/2020) - last change = fixes for MAXRAN
+!   'cldj_sub_mod.f90'
 !------------------------------------------------------------------------------
 ! Determines how to treat clouds, fractional overlap, etc.
 
@@ -100,7 +100,7 @@
       real*8,  intent(in)                    :: U0     !v7.7
       real*8,  intent(in)                    :: SZA    !v7.7
       real*8,  intent(in)                    :: SOLF   !v7.7
-      real*8,  intent(inout)                 :: CLDCOR !v7.7
+      real*8,  intent(in)                    :: CLDCOR !v7.7=>v8.0
       real*8,intent(in), dimension(5,W_+W_r) :: RFL
       logical, intent(in)                    :: LPRTJ
       real*8,  intent(in), dimension(L1U+1)  :: PPP
@@ -132,7 +132,7 @@
 !-----------------------------------------------------------------------
       character(len=255)          :: thisloc
       logical  LPRTJ0
-      integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX
+      integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX, NRANDO
       real*8   CLDFR, XRAN, FSCALE, QCAOD, WTRAN
       real*8,  dimension(L1U)     :: LWPX,IWPX,REFFLX,REFFIX
       real*8,  dimension(LWEPAR)  :: CLTL,CLTI, CLT,CLDX
@@ -216,7 +216,7 @@
 
 !----all above have only a single, simple call for fast_JX------------
          if(LPRTJ0) then
-            write(6,'(2a)') ' cloud_J v7.7 Internal print: clouds = ',&
+            write(6,'(2a)') ' cloud_J Internal print: clouds = ',&
                          TITCLD(CLDFLAG)
          endif
 !-----------------------------------------------------------------------
@@ -272,7 +272,7 @@
             CLDCOR,NCLDF,GFNR,GCMX,GNR,GBOT,GTOP,GLVL,NRG,NICA,  WCOL,OCOL)
 
          if(LPRTJ0) then
-            write(6,*) ' cloud-J v7.7  internal print:  #ICAs = ',NICA
+            write(6,*) ' cloud-J internal print:  #ICAs = ',NICA
          endif
 
 !-----------------------------------------------------------------------
@@ -286,6 +286,8 @@
 ! 5 = random pick of NRANDO(#) ICAs (selected based on fractional area)
          if (CLDFLAG .eq. 5) then
 
+            ! # of random selections of ICAs to get average
+            NRANDO = 50
             if(LPRTJ0) then
                write(6,*) ' Average over random selection of ICAs:',NRANDO
             endif
@@ -294,6 +296,7 @@
             do I = 2,NICA
                OCDFS(I) = OCDFS(I-1) + WCOL(I)
             enddo
+            !Random select NRANDO ICA's from all(Independent Column Atmos.)
             do N=1,NRANDO
                IRANX = mod (IRAN+N-1, NRAN_) + 1
                XRAN = RAN4(IRANX)
@@ -609,7 +612,7 @@
       integer,intent(in) :: LTOP, CBIN_, ICA_
       integer,intent(in),dimension(LTOP) :: CLDIW
       real*8, intent(in),dimension(LTOP) :: CLDF, ZZZ
-      real*8, intent(inout)                 :: CLDCOR     !v7.7
+      real*8, intent(in)                 :: CLDCOR
       real*8, intent(inout),dimension(LTOP) :: CLTAU,IWPX,LWPX
 
       integer, intent(out) ::  NRG, NICA
@@ -703,7 +706,7 @@
 !---search from bottom to top, finding 1st level in group with cloud fraction
 !    .ge. threshold, and then first level above that at which the cld fraction
 !    is .lt. threshold. NRG = number of such groups.
-        CLDCOR = 0.d0         ! v7.7
+!        CLDCOR = 0.d0         ! v7.7, commented out in v8.0
         L = 1
         NRG = 0
         do while (L.lt.LTOP)  ! v7.7
@@ -744,7 +747,7 @@
 !---GRP=2 (if at all) is L=9 to last LWCloud
 !---GRP=3 (if at all) is L=last-LWCld+1 to LTOP
 !-----------------------------------------------------------------------------
-        CLDCOR = 0.d0    ! v7.7
+!        CLDCOR = 0.d0    ! v7.7, commented out in v8.0
         L1 = 1
         L2 = 9
 !----- L3-1 = uppermost liquid water cloud,  L3 = first of only ice-clouds
@@ -1205,12 +1208,6 @@
       enddo
 
       END SUBROUTINE ICA_QUD
-
-
-!-----------------------------------------------------------------------
-!      SUBROUTINE ICA_DIRECT -- not used, finally removed in v7.7
-
-
 
 !-----------------------------------------------------------------------
       SUBROUTINE HEAPSORT_A (N,A,AX,IX,ND)

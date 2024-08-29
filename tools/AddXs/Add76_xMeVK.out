@@ -1,0 +1,24 @@
+ species:MeVK  
+MethylVinylKetone CH3C(O)CH=CH2                                                 
+ISX=    ISP=   p
+C(O)CH=CH2 > | MethylVinyl Ketone = CH3C(O)CH=CH2    JPL10                      
+             | =>C3H6+CO[0.6] CH2CHCO+CH3[0.2] CH3CO+C2H3[0.2]                  
+                                                                                
+ openfile=Add76_xMeVK_JPL11.dat                                                           
+Table 4D-21. Absorption Cross Sections of CH3C(O)CH=CH2 at 298 K (1e-20)        
+ Temperature:    220.    272.    295.
+C(O)CH=CH2 > | MethylVinyl Ketone = CH3C(O)CH=CH2    JPL10                      
+p220a 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 MeVK  
+ 220b 0.000E+00 0.000E+00 1.693E-22 4.759E-21 5.469E-21 5.839E-21 MeVK  
+ 220c 5.250E-21 4.492E-21 3.677E-21 1.714E-21 2.981E-23 0.000E+00 MeVK  
+ 
+C(O)CH=CH2 > | MethylVinyl Ketone = CH3C(O)CH=CH2    JPL10                      
+p272a 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 MeVK  
+ 272b 0.000E+00 0.000E+00 9.504E-23 2.672E-21 3.070E-21 3.278E-21 MeVK  
+ 272c 2.947E-21 2.521E-21 2.065E-21 9.624E-22 1.671E-23 0.000E+00 MeVK  
+ 
+C(O)CH=CH2 > | MethylVinyl Ketone = CH3C(O)CH=CH2    JPL10                      
+p295a 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 MeVK  
+ 295b 0.000E+00 0.000E+00 6.520E-23 1.833E-21 2.106E-21 2.249E-21 MeVK  
+ 295c 2.022E-21 1.728E-21 1.417E-21 6.605E-22 1.144E-23 0.000E+00 MeVK  
+ 

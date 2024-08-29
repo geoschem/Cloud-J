@@ -1,7 +1,7 @@
-FJX_spec.dat for Solar/Cloud-J: v76d new bin edges 17&18 (345-485-778 nm) plus 19-27 (778- ) for RRTMG
-NEW FMT: Jshort(a6)|Jlong(a16)
+FJX_spec.dat: Solar/Cloud-J v8.0 + uv-H2O, bins 17&18 (345-485-778 nm) plus 19-27 (778- )
+NEW FMT: Jshort(a6)|Jlong(a16) titles
    18 NWWW   27 NSSS (18 J-bins + 9 S-bins )
-w-eff !wavelength (nm) ! wtd by SPhot for 1:18, by SWatt for 19:21
+w-eff !wavelength (nm) ! wtd by SPhot for 1:18, by SWatt for 19:27
 01:06      187.      191.      194.      196.      202.      208.
 07:12      211.      214.      262.      272.      283.      295.
 13:18      303.      310.      316.      333.      429.      631.
@@ -37,7 +37,7 @@ X-Rayl!Rayleigh Scatter! flux weighted (SPhot for 1:18, SWATT for 19:21) mean X-
     c 5.424E-26 4.925E-26 4.516E-26 3.644E-26 1.387E-26 3.136E-27 X-Rayl phot
     d 5.381E-28 1.557E-28 9.572E-29 4.231E-29 2.344E-29 1.440E-29 X-Rayl watt
     e 7.258E-30 3.099E-30 8.047E-31                               X-Rayl watt
-SJbins|SJ bin fractions| sub-bin breakdown of SJ bins 18-27
+SJbins|SJ bin fractions| sub-bin breakdown of bins 18-27 for Solar-J RRTMG>>>Not used when S_=18
  S18a   0.97128   0.02462   0.00253   0.00135   0.00023
  S18b   0.00000   0.00000   0.00000   0.00000   0.00000
  S18c   0.00000   0.00000   0.00000   0.00000   0.00000
@@ -68,6 +68,10 @@ SJbins|SJ bin fractions| sub-bin breakdown of SJ bins 18-27
  S27a   0.10309   0.16604   0.15331   0.13887   0.21275
  S27b   0.14442   0.06474   0.00988   0.00347   0.00239
  S27c   0.00091   0.00013   0.00000   0.00000   0.00000
+H2O   !H2O UV absorpt  ! Pei++ 2019   (2023-01-17 MJP)
+ 300a 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 xH2O
+ 300b 0.000E+00 0.000E+00 0.000E+00 0.000E+00 2.967E-25 4.392E-25 xH2O
+ 300c 2.675E-25 5.763E-25 3.613E-25 2.662E-25 3.553E-27 0.000E+00 xH2O
 O2    !O2=O+O          ! JPL10
  180a 1.727E-21 1.989E-22 3.004E-23 9.833E-24 7.306E-24 6.827E-24 O2
  180b 6.238E-24 5.748E-24 1.153E-25 5.030E-25 4.150E-25 0.000E+00 O2
@@ -544,6 +548,11 @@ endofJ
 ------must have 'endofJ' to closeout the readin
 
 Notes:
+
+rev 8.0  (3/2023)
+     added UV H2O absorption from Pei et al. 2019.  H2O is not dissociated
+     and hence no J-H2O is calculated. No temperature dependence.
+     many J-values are reduced by ~10% at surface (incl. J-O1D).
 
 rev 7.6d (2/2020)
      fixed interp of XO3 and others, small changes, added Watt-wtd option

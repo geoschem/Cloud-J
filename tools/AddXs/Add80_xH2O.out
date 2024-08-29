@@ -1,0 +1,7 @@
+ openfile=Add80_xH2O_Pei.dat                                                              
+Table.  H2O X sections from Table 1 of Pei et al 2019.  wavel(nm) X(e-25 cm2)   
+H2O     Pei2019                                                                 
+ 300a 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 H2O   
+ 300b 0.000E+00 0.000E+00 0.000E+00 0.000E+00 2.967E-25 4.392E-25 H2O   
+ 300c 2.675E-25 5.763E-25 3.613E-25 2.662E-25 3.553E-27 0.000E+00 H2O   
+ 

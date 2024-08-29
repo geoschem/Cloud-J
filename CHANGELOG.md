@@ -4,6 +4,31 @@ This file documents all notable changes to the Cloud-J repository since the init
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] - 2024-08-29
+### Added
+- Added M. Prather's new Cloud-J v8 feature of UV absorption by water (source of differences between v7.7 and v8)
+- Added Cloud-J input to specify whether to turn on UV absorption by water
+- Added MODEL_GEOSCHEM C-preprocessor blocks to skip reading dat-files not used
+- Added MODEL_STANDALONE C-preprocessor block to only read T and O3 climatology and H2O and CH4 profiles if using standalone
+- Added H2O cross-sections to tables/FJX_spec.dat
+
+### Changed
+- Applied no-diff changes made by M. Prather between v7.7 and v8
+- Moved most parameters set in CJ77_inp.dat to arguments passed to CLOUD_JX
+- Hard-coded NRANDO where it is used rather than pass as configurable input
+- Updated all files in tools/AddXs to be a copy of M. Prather's files included in his Cloud-J v8 release
+- Renamed cldj_osa_sub_mod.F90 to cldj_fjx_osa_mod.F90
+- Hardcoded physical constants in the cldj_cmn_mod module
+- Renamed CLOUDJ_STANDALONE C-preprocessor switch to MODEL_STANDALONE
+- Changed default standalone model setting for spherical correction from flat earth to spherical
+- Changed default standalone model temperature climatology to be read from file
+- Renamed Cloud-J standalone driver file from CJ77.F90 to cldj_standalone.F90
+
+### Removed
+- Removed subroutines SOLAR_JX and private subroutines it used
+- Removed unused parameters and code related to RRTMG
+- Removed configuration file CJ77_inp.dat
+
 ## [7.7.3] - 2024-08-12
 ### Added
 - Added gcc 14 to github action to build Cloud-J on mac

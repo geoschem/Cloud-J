@@ -1,7 +1,20 @@
 !------------------------------------------------------------------------------
-!    'fjx_cmn_mod.f90'  for Solar/Cloud/Fast-J code v 7.7 (prather 02/2020)
-!           enable LLNL heating code, fix SJSUB dim's
-!    Renamed to 'cldj_cmn_mod.f90' (E. Lundgren 10/26/2021)
+!    cldj_cmn_mod.F90 is based on 'fjx_cmn_mod.f90' in Cloud/Fast-J by M. Prather
+!    Initial adaptation by E. Lundgren 10/2021
+!
+!    Notes:
+!      Cloud/Fast-J code v 8.0 (prather 04/2023):
+!         (1) The last Solar-J version 7.6c ran with RRTMG.
+!         (2) Current Cloud-J-only version 8.0 with S_ = 18 drops wavelengths 19:27,
+!               leaves them in the datsets
+!         (3) If the CLIRAD or LLNL heating codes are invoked then Cloud-J then go
+!               back to v7.6c and adapt the Spec, Cloud and SSA datasets need to be
+!               replaced with the CLIRAD or LLNL bins and you will need to reinsert
+!               and check the CLIRAD and LLNL subroutines.
+!         (4) Includes cleanup and removal of dead-end variables
+!      Solar/Cloud/Fast-J code v 7.7 (prather 02/2020)
+!         (1) Enabled LLNL heating code, fix SJSUB dim's
+!
 !------------------------------------------------------------------------------
 
       MODULE CLDJ_CMN_MOD
@@ -10,20 +23,21 @@
       public
 
 !------------------------------------------------------------------------------
+! Physical constants
 !------------------------------------------------------------------------------
 
-      ! Logicals set in cldj_init_mod based on W_rrtmg
-      logical  LRRTMG
-      logical  LCLIRAD
-      logical  LGGLLNL
+      real*8, parameter:: RAD      = 6375.0d5  ! Radius of Earth (cm)
+      real*8, parameter:: ZZHT     =    5.0d5  ! Scale height (cm) used above top of CTM ZHL(LPAR+1)
       
 !------------------------------------------------------------------------------
 ! Basic vertical grid
 !------------------------------------------------------------------------------
 
-      ! Can be changed as needed. Must be exact atmospheric dimensions.
-
-#ifdef CLOUDJ_STANDALONE
+      ! Can be changed as needed. These must be set to exact atmospheric dimensions.
+      ! 57 levels is only for the UCI CTM atmospheres in the standalone example.
+      ! For other uses, pass the # of levels and # layers with clouds from
+      ! the parent model.
+#ifdef MODEL_STANDALONE
       integer, parameter :: L_  = 57    !  # of CTM layers, set at build-time
       integer, parameter :: L1_ = L_+1  !  L_+1 = # of CTM layer edges (radii)
       integer, parameter :: L2_ = L_+2  !  L_+2 = total # of layer edges counting top (TAU=0)#
@@ -35,67 +49,129 @@
       integer :: LWEPAR !  # layers that have clouds (LWEPAR < L_)
 #endif
 
+!-----------------------------------------------------------------------
+! General configuration settings
+!-----------------------------------------------------------------------
+
+      ! ATM0: Option for spherical corrections: 0=flat 1=sphr 2=refr 3=geom
+      ! standard spherical atmosphere is OK, but refractive and geometric can be used
+      ! see  Prather & Hsu, 2019, A round Earth for climate models,
+      ! PNAS, 116(39): 1933019335
+      integer :: ATM0
+
+      ! ATAU: Factor increase in cloud optical depth (OD) from layer to next below
+      real*8  :: ATAU
+
+      ! ATAU0: Minimum cloud OD in uppermost inserted layer
+      real*8  :: ATAU0
+
+      ! USEH2OUV: Whether to use H2O UV absorption
+      logical :: USEH2OUV
+
+      ! Cloud flag options:
+      !       CLDFLAG = 1  :  Clear sky J's
+      !       CLDFLAG = 2  :  Averaged cloud cover
+      !       CLDFLAG = 3  :  cloud-fract**3/2, then average cloud cover
+      !       CLDFLAG = 4  :  ****not used (old direct beam avg)
+      !       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent Column Atmos.)
+      !       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs (mid-pts of QCA bin)
+      !       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds in layer within each Q-bin)
+      !       CLDFLAG = 8  :  Calculate J's for ALL ICAs (up to 20,000 per cell!)      
+      integer :: CLDFLAG
+
+      ! String description of comments to print to log
+      character*25, dimension(8), parameter :: TITCLD =  &
+         ['clear sky - no clouds       ', &
+          'avg cloud cover             ', &
+          'avg cloud cover^3/2         ', &
+          'ICAs - avg direct beam*VOID*', &
+          'ICAs - random N ICAs        ', &
+          'QCAs - midpt of bins        ', &
+          'QCAs - avg clouds in bins   ', &
+          'ICAs - use all ICAs***      ']
+
+      ! CLDCOR: Cloud decorellation between max-overlap blocks (0.00 = random)
+      ! Only used for cloud flags 5 and above
+      real*8  :: CLDCOR
+
+      ! LNRG: Number of max-overlap blocks, can be 0 (max-ran @ gaps) or 3 (alt blocks)
+      ! Only used for cloud flags ___, etc
+      integer :: LNRG
+
+      ! Dimensions of readin spec - NWBIN can zero out strat-wavels
+      ! NWBIN = 18 = std full Fast-J, for TROP-ONLY =12 (0% err in trop, 33% savings)
+      ! = 08 big savings, but 1-2% error in J-O2 and J-OCS in upper trop
+      integer  NWBIN
+
+      ! what is this?
+      integer, parameter :: NSBIN = 27
+
 !------------------------------------------------------------------------------
 ! Additional parameters
 !------------------------------------------------------------------------------
 
-      ! JVL_ :  vertical(levels) dim for J-values sent to CTM
-      integer :: JVL_
-
       ! JVN_ :  max # of J-values
 #ifdef MODEL_GEOSCHEM
       integer, parameter :: JVN_ = 166
-#elif CLOUDJ_STANDALONE
+#elif MODEL_STANDALONE
       integer, parameter :: JVN_ = 101
 #else
-#error "Invalid model selection: parameters only defined for CLOUDJ_STANDALONE and MODEL_GEOSCHEM. Add parameters for additional models in cldj_cmn_mod.F90."
+#error "Invalid model selection: parameters only defined for MODEL_STANDALONE and MODEL_GEOSCHEM. Add parameters for additional models in cldj_cmn_mod.F90."
 #endif
 
-      ! AN_ :  max # FJX aerosols in layer (needs NDX for each)
+      ! AN_ :  max # of FJX aerosols in layer (needs NDX for each)
 #ifdef MODEL_GEOSCHEM
       integer, parameter :: AN_=37
-#elif CLOUDJ_STANDALONE
+#elif MODEL_STANDALONE
       integer, parameter :: AN_=25
 #endif
 
-      !  Case 1 RRTMG super bins
-
-      ! used for table dimensions
+      !  Dimensions for wavelength data tables, fjx_spec.dat & others
+      
+      ! used for table dimensions for cross-sections
       integer, parameter ::  WX_= 18
-
-      ! SX_(for tables) =27
+      
+      ! used for table dimensions of broad-bands thru IR
       integer, parameter ::  SX_= 27
-
+      
       ! W_   = dim = no. of Fast-J Wavelength bins:
-      ! currenly only 18, TROP-ONLY is done by zeroing FL fluxes
+      ! Currenly 18, should be same as WX_ for now
+      ! A TROP-ONLY calc. is done by setting the read-in NWBIN to 8 or 12, zeros the FL fluxes
       integer, parameter ::  W_=18
 
-      ! S_   = dim = number of wavelength bins INLCUDING the Solar-J
-      ! extensions (RRTMG value = 27)
-      integer, parameter ::  S_=27
+      !------------------------------------------------------------------------------
+      ! this section is hard wired to skip bins 19:27, used for just chemistry & J-values
+      ! S_   = dim = number of wavelength sub-bins INCLUDING the Solar-J extensions
+      ! (RRTMG value = 27)
+      integer, parameter ::  S_=W_  ! does NOT do calculations for w>18, simple J's only
+      !     else: integer, parameter ::  S_=27  != # of broad bands in entire calculation,
+      !     27 includes the 9 RRTMG bins but Cloud-J only calculates heating for clouds and
+      !     aerosols in these bins need full Solar-J to get water vapor lines & total heating
+      !     rates.  then S_ = sum(NGC(1:27) = 100
 
-      integer, parameter ::  W_r = S_-W_  ! # of bins that is added on top of W_
+      integer, parameter :: NW1=1
 
-      !SJ! this is defined in cldj_init_mod      integer :: W_r
-      integer, parameter ::  W_RRTMG = 0  !  = 82 for std RRTMG
+      integer, parameter :: NW2=W_
 
-      integer, parameter ::  W_CLIRAD = 0
+      integer, parameter :: NS1=1
 
-      integer, parameter ::  W_LLNL = 0
+      integer, parameter :: NS2=S_
+      
+      integer, parameter ::  W_r = S_-W_  ! # of bins that is added for solar IR on top of W_
 
       integer, parameter, dimension(27) :: NGC = &
-          (/1,1,1,1,1,1,1,1,1,1, &        ! these are Cloud-J, no sub-bins
-            1,1,1,1,1,1,1,1,1,1, &
-            1,1,1,1,1,1,1/)
-      ! SJ (/1, 1, 1,1,1, 1,1, 1,1,1,  &  !these are used in Solar-J for RRTMG
-      ! SJ   1, 1, 1,1,1, 1,1, 5,10,2, &
-      ! SJ   10,10,8,8,12,6,12/)
+          (/1, 1, 1, 1, 1, 1, 1, 1, 1, 1, &    ! these are Cloud-J, no sub-bins
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, &    ! Note that S_= W_, means no near-IR    
+            1, 1, 1, 1, 1, 1, 1/)
+      ! SJ (/1,  1,  1, 1, 1,  1, 1, 1, 1,  1, &  !these are used in Solar-J for RRTMG
+      ! SJ   1,  1,  1, 1, 1,  1, 1, 5, 10, 2, &
+      ! SJ   10, 10, 8, 8, 12, 6, 12 /)
       !
 
       ! X_   = dim = max no. of X-section data sets (input data)
 #ifdef MODEL_GEOSCHEM
       integer, parameter ::  X_=123
-#elif CLOUDJ_STANDALONE
+#elif MODEL_STANDALONE
       integer, parameter ::  X_=72
 #endif
 
@@ -103,7 +179,7 @@
       !        clouds and SSA
 #ifdef MODEL_GEOSCHEM
       integer, parameter ::  A_=56
-#elif CLOUDJ_STANDALONE
+#elif MODEL_STANDALONE
       integer, parameter ::  A_=40
 #endif
 
@@ -111,7 +187,7 @@
       integer, parameter ::  SSA_=18, GGA_=15
 
       ! C_   = dim = no. of cld-data sets (input data):
-      ! liquid-water,irregular-ice, hexagonal ice
+      ! liquid-water, irregular-ice, hexagonal ice
       integer, parameter ::  C_=3
 
       ! CR_   = dim = no. of effective radii in each cld-data sets
@@ -139,13 +215,6 @@
                                 .32607257743127d0, .17392742256873d0]
 
 !-----------------------------------------------------------------------
-! Input to osa_sub_mod module
-!------------------------------------------------------------------------------
-
-      ! Requires need single precision
-      real, DIMENSION(5) :: ANGLES
-
-!-----------------------------------------------------------------------
 ! Radiation Field, Cloud Cover & Other fixed parameters
 !------------------------------------------------------------------------------
 
@@ -155,84 +224,45 @@
       ! HeatFac_: convert watt/m2 to K/day
       real*8, parameter:: HeatFac_ = 86400.d0*9.80616d0/1.00464d5
 
-!-----------------------------------------------------------------------
-! Parameters read from primary Cloud-J config file CJ77_inp.dat
-!-----------------------------------------------------------------------
-
-      ! Dimensions of readin spec - NWBIN can zero out strat-wavels
-      integer  NWBIN
-      integer  NSBIN
-
-      ! ZZHT: scale height (cm) used above top of CTM ZHL(L_+1)
-      !real*8, parameter   :: ZZHT = 5.d5
-      real*8 ZZHT
-
-      ! RAD: Radius of Earth (cm)
-      !real*8, parameter   :: RAD = 6375.d5
-      real*8 RAD
-
-      ! ATAU: Factor increase in cloud optical depth (OD) from layer to
-      ! next below
-      !real*8, parameter   :: ATAU = 1.050d0
-      real*8 ATAU
-
-      ! ATAU0: Minimum cloud OD in uppermost inserted layer
-      !real*8, parameter   :: ATAU0 = 0.005d0
-      real*8 ATAU0
-
-      real*8 CLDCOR
-
-      ! ATM0: Option for spherical corrections: 0=flat 1=sphr 2=refr 3=geom
-      !integer, parameter  :: ATM0 = 3
-      integer ATM0
-
-      integer NRANDO
-
-      integer LNRG
-
-      integer CLDFLAG
-
-      character*25, dimension(8), parameter :: TITCLD =  &
-         ['clear sky - no clouds    ', &
-          'avg cloud cover          ', &
-          'avg cloud cover^3/2      ', &
-          'ICAs - avg direct beam   ', &
-          'ICAs - random N ICAs     ', &
-          'QCAs - midpt of bins     ', &
-          'QCAs - avg clouds in bins', &
-          'ICAs - use all ICAs***   ']
 
 !------------------------------------------------------------------------------
 ! Variables in file 'FJX_spec.dat' (RD_XXX)
 !------------------------------------------------------------------------------
 
+      ! # fast-JX J-values based on number of cross-sections read in
+      integer NJX
+
       ! WL: Centres of wavelength bins - 'effective wavelength'  (nm)
-      real*8  WL(S_)
+      real*8  WL(SX_)
 
       ! WBIN: Boundaries of wavelength bins                  (microns)
-      real*8  WBIN(S_+1)
+      real*8  WBIN(SX_+1)
 
       ! FL: Solar flux incident on top of atmosphere (cm-2.s-1)
-      real*8  FL(S_)
+      real*8  FL(SX_)
 
       ! FW: Solar flux in W/m2
-      real*8  FW(S_)
+      real*8  FW(SX_)
 
-      ! FP: PAR quantum action spectrum
-      real*8  FPAR(S_)
+      ! FPAR: PAR quantum action spectrum
+      ! NOTE: renamed from FP to avoid conflict with flexible precision naming in GEOS-Chem
+      real*8  FPAR(SX_)
 
       ! QRAYL: Rayleigh parameters (effective cross-section) (cm2)
-      ! ????? SJ had this set ant S_+1, it should not needed
-      real*8  QRAYL(S_)
+      ! SJ had this set ant S_+1, it should not needed
+      real*8  QRAYL(SX_)
 
       ! SJSUB:  intended for breakdown of the super-bins (1:27) into
       ! smaller sub-bins.
-      real*8  SJSUB(S_,16)
+      real*8  SJSUB(SX_,16)
 
-      ! RRTMG =18+82 max set at 100
+      ! QH2O: H2O UV-blue cross-sections (290-350 nm)
+      real*8  QH2O(WX_)
+      
+      ! KDOKR: Set for RRTMG =18+82 max set at 100
       integer KDOKR(100)
 
-      ! RRTMG =18+82 max set at 100
+      ! LDOKR: Set for RRTMG =18+82 max set at 100
       integer LDOKR(100)
 
       integer NSJSUB(SX_)
@@ -261,7 +291,7 @@
 
       CHARACTER*16 TITLEJL(X_)
 
-      ! SQQ: Flag for supplied cross sections, from 'FJX_spec.dat'
+      ! SQQ: Flag (pressure or temperature tables) for supplied cross sections, from 'FJX_spec.dat'
       CHARACTER*1  SQQ(X_)
 
 !------------------------------------------------------------------------------
@@ -329,7 +359,7 @@
 ! Variables in file 'FJX_scat-ssa.dat' (RD_SSA)
 !------------------------------------------------------------------------------
 
-      ! NSS: Number of categories for Strat Sulf Aerosol scattering
+      ! NSS: Number of categories for Stratospheric Sulfate Aerosol scattering
       ! phase functions
       integer NSS
 
@@ -383,7 +413,7 @@
       real*8  PGG(8,SX_,GGA_)
 
 !------------------------------------------------------------------------------
-! Variables in file 'FJX_scat-UMa.dat' (RD_CLD)
+! Variables in file 'FJX_scat-UMa.dat' (RD_UM) (UMich aerosol scattering data)
 !------------------------------------------------------------------------------
 
       ! WMM: U Michigan aerosol wavelengths
@@ -394,6 +424,7 @@
 
 !------------------------------------------------------------------------------
 ! Variables in file 'atmos_std.dat' (RD_PROF) and 'atmos_h2och4.dat' (RD_TRPROF)
+! NOTE: only used in Cloud-J standalone
 !------------------------------------------------------------------------------
 
       ! layer dim. in reference profiles
@@ -402,10 +433,7 @@
       ! latitude dim. in reference profiles
       integer, parameter ::  JREF=18
 
-!------------------------------------------------------------------------------
-! T and O3, H2O, CH4
-!------------------------------------------------------------------------------
-
+      ! T, O3, H2O, CH4
       ! NOTE: ref profiles added underscore _ because TREF used in RRTMG_SW
 
       real*8, DIMENSION(LREF,JREF,12) :: T_REF
@@ -415,16 +443,6 @@
       real*8, DIMENSION(LREF,JREF,12) :: H2O_REF
 
       real*8, DIMENSION(LREF,JREF,12) :: CH4_REF
-
-      integer NJX
-
-      integer NW1
-
-      integer NW2
-
-      integer NS1
-
-      integer NS2
 
 !------------------------------------------------------------------------------
 ! Reference monthly zonal mean profiles for GEOMIP SSA 'atmos_geomip.dat'
@@ -480,7 +498,7 @@
       ! Max # of indep colm atmospheres
       integer, parameter :: ICA_ = 20000
 
-      ! # of cloud fraction bins (4)
+      ! # of cloud quadrature bins (4)
       integer, parameter :: NQD_ = 4
 
       real*8,  parameter ::  CPI    = 3.141592653589793d0
@@ -502,13 +520,5 @@
 
       ! Random number set
       real*4   RAN4(NRAN_)
-
-!------------------------------------------------------------------------------
-! Extras for Cloud-J
-!------------------------------------------------------------------------------
-
-      integer ::  mxlay
-
-      integer, parameter::  ngptsw = S_+1
 
       END MODULE CLDJ_CMN_MOD

@@ -1,7 +1,7 @@
 # Cloud-J/CMakeLists.txt
 
 cmake_minimum_required(VERSION 3.5)
-project(CLOUDJ VERSION 7.7.3 LANGUAGES Fortran)
+project(CLOUDJ VERSION 8.0.0 LANGUAGES Fortran)
 
 #-----------------------------------------------------------------------------
 # Add CMakeScripts/ to the module path
@@ -226,7 +226,7 @@ if(NOT CLOUDJ_EXTERNAL_CONFIG)
 
     # Set Cloud-J compile flag to standalone
     target_compile_definitions(CloudJBuildProperties
-        INTERFACE CLOUDJ_STANDALONE
+        INTERFACE MODEL_STANDALONE
     )
 
     # Set CMAKE_BUILD_TYPE to Release by default

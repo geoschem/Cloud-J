@@ -1,38 +1,41 @@
+MODULE CLDJ_FJX_SUB_MOD
 !------------------------------------------------------------------------------
-!     'fjx_sub_mod.f90'  for Cloud-J v7.7     (2/2020, mjp)
+!     Originally adapted from 'fjx_sub_mod.f90' for Cloud-J v7.7 (2/2020, mjp) 
+!     Updated from 'fjx_sub_mod.f90'  for Cloud-J v8.0 (4/2023, mjp)
 !------------------------------------------------------------------------------
 !
 ! DESCRIPTION:
+!     v8.0  (03/2023) add H2O UV-Blue abs (bins 11:16, 283-333 nm, very weak in #17 = 439 nm)
+!             This reduces many UV J-values by ~10% near surface
+!        Cloud-J only.
+!        Parameter S_ changed from 27 to 18 in fjx_cmn_mod.f90 for v8.0
+!        This stops calculation of bins 19:27 (RRTMG bins)
+!        Can reset S_ to 27, but heating rates in solar IR only include clouds, SSA, GeoMIP.
+!        Drops subroutines  FJX_GGLLNL_H2O, FJX_CLIRAD_H2O
 !     v7.7  (02/2020) Final synch with Solar-J v7.7
 !        Corrects problem with MAX-RAN that was caused by MAX-COR fixes
-!        New calling sequence of FPs, added OD18
+!        New calling sequence of Formal Parameters, added OD18
+!        N.B. beware that bin-11 ('283' = 216-222 & 287-291 nm) is ZEROed P>100 hPa, O2 e-fold is too weak
+!           This is OK for any reasonable O2-O3 atmosphere
 !     v7.6c (06/2019) Adds geometric option:
 !        Corrects (optical) mass to the value for a true spherical atmosphere.
 !        NOTE that inferred atmospheric mass for absorption & scattering will
 !be
 !           larger than is used in the std planar geopotential hydrostatic
 !atmosphere.
-!     (1) Z geometric replaces Z geopotential:  Z-geom = Z-geop / 
-!( 1 - Z-geop/RAD)
-!     (2) Layer (optical) mass increases by AMG(L) = (1 + 
-!Z-geom-midpt(L)/RAD)**2  > 1
-!           to account for rho * dz going from geopotential to geometric
-!     (3) Layer (optical) mass increases by a second factor of AMG(L) = 
-!(1 + Z/RAD)**2
-!           but this is spread over a larger area (also AMG(L)) and so this 
-!factor
-!           does NOT apply to optical mass in expanding area that used for 
-!ray-tracing.
-!           It is recouped in (4) below.
-!     (4) Flux depositon (absorbed or scattered) in each expanded layer is
-!           increased by factor AMG(L) when used in multiple scattering to 
-!reflect
-!           the smaller grid area at the surface assumed for that calculation.
-!     (5) The optical mass grid used in spherical ray-tracing original must be
-!           increased by the expansion factor AMG(L) for the scattering code
-!so that
-!           the total scattered/absorbed flux in an optically thin layer is
-!included.
+!       (1) Z geometric replaces Z geopotential:  Z-geom = Z-geop / ( 1 - Z-geop/RAD)
+!       (2) Layer (optical) mass increases by AMG(L) = (1 + Z-geom-midpt(L)/RAD)**2  > 1
+!             to account for rho * dz going from geopotential to geometric
+!       (3) Layer (optical) mass increases by a second factor of AMG(L) = (1 + Z/RAD)**2
+!             but this is spread over a larger area (also AMG(L)) and so this factor
+!             does NOT apply to optical mass in expanding area that used for ray-tracing.
+!             It is recouped in (4) below.
+!       (4) Flux depositon (absorbed or scattered) in each expanded layer is
+!             increased by factor AMG(L) when used in multiple scattering to reflect
+!             the smaller grid area at the surface assumed for that calculation.
+!       (5) The optical mass grid used in spherical ray-tracing original must be
+!             increased by the expansion factor AMG(L) for the scattering code so that
+!             the total scattered/absorbed flux in an optically thin layer is included.
 !
 !     v7.6  (12/2018) CORRECTS the calc of deposition of direct beam (FLXD)
 !         >>>> for conservative atmos, now predicts no spurious atmos
@@ -54,40 +57,29 @@
 !
 !     v7.6  (06/2018) makes major changes in core scattering routine
 !           to allow for angle-dependent albedos, specifically
-!     The ALBEDO is now specified for each wavelength at the 4 quad angles
-!          AND for the incident SZA (stored as the 5th albedo here).
-!     New simpler way of interpolating TAU and F for inserted cloud layers
-!     OD600 uses only clouds and aerosols, not O3 and Rayleigh as before
-!     Dropped mid-layer odd-points (J's) to cut cost, interpolated cloud
-!layers remain
+!       The ALBEDO is now specified for each wavelength at the 4 quad angles
+!            AND for the incident SZA (stored as the 5th albedo here).
+!       New simpler way of interpolating TAU and F for inserted cloud layers
+!       OD600 uses only clouds and aerosols, not O3 and Rayleigh as before
+!       Dropped mid-layer odd-points (J's) to cut cost, interpolated cloud layers remain
 !
 !     v7.4  (08/2015) consistent with 7.1 data and results
 !          variables in call to PHOTO_JX are same as in 7.1,
 !          but a logical(out) LDARK is added to to count the number of J calcs
-!          Works new ver 7.3 tfor cloud-J
+!          Works new ver 7.3 for cloud-J
 !              + data sets for spectra, clouds and SS aerosols, new aerosol
 !format
 !          Extended to v7.4 to allow for Solar-J
 !          v7.4d fixed the deposition of sunlight for SAZ>90, J's are unchanged.
 
-      MODULE CLDJ_FJX_SUB_MOD
-
       USE CLDJ_CMN_MOD
       USE CLDJ_ERROR_MOD
-
-!SJ! note that Solar-J uses these
-!   USE CMN_FJX_MOD
-!   USE CMN_H_MOD, only: iyear
-!   USE RRSW_FASTJ_CMN, only: MXLAY, ngptsw
-
-
 
       IMPLICIT NONE
 
       PRIVATE
 
       PUBLIC :: PHOTO_JX
-      PUBLIC :: SOLAR_JX
       PUBLIC :: JP_ATM0
       PUBLIC :: ACLIM_FJX  ! Load fast-JX climatology - T & O3
       PUBLIC :: ACLIM_GEO  ! Compute RH profile given P, T, Q
@@ -119,10 +111,6 @@
       ! Prints only
       PRIVATE :: JP_ATM   ! Called in Photo_JX
 
-      ! Not used
-      PRIVATE :: FJX_CLIRAD_H2O ! For Solar-J
-      PRIVATE :: FJX_GGLLNL_H2O ! For Solar-J
-
       CONTAINS
 
 !<<<<<<<<<<<<<<<<<<<<<<<<begin fastJX core code<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -132,10 +120,9 @@
       subroutine PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ, PPP,ZZZ,TTT,HHH,    &
                        DDD,RRR,OOO, CCC, LWP,IWP,REFFL,REFFI,AERSP,    &
                        NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, LDARK,RC)
-!  PHOTO_JX is the gateway to fast-JX calculations:
+!  PHOTO_JX is the gateway to single column fast-JX calculations:
 !    calc J's for a single column atmosphere (aka Indep Colm Atmos or ICA)
-!    needs P, T, O3, clds, aersls; adds top-of-atmos layer from climatology
-!    needs day-of-year for sun distance, SZA (not lat or long)
+!    needs P, T, O3, clds, aersls, SZA (not lat or long), albedos, ...
 !-----------------------------------------------------------------------
 
 !---calling sequence variables
@@ -189,10 +176,7 @@
       real*8, dimension(S_,8)       ::  FFXNET
       real*8, dimension(S_,4)       ::  FFXTAU
       real*8, dimension(8)          ::  FFXNETS
-!--special Solar-J heating arrays for RRTMG, CLIRAD or LLNL
-      real*8, dimension(mxlay, 0:ngptsw-1)  :: TAUG_RRTMG
-      real*8, dimension(L1U, 0:30)          :: TAUG_CLIRAD
-      real*8, dimension(L1U, 0:21)          :: TAUG_LLNL
+!---need special Solar-J heating arrays for RRTMG, CLIRAD or LLNL
 !---flux/heating arrays (along with FJFLX,FLXD,FLXD0)
       real*8  FLXJ(L1_),FFX0,FXBOT,FABOT
       real*8  ODABS,ODRAY,ODI,ODL
@@ -208,7 +192,7 @@
       real*8  FLXUP(S_),FLXDN(S_),DIRUP(S_),DIRDN(S_)
       real*8  VALJL(L1_,X_) !2-D array of J_s returned by JRATET
 !
-      integer  LU,I,J,K,KR,KR0,KG,JG,L,M,NAER,RATIO(S_), NSS2
+      integer  LU,I,J,K,KR,KR0,KG,JG,L,M,NAER,RATIO(S_), NWS2
       real*8   XQO3,XQO2,TTTX, ODKL,DPKL
       real*8   ODRRTM,FRRTM
       real*8   ZMID
@@ -278,27 +262,10 @@
 
 !-----------------------------------------------------------------------
 
-      TAUG_RRTMG  = 0.d0
-      TAUG_CLIRAD = 0.d0
-      TAUG_LLNL   = 0.d0
-!SJ! needed in Solar-J version
-!      if (W_r .ne. 0)then
-!         if (W_r .eq. W_rrtmg)  call RRTMG_SW_INP(IYEAR,L1U,PPJ,ZZJ,DDJ,&
-!                                                  TTJ,HHJ,OOJ,CCJ,TAUG_RRTMG)
-!         if (W_r .eq. W_Clirad) call FJX_CLIRAD_H2O(L1U,PPJ,TTJ,HHJ,&
-!                                                    TAUG_CLIRAD)
-!         if (W_r .eq. W_LLNL)   call FJX_GGLLNL_H2O(L1U,PPJ,TTJ,HHJ,TAUG_LLNL)
-!         write(6,'(a,I5,a,I5,a,I5,a,I5)')'W_r=    ', W_r, 'W_rrtmg=', &
-!               W_rrtmg, 'W_clirad=', W_clirad, 'W_LLNL=', W_LLNL
-
-  !SJ    endif
-
       if (LPRTJ) then
-         write(6,*)'Fast-J v7.6c ---PHOTO_JX internal print: fjx_sub_mod.f90'
-         write(6,'(a,3i8)') ' NWBIN / NSBIN:',NWBIN,NSBIN
-         write(6,'(a,3i8)') ' g-bin super-bin  L-flux: W_  S_  W_+W_r ',&
-                            W_,S_,W_+W_r
-         write(6,'(3i8)')   (KR, KDOKR(KR), LDOKR(KR), KR = 1,W_+W_r)
+         write(6,*)'Fast-J v8.0 ---PHOTO_JX internal print: fjx_sub_mod.f90'
+         write(6,'(a,3i8)') ' W_  S_  W_+W_r ',W_,S_,W_+W_r
+         write(6,'(a,3i8)') ' NWBIN:',NWBIN
          write(6,*) '     L   P1      P2        T  //WPath, Reff, OD'
       endif
 
@@ -494,6 +461,10 @@
             endif
          enddo
 
+!---Add H2O UV absorption (Fast-J bins only 1:18)
+         do K = 1,W_
+            OD(K,L)  = OD(K,L)  + QH2O(K)*HHJ(L)
+         enddo
 !---Add O2 & O3 absorbers to get final optical properties (Fast-J bins
 ! only 1:18)
          do K = 1,W_
@@ -525,43 +496,7 @@
 ! >>> now transform matrix OD(K,L) & SLEG (I,K,L) ==> DTAUX(L,KR) & 
 ! POMEGAX(I,L,KR)
 !     needed for good caching in the solver
-! >>> also expand the K=1:S_ wavelengths of OD & SLEG to the KR=1:W_+W_r
-!     for the full sub-bins of RRTMG.
-      if (LRRTMG .or. LCLIRAD .or. LGGLLNL) then
-         KR0 = W_
-         KR = 0
-         do K = 1,S_
-            do J = 1,NGC(K)  ! for 1:17 just one gbin/bin, for 18:27
-                             ! there are NGC gbins/bin
-               KR = KR+1
-               if (KR .lt. KR0) then
-                  do L = 1,L1U
-                     DTAUX(L,KR) = OD(K,L)
-                     do I = 1,8
-                        POMEGAX(I,L,KR) = SLEG(I,K,L)
-                     enddo
-                  enddo
-               else
-                  do L = 1,L1U
-                     ODRRTM=0.D0
-                     if (LCLIRAD) then
-                        ODRRTM = TAUG_CLIRAD(L,KR-KR0)
-                     elseif(LRRTMG)then
-                        ODRRTM = TAUG_RRTMG(L,KR-KR0)
-                     else if(LGGLLNL)then
-                        ODRRTM = TAUG_LLNL(L,KR-KR0)
-                     endif
-                     DTAUX(L,KR) = OD(K,L) + ODRRTM
-                     FRRTM = OD(K,L)/DTAUX(L,KR)
-                     do I = 1,8
-                        POMEGAX(I,L,KR) = SLEG(I,K,L)*FRRTM
-                     enddo
-                  enddo
-               endif
-            enddo
-         enddo
-      else   ! below = no gas abs bins 18:S_, but cloud/aers abs.
-             ! can be Cloud-J
+! >>> also expand the K=1:S_ wavelengths of OD & SLEG to the KR=1:W_+W_r for the full sub-bins of RRTMG.
          do K=1,S_
             do L=1,L1U
                DTAUX(L,K)= OD(K,L)
@@ -570,7 +505,6 @@
                enddo
             enddo
          enddo
-      endif
       do L=1, L1U
          OD18(L)= OD600(L)
       enddo
@@ -626,7 +560,7 @@
 
 !-----------------------------------------------------------------------
 
-! accumulate data on solar fluxes:  energy and solar heating (!:S_),
+! accumulate data on solar fluxes:  energy and solar heating (1:S_),
 !uses FW(K) [Watts]
       KG = 0
       do K = 1,S_
@@ -634,6 +568,7 @@
 !INIT
             KG = KG+1
             if (LDOKR(KG) .gt. 0) then
+!  LDOKR = 0 for Cloud-J if the solar flux is zeroed, meaning skipped bin for TROP-ONLY
 !  direct(DIR) and diffuse(FLX) fluxes at top(UP) (solar = negative by
 ! convention)
 !  also at bottom (DN), does not include diffuse reflected flux.
@@ -720,28 +655,22 @@
                POMG600(I,L) = POMEGAX(I,L,18)
             enddo
          enddo
-         write(6,'(a)') 'Fast-J  v7.6 ---PHOTO_JX internal print: Atmosphere--'
-         call JP_ATM(PPJ,TTJ,DDJ,OOJ,ZZJ,DTAU600,POMG600,JXTRA, LU)
+         write(6,'(a)') 'Fast-J ---PHOTO_JX internal print: Atmosphere--'
+         call JP_ATM(PPJ,TTJ,DDJ,OOJ,HHJ,ZZJ,DTAU600,POMG600,JXTRA, LU)
+         if ( rc /= CLDJ_SUCCESS ) then
+            call CLOUDJ_ERROR( 'Error calling JP_ATM', thisloc, rc )
+            return
+         endif
 
-!SJ!         if (LRRTMG .or. LCLIRAD .or. LGGLLNL) then
-!SJ!            write(ParaSummary(26:200),'(a, 10f10.4)') &
-!SJ!               ' RFL(,18)/SZA/u0/maxOD600/F-incd/F-refl/: ', &
-!SJ!               (RFL(i,18),i=1,5),SZA, U0, MAXVAL(OD600), FREFI, FREFL
-!SJ!            write(6,'(a)') ParaSummary(1:200)
-!SJ!         endif
          write(6,'(a)') &
-            'Fast-J  v7.6 ---PHOTO_JX internal print: Solar fluxes (W/m2)--'
+            'Fast-J ---PHOTO_JX internal print: Solar fluxes (W/m2)--'
          write(6,'(a11,f12.4)')    ' inc TOTAL ',SWMSQ(1)
          write(6,'(a11,f12.4)')    ' rfl outtop',SWMSQ(2)
          write(6,'(a11,f12.4)')    ' abs in atm',SWMSQ(3)
          write(6,'(a11,f12.4)')    ' abs at srf',SWMSQ(4)
          write(6,'(a11,1p,e12.4)') ' PAR direct',SWMSQ(5)
          write(6,'(a11,1p,e12.4)') ' PAR diffus',SWMSQ(6)
-         NW1=1
-         NS1=1
-         NW2=W_
-         NS2=S_
-         write(6,'(a)') 'Spectral budget scaled to 1.0, wavelengths 27:-1:1'
+         write(6,'(a)') 'Spectral budget scaled to 1.0, wavelengths 18:-1:1'
          write(6,'(a11/(9f8.4))') ' inc TOTAL ',(FFXNET(K,3), K=NS2,NS1,-1)
          write(6,'(a11/(9f8.4))') ' rfl outtop',(FFXNET(K,4), K=NS2,NS1,-1)
          write(6,'(a11/(9f8.4))') ' abs in atm',(FFXNET(K,5), K=NS2,NS1,-1)
@@ -757,114 +686,99 @@
          do K = W_+1,S_
             FREF2 = FREF2 + FFXNET(K,3)
          enddo
-         if (.not.(LRRTMG .or. LCLIRAD)) then
-            write(6,'(a,f10.2,f10.6,3f10.4)') 'FJX: SZA/u0/F-incd/F-refl/', &
-               SZA,U0,FREFI,FREFL,FREFS
-            write(6,'(a,5f10.4)') 'FJX80: albedos@600nm u(1:4) & u0(5)', &
-               RFL(1:5,18)
-            write(6,'(a5,20i8)')   ' bin:',(K, K=NW1,NW2)
-            write(6,'(a5,20f8.1)') ' wvl:',(WL(K), K=NW1,NW2)
-            write(6,'(a)') ' ---- 100000=Fsolar   MEAN INTENSITY per wvl bin'
-                 RATIO = 0.d0
-            do L = LU,1,-1
-               do K=NW1,NW2
-                  if (LDOKR(K) .gt. 0) then
-                     RATIO(K) = (1.d5*FFF(K,L)/(SOLF*FL(K)))
-                  endif
-               enddo
-               write(6,'(i3,2x,18i8)') L,(RATIO(K),K=NW1,NW2)
+
+         write(6,'(a,f10.2,f10.6,3f10.4)') 'FJX: SZA/u0/F-incd/F-refl/', &
+            SZA,U0,FREFI,FREFL,FREFS
+         write(6,'(a,5f10.4)') 'FJX80: albedos@600nm u(1:4) & u0(5)', &
+            RFL(1:5,18)
+         write(6,'(a5,20i8)')   ' bin:',(K, K=NW1,NW2)
+         write(6,'(a5,20f8.1)') ' wvl:',(WL(K), K=NW1,NW2)
+         write(6,'(a)') ' ---- 100000=Fsolar   MEAN INTENSITY per wvl bin'
+              RATIO(:) = 0.d0
+         do L = LU,1,-1
+            do K=NW1,NW2
+               if (LDOKR(K) .gt. 0) then
+                  RATIO(K) = (1.d5*FFF(K,L)/(SOLF*FL(K)))
+               endif
             enddo
-            write(6,'(a)') 'specific intensity onto surface @ 4 quad angles'
-            do I = 1,4
-               write(6,'(f5.2,20f8.5)') EMU(I),(FIBOT(I,K), K=NW1,NW2)
-            enddo
-            write(6,'(a)') 'specific intensity up from lower bndry'
-            write(6,'(f5.2,20f8.5)') U0,(FIBOT(5,K), K=NW1,NW2)
-            write(6,'(a)') 'direct flux at lower bndry'
-            write(6,'(f5.2,20f8.5)') U0,(FSBOT(K), K=NW1,NW2)
-            write(6,'(a)') 'diffus flux at lower bndry'
-            write(6,'(f5.2,20f8.5)') U0,(FJBOT(K), K=NW1,NW2)
-            NSS2 = min(S_,NW2+32)  !  limt for large # of super bins:
-! high-res clouds
-            write(6,'(a5,32i8)')   ' bin:',(K, K=NW2+1,NSS2)
-            write(6,'(a5,32f8.1)') ' wvl:',(WL(K), K=NW2+1,NSS2)
-            write(6,'(a)') 'specific intensity to surface at the 4 quad angles'
-            do I = 1,4
-               write(6,'(f5.2,32f8.5)') EMU(I),(FIBOT(I,K), K=NW2+1,NSS2)
-            enddo
-            write(6,'(a)') 'specific intensity up from lower bndry'
-            write(6,'(f5.2,32f8.5)') U0,(FIBOT(5,K), K=NW2+1,NSS2)
-            write(6,'(a)') 'direct flux at lower bndry'
-            write(6,'(f5.2,32f8.5)') U0,(FSBOT(K), K=NW2+1,NSS2)
-            write(6,'(a)') 'diffus flux at lower bndry'
-            write(6,'(f5.2,32f8.5)') U0,(FJBOT(K), K=NW2+1,NSS2)
-            write(6,*)
-            write(6,'(a,a)') 'Fast-J v7.6 ---PHOTO_JX Net Fluxes include SZA ',&
-                      '& solar dist'
-            write(6,'(a,2f8.2)') ' ---NET FLUXES--- solar < 700 or 778 nm ',&
-                  FREF1,FREF1+FREF2
-            write(6,'(a11,18i8)')   'bins:',(K, K=NW1,NW2)
-            write(6,'(a11,18f8.1)') 'wavl:',(WL(K), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') 'watt:',(FW(K), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') ' sol atm+sf',(FFXNET(K,3), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') ' sol in atm',(FFXNET(K,1), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') ' sol at srf',(FFXNET(K,2), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') ' dif outtop',(FFXNET(K,4), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') ' abs in atm',(FFXNET(K,5), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') ' abs at srf',(FFXNET(K,6), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') ' srf direct',(FFXNET(K,7), K=NW1,NW2)
-            write(6,'(a11,18f8.2)') ' srf diffus',(FFXNET(K,8), K=NW1,NW2)
-            write(6,'(a11,11f8.2,7f8.3)') ' tau absorb',(FFXTAU(K,1), K=NW1,NW2)
-            write(6,'(a11,11f8.2,7f8.3)') ' tau total ',(FFXTAU(K,2), K=NW1,NW2)
-            write(6,'(a11,11f8.2,7f8.3)') ' cld absorb',(FFXTAU(K,3), K=NW1,NW2)
-            write(6,'(a11,11f8.2,7f8.3)') ' cld total ',(FFXTAU(K,4), K=NW1,NW2)
-            write(6,'(a11,1p,e10.3)') ' PAR direct',PREF1
-            write(6,'(a11,1p,e10.3)') ' PAR diffus',PREF2
-            write(6,'(a,3f8.2)') ' ---NET FLUXES--- solar <700, >700, total: ',&
-                             FREF1,FREF2,FREF1+FREF2
-            write(6,'(a11,32i8)')   'bins:',(K, K=NW2+1,NSS2)
-            write(6,'(a11,32f8.1)') 'wavl:',(WL(K), K=NW2+1,NSS2)
-            write(6,'(a11,32f8.2)') 'watt:',(FW(K), K=NW2+1,NSS2)
-            write(6,'(a11,33f8.2)') ' sol atm+sf',(FFXNET(K,3), &
-                  K=NW2+1,NSS2),FFXNETS(3)
-            write(6,'(a11,33f8.2)') ' sol in atm',(FFXNET(K,1), &
-                  K=NW2+1,NSS2),FFXNETS(1)
-            write(6,'(a11,33f8.2)') ' sol at srf',(FFXNET(K,2), &
-                  K=NW2+1,NSS2),FFXNETS(2)
-            write(6,'(a11,33f8.2)') ' dif outtop',(FFXNET(K,4), &
-                  K=NW2+1,NSS2),FFXNETS(4)
-            write(6,'(a11,33f8.2)') ' abs in atm',(FFXNET(K,5), &
-                  K=NW2+1,NSS2),FFXNETS(5)
-            write(6,'(a11,33f8.2)') ' abs at srf',(FFXNET(K,6), &
-                  K=NW2+1,NSS2),FFXNETS(6)
-            write(6,'(a11,33f8.2)') ' srf direct',(FFXNET(K,7), &
-                  K=NW2+1,NSS2),FFXNETS(7)
-            write(6,'(a11,33f8.2)') ' srf diffus',(FFXNET(K,8), &
-                  K=NW2+1,NSS2),FFXNETS(8)
-            write(6,'(a11,32f8.3)') ' tau absorb',(FFXTAU(K,1), K=NW2+1,NSS2)
-            write(6,'(a11,32f8.3)') ' tau total ',(FFXTAU(K,2), K=NW2+1,NSS2)
-            write(6,'(a11,32f8.3)') ' cld absorb',(FFXTAU(K,3), K=NW2+1,NSS2)
-            write(6,'(a11,32f8.3)') ' cld total ',(FFXTAU(K,4), K=NW2+1,NSS2)
-            write(6,'(a)') 'heating rate profiles in K/day v7.6  180-778nm '
-            write(6, '(a4, 32f7.1)')'wvl ',(WL(I),I=NW1,NW2)
-            do L = LU,1,-1
-               write(6,'(i4,32f7.2)') L,(SKPERD(I,L), I=NW1,NW2)
-            enddo
-            write(6,'(a,a)') 'heating rate profiles in K/day v7.6 778-', &
-                  '...nm plus 1:18 19:27 1:27'
-            write(6, '(a4,32f7.1)')'wvl ',(WL(I),I=NW2+1,NSS2)
-            do L = LU,1,-1
-               write(6,'(i4,35f7.2)') L,(SKPERD(I,L), I=NW2+1,NSS2+2), &
-                     SKPERD(S_+1,L)+SKPERD(S_+2,L)
-            enddo
-            write(6,'(a)') ' Fast-J  v7.6 ----J-values----'
-            write(6,'(1x,a,72(a6,3x))') 'L=  ',(TITLEJX(K), K=1,NJX)
-            do L = LU,1,-1
-               ! Adjust NJX (# J-values per level) in write statement for GEOS-Chem
-               !write(6,'(i3,1p, 72e9.2)') L,(VALJXX(L,K),K=1,NJX)
-               write(6,'(i3,1p,104e9.2)') L,(VALJXX(L,K),K=1,NJX)
-            enddo
-       endif  ! end of CLOUDJ print
+            write(6,'(i3,2x,18i8)') L,(RATIO(K),K=NW1,NW2)
+         enddo
+         write(6,'(a)') 'specific intensity onto surface @ 4 quad angles'
+         do I = 1,4
+            write(6,'(f5.2,20f8.5)') EMU(I),(FIBOT(I,K), K=NW1,NW2)
+         enddo
+         write(6,'(a)') 'specific intensity up from lower bndry'
+         write(6,'(f5.2,20f8.5)') U0,(FIBOT(5,K), K=NW1,NW2)
+         write(6,'(a)') 'direct flux at lower bndry'
+         write(6,'(f5.2,20f8.5)') U0,(FSBOT(K), K=NW1,NW2)
+         write(6,'(a)') 'diffus flux at lower bndry'
+         write(6,'(f5.2,20f8.5)') U0,(FJBOT(K), K=NW1,NW2)
+         NWS2 = min(S_,NW2+32)  !  limit for large # of super bins: high-res clouds
+         write(6,'(a5,32i8)')   ' bin:',(K, K=NW2+1,NWS2)
+         write(6,'(a5,32f8.1)') ' wvl:',(WL(K), K=NW2+1,NWS2)
+         write(6,'(a)') 'specific intensity to surface at the 4 quad angles'
+         do I = 1,4
+            write(6,'(f5.2,32f8.5)') EMU(I),(FIBOT(I,K), K=NW2+1,NWS2)
+         enddo
+         write(6,'(a)') 'specific intensity up from lower bndry'
+         write(6,'(f5.2,32f8.5)') U0,(FIBOT(5,K), K=NW2+1,NWS2)
+         write(6,'(a)') 'direct flux at lower bndry'
+         write(6,'(f5.2,32f8.5)') U0,(FSBOT(K), K=NW2+1,NWS2)
+         write(6,'(a)') 'diffus flux at lower bndry'
+         write(6,'(f5.2,32f8.5)') U0,(FJBOT(K), K=NW2+1,NWS2)
+         write(6,*)
+         write(6,*)'Fast-J ---PHOTO_JX Net Fluxes include SZA & solar dist'
+         write(6,'(a,2f8.2)') ' ---NET FLUXES--- solar < 700 or 778 nm ',FREF1,FREF1+FREF2
+         write(6,'(a11,18i8)')   'bins:',(K, K=NW1,NW2)
+         write(6,'(a11,18f8.1)') 'wavl:',(WL(K), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') 'watt:',(FW(K), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') ' sol atm+sf',(FFXNET(K,3), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') ' sol in atm',(FFXNET(K,1), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') ' sol at srf',(FFXNET(K,2), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') ' dif outtop',(FFXNET(K,4), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') ' abs in atm',(FFXNET(K,5), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') ' abs at srf',(FFXNET(K,6), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') ' srf direct',(FFXNET(K,7), K=NW1,NW2)
+         write(6,'(a11,18f8.2)') ' srf diffus',(FFXNET(K,8), K=NW1,NW2)
+         write(6,'(a11,11f8.2,7f8.3)') ' tau absorb',(FFXTAU(K,1), K=NW1,NW2)
+         write(6,'(a11,11f8.2,7f8.3)') ' tau total ',(FFXTAU(K,2), K=NW1,NW2)
+         write(6,'(a11,11f8.2,7f8.3)') ' cld absorb',(FFXTAU(K,3), K=NW1,NW2)
+         write(6,'(a11,11f8.2,7f8.3)') ' cld total ',(FFXTAU(K,4), K=NW1,NW2)
+         write(6,'(a11,1p,e10.3)') ' PAR direct',PREF1
+         write(6,'(a11,1p,e10.3)') ' PAR diffus',PREF2
+         write(6,'(a,3f8.2)') ' ---NET FLUXES--- solar <700, >700, total: ',&
+                          FREF1,FREF2,FREF1+FREF2
+         write(6,'(a11,32i8)')   'bins:',(K, K=NW2+1,NWS2)
+         write(6,'(a11,32f8.1)') 'wavl:',(WL(K), K=NW2+1,NWS2)
+         write(6,'(a11,32f8.2)') 'watt:',(FW(K), K=NW2+1,NWS2)
+         write(6,'(a11,33f8.2)') ' sol atm+sf',(FFXNET(K,3), K=NW2+1,NWS2),FFXNETS(3)
+         write(6,'(a11,33f8.2)') ' sol in atm',(FFXNET(K,1), K=NW2+1,NWS2),FFXNETS(1)
+         write(6,'(a11,33f8.2)') ' sol at srf',(FFXNET(K,2), K=NW2+1,NWS2),FFXNETS(2)
+         write(6,'(a11,33f8.2)') ' dif outtop',(FFXNET(K,4), K=NW2+1,NWS2),FFXNETS(4)
+         write(6,'(a11,33f8.2)') ' abs in atm',(FFXNET(K,5), K=NW2+1,NWS2),FFXNETS(5)
+         write(6,'(a11,33f8.2)') ' abs at srf',(FFXNET(K,6), K=NW2+1,NWS2),FFXNETS(6)
+         write(6,'(a11,33f8.2)') ' srf direct',(FFXNET(K,7), K=NW2+1,NWS2),FFXNETS(7)
+         write(6,'(a11,33f8.2)') ' srf diffus',(FFXNET(K,8), K=NW2+1,NWS2),FFXNETS(8)
+         write(6,'(a11,32f8.3)') ' tau absorb',(FFXTAU(K,1), K=NW2+1,NWS2)
+         write(6,'(a11,32f8.3)') ' tau total ',(FFXTAU(K,2), K=NW2+1,NWS2)
+         write(6,'(a11,32f8.3)') ' cld absorb',(FFXTAU(K,3), K=NW2+1,NWS2)
+         write(6,'(a11,32f8.3)') ' cld total ',(FFXTAU(K,4), K=NW2+1,NWS2)
+         write(6,'(a)') 'heating rate profiles in K/day 180-778nm '
+         write(6, '(a4, 32f7.1)')'wvl ',(WL(I),I=NW1,NW2)
+         do L = LU,1,-1
+            write(6,'(i4,32f7.2)') L,(SKPERD(I,L), I=NW1,NW2)
+         enddo
+         write(6,'(a)') 'heating rate profiles in K/day 778-...nm plus 1:18 19:27 1:27'
+         write(6, '(a4,32f7.1)')'wvl ',(WL(I),I=NW2+1,NWS2)
+         do L = LU,1,-1
+            write(6,'(i4,35f7.2)') L,(SKPERD(I,L), I=NW2+1,NWS2+2),SKPERD(S_+1,L)+SKPERD(S_+2,L)
+         enddo
+         write(6,'(a)') ' Fast-J ----J-values----'
+         write(6,'(1x,a,72(a6,3x))') 'L=  ',(TITLEJX(K), K=1,NJX)
+         do L = LU,1,-1
+            write(6,'(i3,1p, 72e9.2)') L,(VALJXX(L,K),K=1,NJX)
+         enddo
+            
       endif   ! end of LPRTJ if
 
       ! Error catch
@@ -2387,44 +2301,48 @@
 
 
 !-----------------------------------------------------------------------
-      subroutine JP_ATM(PPJ,TTJ,DDJ,OOJ,ZZJ,DTAU6,POMEG6,JXTRA,LU)
+      subroutine JP_ATM(PPJ,TTJ,DDJ,OOJ,HHJ,ZZJ,DTAU6,POMEG6,JXTRA,LU)
 !-----------------------------------------------------------------------
-
+! v8.0 give column H2O
+! internal extensive atmosphere print, called from fjx_sub_mod.f90
+        
 !-----------------------------------------------------------------------
 !---the CTM has L_ = LU layers and fast-JX adds layer LU+1
 !---the pressure and altitude(Z) are on layer edge (LU+2)
       integer,intent(in)                  :: LU
       real*8, intent(in), dimension(LU+2) :: PPJ,ZZJ
-      real*8, intent(in), dimension(LU+1) :: TTJ,DDJ,OOJ,DTAU6
+      real*8, intent(in), dimension(LU+1) :: TTJ,DDJ,OOJ,HHJ,DTAU6
       real*8, intent(in), dimension(8,LU+1) :: POMEG6
       integer,intent(in), dimension(LU+1) :: JXTRA
 !-----------------------------------------------------------------------
       character(len=255)  ::  thisloc
       integer  I,J,K,L
-      real*8   XCOLO2,XCOLO3,ZKM,DELZ,ZTOP,DAIR,DOZO
+      real*8   XCOLO2,XCOLO3,XCOLH2O,ZKM,DELZ,ZTOP,DAIR,DOZO
 
       ! initialize
       thisloc = ' -> at JP_ATM in module cldj_fjx_sub_mod.F90'
 
       write(6,'(4a)') '   L z(km)     p      T   ', &
-       '    d(air)   d(O3)','  col(O2)  col(O3)     d-TAU   SS-alb', &
+       '    d(air)   d(O3)','  col(O2)  col(O3)  col(H2O)   d-TAU   SS-alb', &
        '  g(cos) CTM lyr=>'
       L = LU+2
-      write(6,'(1x,i3,0p,f6.2,f10.3,f7.2,1p,4e9.2,0p,f10.4,2f8.5,2i3)') &
+      write(6,'(1x,i3,0p,f6.2,f10.3,f7.2,1p,5e9.2,0p,f10.4,2f8.5,2i3)') &
             L,ZZJ(L)*1.d-5,PPJ(L)
       XCOLO2 = 0.d0
       XCOLO3 = 0.d0
+      XCOLH2O = 0.d0
       ZTOP = ZZJ(LU+2)
       do L = LU+1,1,-1
         XCOLO2 = XCOLO2 + DDJ(L)*0.20948d0
         XCOLO3 = XCOLO3 + OOJ(L)
+        XCOLH2O = XCOLH2O + HHJ(L)
         DELZ = ZTOP-ZZJ(L)
         ZTOP = ZZJ(L)
         ZKM = ZZJ(L)*1.d-5
         DAIR = DDJ(L)/DELZ
         DOZO = OOJ(L)/DELZ
-        write(6,'(1x,i3,0p,f6.2,f10.3,f7.2,1p,4e9.2,0p,f10.4,2f8.5,2i3)') &
-            L,ZKM,PPJ(L),TTJ(L),DAIR,DOZO,XCOLO2,XCOLO3,DTAU6(L), &
+        write(6,'(1x,i3,0p,f6.2,f10.3,f7.2,1p,5e9.2,0p,f10.4,2f8.5,2i3)') &
+            L,ZKM,PPJ(L),TTJ(L),DAIR,DOZO,XCOLO2,XCOLO3,XCOLH2O,DTAU6(L), &
             POMEG6(1,L),POMEG6(2,L)/3.d0, JXTRA(L)
       enddo
 
@@ -2436,7 +2354,7 @@
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
-!---Atmosphere print, called from outside fjx_sub_mod.f90
+!---short atmosphere print, called from outside fjx_sub_mod.f90
 !---CTM layers are 1:LU, + top layer (to P=0) added
 !---pressure and altitude are on layer edge (1:LU+2)
       integer,intent(in)                  :: LU
@@ -2450,7 +2368,7 @@
       thisloc = ' -> at JP_ATM0 in module cldj_fjx_sub_mod.F90'
 
       write(6,'(4a)') '   L z(km)     p      T   ', &
-       '    d(air)   d(O3)','  col(O2)  col(O3)     d-TAU   SS-alb', &
+       '    d(air)   d(O3)','  col(O2)  col(O3)      d-TAU   SS-alb', &
        '  g(cos) CTM lyr=>'
       L = LU+2
       write(6,'(1x,i3,0p,f6.2,f10.3,f7.2,1p,4e9.2,0p,f10.4,2f8.5,2i3)') &
@@ -2942,221 +2860,7 @@
 
       END SUBROUTINE EXTRAL1
 
-
-!-----------------------------------------------------------------------
-      subroutine SOLAR_JX(GMTIME,NDAY,YGRDJ,XGRDI, SZA,COSSZA,SOLFX)
-!-----------------------------------------------------------------------
-! >>>>>>>> warning tnot specific for SOLAR-J, is it old FAST_J call
-!     GMTIME = UT for when J-values are wanted
-!           (for implicit solver this is at the end of the time step)
-!     NDAY   = integer day of the year (used for solar lat and declin)
-!     YGRDJ  = laitude (radians) for grid (I,J)
-!     XGDRI  = longitude (radians) for grid (I,J)
-!
-!     SZA = solar zenith angle in degrees
-!     COSSZA = U0 = cos(SZA)
-!-----------------------------------------------------------------------
-
-      real*8,  intent(in)  ::  GMTIME,YGRDJ,XGRDI
-      integer, intent(in)  ::  NDAY
-      real*8,  intent(out) ::  SZA,COSSZA,SOLFX
-!
-      character(len=255)   ::  thisloc
-      real*8  LOCT
-      real*8  SINDEC, SOLDEK, COSDEC, SINLAT, SOLLAT, COSLAT, COSZ
-
-      thisloc = ' -> at SOLAR_JX in module cldj_fjx_sub_mod.F90'
-
-      SINDEC = 0.3978d0*sin(0.9863d0*(dble(NDAY)-80.d0)*CPI180)
-      SOLDEK = asin(SINDEC)
-      COSDEC = cos(SOLDEK)
-      SINLAT = sin(YGRDJ)
-      SOLLAT = asin(SINLAT)
-      COSLAT = cos(SOLLAT)
-!
-      LOCT   = (((GMTIME)*15.d0)-180.d0)*CPI180 + XGRDI
-
-      ! set outputs
-      COSSZA = COSDEC*COSLAT*cos(LOCT) + SINDEC*SINLAT
-      SZA    = acos(COSSZA)/CPI180
-      SOLFX  = 1.d0-(0.034d0*cos(dble(NDAY-186)*C2PI/365.d0))
-!
-      END SUBROUTINE SOLAR_JX
-
-
-!SJ!    !!!!!!!!!!!!!!!!! SOLAR-J specific subroutines
-
-!---------------------------------------------------------------------
-      subroutine  FJX_CLIRAD_H2O(nlayers, PPP, TTT, HHH, TAUG_CLIRAD)
-!---------------------------------------------------------------------
-
-      integer,  intent(in):: nlayers
-      real*8 ,  intent(in) :: PPP(nlayers+1), TTT(nlayers), HHH(nlayers)
-      real*8 ,  intent(out):: TAUG_CLIRAD(nlayers, 0:30)
-
-      character(len=255)  :: thisloc
-      integer G, K, INDKG, L
-      real*8, dimension(nlayers):: WT
-! heating rate (K/day) = W/m2 deposited in layer * HeatFac_ / delta-P of
-! layer (hPa)
-      real*8,  parameter:: HeatFac_ = 86400.d0*9.80616d0/1.00464d5, S0=1360.8
-      real*8   HHX, pavg
-!-----------------------------------------------------------------------
-!    Based on  Chu and Lee (JAS, 1996 Parameterizations for the Absorption
-! of Solar Radiation by Water Vapor and Ozone)
-!    Three NIR band wavelength range = 0.70-1.22  1.22-2.27  2.27-10.0 microns
-!    WGF = fraction in sub-bin, WGK = H2O Xsection (cm2/g)
-!    WGTOT (is redundant here); note that unlike the code in Grant and
-! Grossman, the sum of WGF (g) for each band doesn't add up to 1 and is a
-! fracton of total S0 input
-!       real*8, dimension(3), parameter  :: WGTOT =[1, 1, 1]
-! WGF is recalculated to add to 1 for each solar bin and tabulated in
-! FJX_spec_Clirad.dat
-! Delta-g/WGF (fractions of S0 for 10 sub-bins)
-!      real*8, dimension(10,3), parameter  :: WGF = [ &
-!       0.20673, 0.03497, 0.03011, 0.02260, 0.01336, 0.00696, 0.00441, &
-!       0.00115, 0.00026, 0.00000, &
-!       0.08236, 0.01157, 0.01133, 0.01143, 0.01240, 0.01258, 0.01381, &
-!       0.00650, 0.00244, 0.00094, &
-!       0.01074, 0.00360, 0.00411, 0.00421, 0.00389, 0.00326, 0.00499, &
-!       0.00465, 0.00245, 0.00145]
-!2012 HITRAN H2O
-      real*8, dimension(10,3), parameter  :: WGF = RESHAPE( SOURCE = &
-          (/.14983, .04105, .04049, .03372, .02792, .01904, .00862,  &
-            .00235, .00051, .00002,    &
-            .06266, .01465, .01286, .01165, .01311, .01728, .01949,  &
-            .01032, .00358, .00122,    &
-            .00692, .00283, .00350, .00375, .00471, .00534, .00499,  &
-            .00580, .00339, .00176 /), &
-          SHAPE = (/ 10, 3 /) )
-! k-interval
-!      real*8, dimension(10,1), parameter :: WGK  =[&
-!       0.0010, 0.0133, 0.0422, 0.1334, 0.4217, 1.3340, 5.6230, 31.620, &
-!       177.80, 1000.0] !cm2/g
-! revised according to 2012 HITRAN H2O molecular line data; unit cm2/gram
-      real*8, dimension(10), parameter :: WGK  =[&
-       0.0010, 0.0032, 0.0102, 0.0328, 0.1049, 0.4194, 2.5166, 17.616, &
-       123.31, 839.19]
-      real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by
-! Avogado number
-
-      ! set location
-      thisloc = ' -> at FJX_CLIRAD_H2O in module cldj_fjx_sub_mod.F90'
-
-! 0:0 will assign to bin 18 which is 0 for CLIRAD
-      do L=1, nlayers
-         pavg= 0.5d0* (PPP(L)+PPP(L+1))
-! Weighting function Pr=300 hPa, Tr=240K;
-         WT(L)= (pavg/300.d0)**(0.8) * (1+ 0.00135*(TTT(L)- 240.0d0)) &
-                + 1.D-9 !exp(x) ~= 1+x
-! In literatue, the original eq. looks like the one below. So the above 
-! expression is an approximation.
-!        WT(L) =  (pavg/300.d0)**(0.8) * exp(0.00135*(tavg- &
-!                 240.0d0)) !from Chou (1986, Journal of  Clim. and Appl.
-! Meteo. )
-      enddo
-! we want g/cm2 of h2o for each box
-      INDKG = 0
-      do K=1,3
-         do G = 1,10
-            INDKG = INDKG + 1
-!input solar flux
-            do L = nlayers, 1,-1
-!after L box  sol2 left
-               HHX = HHH(L)* CMF !convert molecules/cm2 to g/cm2
-               TAUG_CLIRAD(L, INDKG)= WGK(G)*HHX *WT(L) ! optical depth 
-!for H2O WGK cm2/gram; HHH (g/cm2); WT (no unit)
-            enddo
-         enddo
-      enddo
-
-      return
-
-      END SUBROUTINE  FJX_CLIRAD_H2O
-
-
-!!!!!!!!!!!!!!!!!!! SOLAR-J specific subroutines
-!---------------------------------------------------------------------
-      subroutine  FJX_GGLLNL_H2O(nlayers, PPP, TTT, HHH, TAUG_LLNL)
-!---------------------------------------------------------------------
-
-      integer,  intent(in):: nlayers
-      real*8 ,  intent(in) :: PPP(nlayers+1), TTT(nlayers), HHH(nlayers)
-      real*8 ,  intent(out):: TAUG_LLNL(nlayers, 0:21)
-
-      character(len=255)  :: thisloc
-      integer G, K, INDKG, L
-      real*8, dimension(nlayers):: WT
-! heating rate (K/day) = W/m2 deposited in layer * HeatFac_ / delta-P of
-! layer (hPa)
-      real*8,  parameter:: HeatFac_ = 86400.d0*9.80616d0/1.00464d5, S0=1360.8
-      real*8   HHX, pavg
-!-----------------------------------------------------------------------
-!   Grant & Grossman 1998 3-band Solar IR, based on Chu 1992
-!     wavelengths = 0.69¡V0.86  0.86¡V2.27  2.27¡V3.85 microns
-!     WGTOT = W/m2 in band, WGF = fraction in sub-bin, WGK = H2O Xsection
-!(cm2/g)
-!  WGF and WGTOT are tabulated FJX_spec_GGLLNL.dat
-      real*8, dimension(3), parameter  :: WGTOT =[209.77, 472.71, 46.788]
-      real*8, dimension(7,3), parameter  :: WGF = RESHAPE( SOURCE =    &
-        (/ 0.948551, 0.051449, 0.000000, 0.000000, 0.000000, 0.000000, &
-           0.000000,    &
-           0.703232, 0.085079, 0.098956, 0.046725, 0.049153, 0.016855, &
-           0.000000,    &
-           0.389153, 0.106278, 0.142613, 0.118942, 0.151376, 0.068448, &
-           0.023190 /), &
-        SHAPE = (/ 7, 3 /) )
-!WGK cross sections unit cm2 g-1
-      real*8, dimension(7,3), parameter  :: WGK = RESHAPE( SOURCE =  &
-        (/ 4.3980E-03, 2.4676E-01,        0.0,        0.0,        0.0, &
-           0.0, 0.0, &
-           7.6655E-03, 1.3370E-01, 5.3350E-01, 2.3126E+00, 1.0536E+01, &
-           1.3122E+02, 0.0, &
-           1.4989E-02, 1.3525E-01, 5.3707E-01, 3.1426E+00, 2.1238E+01, &
-           1.8492E+02, 1.6292E+03 /), &
-        SHAPE = (/ 7, 3 /) )
-
-      real*8, parameter :: CMF = 2.98897027277D-23 ! 18.d0 divided by Avogado number
-
-      ! set location
-      thisloc = ' -> at FJX_GGLLNL_H2O in module cldj_fjx_sub_mod.F90'
-
-      ! 0:0 will assign to bin 18 which is 0 for CLIRAD
-      do L=1, nlayers
-         pavg= 0.5d0* (PPP(L)+PPP(L+1))
-! Weighting function Pr=300 hPa, Tr=240K;
-         WT(L)= (pavg/300.d0)**(0.8) * (1+ 0.00135*(TTT(L)- 240.0d0)) &
-                + 1.D-9 !exp(x) ~= 1+x
-! In literatue, the original eq. looks like the one below. So the above
-! expression is an approximation.
-!        WT(L) =  (pavg/300.d0)**(0.8) * exp(0.00135*(tavg- &
-!                 240.0d0)) !from Chou (1986, Journal of  Clim. and Appl.
-! Meteo. )
-      enddo
-! we want g/cm2 of h2o for each box
-      INDKG=0
-      do K=1,3
-         do G = 1,7
-            INDKG = INDKG + 1
-!input solar flux
-            do L = nlayers, 1,-1
-!after L box  sol2 left
-               HHX = HHH(L)* CMF !convert molecules/cm2 to g/cm2
-               TAUG_LLNL(L, INDKG)= WGK(G,K)*HHX *WT(L) ! optical depth
-! for H2O WGK cm2/gram; HHH (g/cm2); WT (no unit)
-!               write(6,'(A10, 2I5, f12.8)')'LLNL tau', L, INDKG, &
-!                     TAUG_LLNL(L,indkg)
-            enddo
-         enddo
-      enddo
-
-      return
-
-      END SUBROUTINE  FJX_GGLLNL_H2O
-
-
-
-
+!!!!!!!!    climatologies
 !-----------------------------------------------------------------------
       subroutine ACLIM_FJX (YLATD,MONTH,PPP, TTT,O3,CH4, L1U)
 !-----------------------------------------------------------------------
@@ -3231,7 +2935,7 @@
       subroutine ACLIM_RH (PL, TL, QL, RH, L1U)
 !-----------------------------------------------------------------------
 !  Calculates RH profile given PL(mid-pressure), TL(K), QL (spec hum)
-!  May nee RH @ L1U (top layer, not CTM) so aerosol calls are stable
+!  May need RH @ L1U (top layer, not CTM) so aerosol calls are stable
 !-----------------------------------------------------------------------
 
       integer, intent(in):: L1U
