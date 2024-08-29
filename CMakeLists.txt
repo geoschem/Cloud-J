@@ -226,7 +226,7 @@ if(NOT CLOUDJ_EXTERNAL_CONFIG)
 
     # Set Cloud-J compile flag to standalone
     target_compile_definitions(CloudJBuildProperties
-        INTERFACE CLOUDJ_STANDALONE
+        INTERFACE MODEL_STANDALONE
     )
 
     # Set CMAKE_BUILD_TYPE to Release by default

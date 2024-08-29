@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated all files in tools/AddXs to be a copy of M. Prather's files included in his Cloud-J v8 release
 - Renamed cldj_osa_sub_mod.F90 to cldj_fjx_osa_mod.F90
 - Hardcoded physical constants in the cldj_cmn_mod module
+- Renamed CLOUDJ_STANDALONE C-preprocessor switch to MODEL_STANDALONE
 
 ### Removed
 - Removed subroutines SOLAR_JX and private subroutines it used

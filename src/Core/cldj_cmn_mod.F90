@@ -37,7 +37,7 @@
       ! 57 levels is only for the UCI CTM atmospheres in the standalone example.
       ! For other uses, pass the # of levels and # layers with clouds from
       ! the parent model.
-#ifdef CLOUDJ_STANDALONE
+#ifdef MODEL_STANDALONE
       integer, parameter :: L_  = 57    !  # of CTM layers, set at build-time
       integer, parameter :: L1_ = L_+1  !  L_+1 = # of CTM layer edges (radii)
       integer, parameter :: L2_ = L_+2  !  L_+2 = total # of layer edges counting top (TAU=0)#
@@ -113,16 +113,16 @@
       ! JVN_ :  max # of J-values
 #ifdef MODEL_GEOSCHEM
       integer, parameter :: JVN_ = 166
-#elif CLOUDJ_STANDALONE
+#elif MODEL_STANDALONE
       integer, parameter :: JVN_ = 101
 #else
-#error "Invalid model selection: parameters only defined for CLOUDJ_STANDALONE and MODEL_GEOSCHEM. Add parameters for additional models in cldj_cmn_mod.F90."
+#error "Invalid model selection: parameters only defined for MODEL_STANDALONE and MODEL_GEOSCHEM. Add parameters for additional models in cldj_cmn_mod.F90."
 #endif
 
       ! AN_ :  max # of FJX aerosols in layer (needs NDX for each)
 #ifdef MODEL_GEOSCHEM
       integer, parameter :: AN_=37
-#elif CLOUDJ_STANDALONE
+#elif MODEL_STANDALONE
       integer, parameter :: AN_=25
 #endif
 
@@ -171,7 +171,7 @@
       ! X_   = dim = max no. of X-section data sets (input data)
 #ifdef MODEL_GEOSCHEM
       integer, parameter ::  X_=123
-#elif CLOUDJ_STANDALONE
+#elif MODEL_STANDALONE
       integer, parameter ::  X_=72
 #endif
 
@@ -179,7 +179,7 @@
       !        clouds and SSA
 #ifdef MODEL_GEOSCHEM
       integer, parameter ::  A_=56
-#elif CLOUDJ_STANDALONE
+#elif MODEL_STANDALONE
       integer, parameter ::  A_=40
 #endif
 

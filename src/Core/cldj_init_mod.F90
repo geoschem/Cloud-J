@@ -63,7 +63,7 @@
       ! Use channel 8 to read fastJ data files:
       JXUNIT = 8
 
-#ifndef CLOUDJ_STANDALONE
+#ifndef MODEL_STANDALONE
       ! Set cldj_cmn_mod variables based on input numbers of levels
       L_    = NLEVELS
       L1_   = L_ + 1
