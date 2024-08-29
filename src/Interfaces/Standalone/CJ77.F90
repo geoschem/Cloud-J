@@ -147,31 +147,28 @@
       ! ATAU0 minimum cloud OD in uppermost inserted layer
       ! CLDCOR correlation of cloud overlap between blocks (0.00 = random)
       ! NWBIN  # wavelength bins in uv-vis for J's <<< can be 8 or 12 also for trop only J's
-      ! LNRG  correlated cloud overlap in 6 blocks,  =0=Max-Ran at gaps, =3=Max-Ran in 3 alt blocks
+      ! LNRG  correlated cloud overlap (bumber of max-overlap blocks) =0=Max-Ran at gaps,
+      !       =3=Max-Ran in 3 alt blocks, 6= six overlap blocks
       ! ATM0  spherical correction: 0=flat, 1=sphr, 2=refr, 3=geom
       ! CLDFLAG see comments below
+      ! CLDFLAG - type of cloud overlap parameterization:
+      !       CLDFLAG = 1  :  Clear sky J's
+      !       CLDFLAG = 2  :  Averaged cloud cover
+      !       CLDFLAG = 3  :  cloud-fract**3/2, then average cloud cover
+      !       CLDFLAG = 4  :  ****not used
+      !       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent Column Atmos.)
+      !       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs (mid-pts of bin)
+      !       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds within each Q-bin)
+      !       CLDFLAG = 8  :  Calculate J's for ALL ICAs (up to 20,000 per cell!)
+      ! Use_H2O_UV_Abs  whether to use UV absorption by water vapor
       ATAU_in    = 1.050d0
       ATAU0_in   = 0.005d0
       CLDCOR_in  = 0.33d0
       NWBIN_in   = 18 
       LNRG_in    = 06
-      ATM0_in    = 2
+      ATM0_in    = 1
       CLDFLAG_in = 7
-
-      ! Set whether to use UV absorption by water vapor (new feature in v8)
-      Use_H2O_UV_Abs = .true.
-! CLDFLAG - type of cloud overlap parameterization:
-!       CLDFLAG = 1  :  Clear sky J's
-!       CLDFLAG = 2  :  Averaged cloud cover
-!       CLDFLAG = 3  :  cloud-fract**3/2, then average cloud cover
-!       CLDFLAG = 4  :  ****not used
-!       CLDFLAG = 5  :  Random select NRANDO ICA's from all(Independent Column Atmos.)
-!       CLDFLAG = 6  :  Use all (up to 4) quadrature cloud cover QCAs (mid-pts of bin)
-!       CLDFLAG = 7  :  Use all (up to 4) QCAs (average clouds within each Q-bin)
-!       CLDFLAG = 8  :  Calculate J's for ALL ICAs (up to 20,000 per cell!)
-! LNRG  read in (fjx_init) = 6 = number of max-overlap blocks, can be 0 (max-ran @ gaps) or 3 (alt blocks)
-!       this should proably be fixed in the FJX_CMN_MOD.f90
-
+      Use_H2O_UV_Abs = .false.
       
 !---read in & setup fast-JX data and parameters:   single call at set up
 !-----------------------------------------------------------------------      
@@ -328,8 +325,6 @@
        NSZA = SZAscan(I)
        SZA = NSZA
 
-      CLDFLAG = 2  !!!!! avg clds for this test
-      write(6,'(i5,a)') CLDFLAG, ' CLDFLAG'
       do L = 1,LTOP
         CLF(L) = CLDFRW(L)
       enddo

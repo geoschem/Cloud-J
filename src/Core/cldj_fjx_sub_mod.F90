@@ -670,7 +670,7 @@ MODULE CLDJ_FJX_SUB_MOD
          write(6,'(a11,f12.4)')    ' abs at srf',SWMSQ(4)
          write(6,'(a11,1p,e12.4)') ' PAR direct',SWMSQ(5)
          write(6,'(a11,1p,e12.4)') ' PAR diffus',SWMSQ(6)
-         write(6,'(a)') 'Spectral budget scaled to 1.0, wavelengths 27:-1:1'
+         write(6,'(a)') 'Spectral budget scaled to 1.0, wavelengths 18:-1:1'
          write(6,'(a11/(9f8.4))') ' inc TOTAL ',(FFXNET(K,3), K=NS2,NS1,-1)
          write(6,'(a11/(9f8.4))') ' rfl outtop',(FFXNET(K,4), K=NS2,NS1,-1)
          write(6,'(a11/(9f8.4))') ' abs in atm',(FFXNET(K,5), K=NS2,NS1,-1)

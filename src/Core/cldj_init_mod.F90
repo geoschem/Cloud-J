@@ -92,6 +92,7 @@
          write(6,'(a,4i5)') ' params NWBIN LNRG CLDFLAG',NWBIN,LNRG,CLDFLAG
          write(6,'(a,f8.4,a,f8.4,a,i2)') 'params ATAU0=',ATAU0,'  ATAU=',ATAU,'   option(ATM0)= ', ATM0
          write(6,'(a,i3,a,i3,a,i3)') 'params W_=',W_,'  S_=',S_,'  W_r=',W_r
+         write(6,'(a,l1)') 'params use_H2O_UV_abs=',use_H2O_UV_abs
       endif
 
       if (W_ .ne. 18) then
