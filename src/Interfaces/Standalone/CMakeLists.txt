@@ -2,7 +2,7 @@
 
 #if("cloudj_standalone" IN_LIST CLOUDJ_EXE_TARGETS)
         add_executable(cloudj_standalone
-                CJ77.F90
+                cldj_standalone.F90
         )
         target_link_libraries(cloudj_standalone
                 PUBLIC CloudJ_Core

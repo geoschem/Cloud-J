@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Renamed CLOUDJ_STANDALONE C-preprocessor switch to MODEL_STANDALONE
 - Changed default standalone model setting for spherical correction from flat earth to spherical
 - Changed default standalone model temperature climatology to be read from file
+- Renamed Cloud-J standalone driver file from CJ77.F90 to cldj_standalone.F90
 
 ### Removed
 - Removed subroutines SOLAR_JX and private subroutines it used

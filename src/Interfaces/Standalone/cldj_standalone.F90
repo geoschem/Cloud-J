@@ -139,7 +139,7 @@
       JVNU = JVN_
       L1U = L1_
       amIRoot = .true.
-      thisloc = 'standalone program in CJ77.F90'
+      thisloc = 'standalone program in cldj_standalone.F90'
 
       ! Global vars previously read from config file but now passed from driver
       !!!!  Key variables/parameters used in Cloud-J that are passed to initialization routine
@@ -392,7 +392,7 @@
 
 
 
-! Example of summary diagnostics from CJ80.F90:  calc. O(1D) and OH primary production
+! Example of summary diagnostics from cldj_standalone.F90:  calc. O(1D) and OH primary production
       N=7
       write(N,'(a,2i5)') ' v8.0 CLDFLAG/NSZA=', CLDFLAG,NSZA
       write(N,*) ' LDARK WTQCA',LDARK,WTQCA
