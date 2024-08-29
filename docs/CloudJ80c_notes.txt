@@ -1,0 +1,259 @@
+NOTE: These notes correspond to the version of Cloud-J stored on M. Prather's website. The version on the Cloud-J github page is an adaptation of that version.
+
+Readme.MD for Cloud-J version 8.0c (from M. Prather)
+
+The files below are included along with a notes file in the UCI_CloudJ80.zip file
+    Located with updates at ftp://128.200.14.8/public/prather/Fast-J_&_Cloud-J/
+It is also published with a Dryad and Zenodo doi
+   Prather, Michael (2023), "An updated cloud-overlap photolysis module for atmospheric chemistry models, UCI Cloud-J v8.0, with near-UV H2O absorption"
+   Dryad, https://doi.org/10.7280/D1Q398.
+
+
+
+====Cloud-J core subroutines
+   13,966 fjx_cmn_mod.f90
+   36,297 fjx_init_mod.f90
+  116,331 fjx_sub_mod.f90
+   47,054 cld_sub_mod.f90
+   50,274 fjx_osa_mod.f90
+  standalone drivers
+   18,390 CJ80.f90    (CLDFLAG=1 = clear sky)
+   18,442 CJ80c.f90   (corrected IWP, CLDFLAG=2)
+  batch file to create executable
+      278 run8chk.bat
+
+
+====/output/     file examples for Cloud-J v8.0
+  unit =6 & =7 output files w/ & w/o xH2O ---- all these are clear sky
+    252,172 CJ80_u6-std.out
+     20,880 CJ80_u7-std.out
+    252,172 CJ80_u6-noXH2O.out
+     20,880 CJ80_u7-noXH2O.out
+  std output for TROP-ONLY options NWBIN=18/12/08, earlier CJ80p version
+    250,641 CJ80_W18.out
+    202,084 CJ80_W12.out
+    202,084 CJ80_W08.out
+  spreadsheet analysis of xH2O (w/ & w/o)
+    303,539 CJ80_u7&u6.xlsx
+     64,349 CJ80_u7.xlsx
+  spreadsheet analysis of J-errors with NWBIN=18/12/08
+     83,365 CJ80_W18-W12-W08_OK.xlsx
+====/output/     file examples for Cloud-J v8.0c = with clds and corrected
+  unit =6 & =7 output files w/clouds corrected & w/o H2O
+    257,446 CJ80c_u6-noH2O.out
+     20,880 CJ80c_u7-noH2O.out
+
+
+====/tables/  spectral & other datasets   file needed for Cloud-J v8.0
+     40,020 FJX_spec.dat
+     35,304 FJX_spec_no-xH2O.dat
+      6,760 FJX_scat-aer.dat
+    114,084 FJX_scat-UMa.dat
+     27,051 FJX_scat-cld.dat
+     36,798 FJX_scat-ssa.dat
+     30,799 FJX_scat-geo.dat
+      5,192 FJX_j2j.dat     = customizable for each CTM's J-values
+    119,690 atmos_std.dat   = atmos_ are climatology files for top-of-atmosphere fill
+    128,459 atmos_h2och4.dat
+    284,228 atmos_geomip.dat
+      7,130 atmos_PTClds.dat = atmosphere for standalone, not needed for CTM implementation
+
+
+Cloud-J version 8.0c notes (May 30, 2023, Prather)
+    After publication of CJ v8.0 code and examples, it was noted at Harvard (E. Lundgren, thank you)
+    that the standalone driver incorrectly calculated the in-cloud Ice Water Path as
+        IWP(L) = 1000.d0*WIC(L)*PDEL*G100 / CLF(L)    ! g/m2
+    whereas it should be in parallel with the Liquid Water Path (as it was in Cloud-J v7.5 and earlier)
+        IWP(L) = 1000.d0*WIC(L)*PDEL*G100    ! g/m2
+    This is corrected in the new standalone driver CJ80c.f90.  This code also turn on clouds as average (CLDFLAG=2)
+
+    Fortunately, all the test using CJ80.f90 were done with CLDFLAG=1 (clear sky) and thus the error did not matter.
+    A new set of output files with CLDFLAG=2 (average clouds) without uv H2O absorption is now included.
+    The basic differences between with and without xH2O are shown in the original output files for v80.
+
+    (April 7, 2023, Prather)
+Cloud-J 8.0 is designed for J-values, rather than for solar heating rates (Solar-J)
+    although it does calculate heating rates for uv-vis using standard 18 wide-band wavelength
+    bins of the traditional Fast-JX codes (~180-778 nm).
+
+    Most of the parameters describing various Cloud-J options are set in
+        1) the cmn block via file FJX_CMN_MOD.F90 (most of the dimension variables)
+        2) the subroutine INIT_FJX via the file FJX_INIT_MOD.F90
+
+    The spectral datasets are set for read-in length of SX_=27 super-bin used for the RRTMG Solar-J calculations.
+    The current usage in terms of radiative transfer calculations is W_ = S_ = 18 (uv-vis, not near-ir)
+    A lot of the Solar-J features have been removed or commented out.
+
+    Version 8.0 has been cleaned up with a number of unused variables and parameters removed.
+    Also the FJX_osa_mod.f90 (ocean surface albedo) has be updated to real*8 and cleaned.
+
+    There is no Solar-J v8.0, any users wanting Solar-J+RRMTG will need ot merge the CJv8.0 with SJv7.6.
+    If users want to run Solar-J based on the old LLNL or CLIRAD codes, those subroutines are still included
+        but not activated.  Further, the wide-band spectral data sets would need to change to match the fewer
+        number of near-ir super-bins, contact mprather@uci.edu.
+
+    The current default is for pseudo-spherical refractive atmosphere and cloud quadrature atmospheres (CLDFLAG=7).
+    The clouds have 6 vertical groupings (max overlap) that are 33% correlated with the blocks above/below.
+
+    This v8.0 code has been tested for the "TROP-ONLY" option with a reduced number of wavelength bins and J-values.
+        NWBIN (set in sub INIT_FJX) = 18 by default, but set to 8 or 12 it produces J-values good for
+        tropospheric-only chemistry.  J-values with NWBIN=12 are within <1% of the standard code up to 20 km. (SZA=0 test)
+        The NWBIN=8 is not quite so good, but the worst case is -1% error in J-O2 up to 17 km; and -3% by 20 km..
+
+    The major reason for CJv8.0 is to include X_H2O cross sections for absorption only in uv-vis (290-350 nm)
+    from Pei et al., 2019    Pei, L., Min, Q., Du, Y., Wang, Z., Yin, B., Yang, K., et al. (2019). Water vapor
+    near-UV absorption: Laboratory spectrum, field evidence, and atmospheric impacts.
+    Journal of Geophysical Research: Atmospheres, 124, 14,310–14,324.  https://doi.org/ 10.1029/2019JD030724
+    Revised CJ code to pass WWW = molec H2O/cm2 for each layer through to PHOTO_J
+
+    IMPACT:  Reduces J(O1D) by 11% in tropics at the surface (cloud-free, SZA=0), 1/2 @ 3 km, 1/4 @ 6 km.
+
+    new cross sections:
+
+        H2O   !H2O UV absorpt  ! Pei++ 2019   (2023-01-17 MJP)
+         300a 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 0.000E+00 xH2O
+         300b 0.000E+00 0.000E+00 0.000E+00 0.000E+00 2.967E-25 4.392E-25 xH2O
+         300c 2.675E-25 5.763E-25 3.613E-25 2.662E-25 3.553E-27 0.000E+00 xH2O
+
+
+
+Cloud-J version 7.7 notes (Feb 2020, Prather)
+
+Small cleanup from version 7.6 (see notes below)
+    some typos and non-std characters removed
+
+!    Variables in calling sequence expanded to get diagnostics out.
+!   'fjx_cmn_mod.f90' modified slightly to include variables for running SJ w/LLNL & CLIRAD
+!     v7.7  (02/2020) Final synch with Solar-J v7.7
+!        Corrects problem with MAX-RAN that was caused by MAX-COR fixes
+!        New calling sequence of FPs, added OD18
+!   'cld_sub_mod.f90' for Cloud-J v7.7 (02/2020) - last change = fixes for MAXRAN
+!---revised in v7.7 (02/2020) fixed MAX-RAN (#0 & #3) set CLDCOR=0 if need be
+!      SUBROUTINE ICA_DIRECT -- not used, finally removed in v7.7
+
+
+====Solar-J/Cloud-J core subroutines
+   47,086 cld_sub_mod.f90
+   12,424 fjx_cmn_mod.f90
+   37,531 fjx_init_mod.f90
+  123,435 fjx_sub_mod.f90
+   46,647 osa_sub_mod.f90
+
+====Cloud-J notes & standalone driver & output (units 6 & 7)
+    5,123 CloudJ_v77_notes.txt
+   10,510 CJ77.f90
+  807,163 CJ77_u6.out
+  460,250 CJ77_u7.out
+      275 run4chk.bat   compile sequence w/boundscheck
+
+====/tables  key data sets for Solar-J/Cloud-J
+    1,290 CJ77_inp.dat
+  284,228 atmos_geomip.dat
+  128,459 atmos_h2och4.dat
+    7,130 atmos_PTClds.dat
+    7,130 atmos_PTClds - for tests.dat
+  119,690 atmos_std.dat
+    5,192 FJX_j2j.dat
+    6,760 FJX_scat-aer.dat
+   27,051 FJX_scat-cld.dat
+   30,799 FJX_scat-geo.dat
+   36,798 FJX_scat-ssa.dat
+  114,084 FJX_scat-UMa.dat
+   39,487 FJX_spec.dat
+
+=====COMPILE sequence (order can matter because of the dependencies):
+    del *.obj
+    ifort -c fjx_cmn_mod.f90
+    ifort -c fjx_sub_mod.f90
+    ifort -c fjx_init_mod.f90
+    ifort -c cld_sub_mod.f90
+    ifort -c osa_sub_mod.f90
+    ifort    CJ77.f90 *.obj
+
+
+
+
+Cloud-J version v7.6c notes (Jul 2019, Prather)
+
+The last published version of Cloud-J was v7.3c (see Prather, 2015 GMD)
+Updates with minor fixes have been released: 7.3d, 7.3e, 7.4d, see
+
+   ftp site:  ftp://128.200.14.8/public/prather/Fast-J_&_Cloud-J
+
+Also see doi:
+   Prather, Michael; Hsu, Juno (2019), Solar-J and Cloud-J models version 7.6c,
+   Dryad, Dataset, https://doi.org/10.7280/D1096P
+
+This new version 7.6c goes along with the publication of the paper:
+    A round Earth for climate models, Prather & Hsu, PNAS, 2019.
+Cloud-J and Solar-J have many overlapping data sets and subroutines,
+    but Solar-J is more complex and has special needs.
+
+Major updates, many described in the 2019 publication include:
+    Spherical hydrostatic corrections for mass and geometry (new option)
+    Corrected calc of deposition of direct beam (FLXD) so that scattered
+        flux is now conserved to 2/e6, and the TOTAL incident is correct
+    A refractive ray-tracing code SPHERE1R is available, and a new cleaner
+         algorithm for SPHERE1N (straight rays) is included.  Also a
+         flat-Earth version SPHERE1F is available.
+    Major re-coding of the Feautrier lower boundary conditions to allow for
+         angle-dependent albedos, specifically the ALBEDO is now specified
+         for each wavelength at the 4 quad angles AND for the incident SZA.
+    New Ocean Surface Albedo (OSA) module depends on angle, wind, chlorophyl
+         based on Seferian++ code; XWRC corrected for <400 nm from 0 to 0.2
+    New simpler way of interpolating TAU and F for inserted cloud layers
+    Dropped adding mid-layer odd-points for J's to cut cost.
+    All the data tables needed to iniitalize are in a subdirectory /tables
+
+Three sample standalone drivers show: a range of solar zenith angles for
+cloudy vs clear, the effect of stratospheric (including GeoMIP) aerosols,
+and the range of different cloud-overlap parameterizations.
+
+Note:  the ACLIM_FJX module in fjx_sub_mod.f90 had to be corrected for Solar-J
+to do a smooth interpolation with latitude.  This corrected version is included
+here as fjx_sub_mod-corr.f90. It should replace the original version, but
+the standalone reference cases have NOT been redone, and the corrected
+version shifts the atmospheric profiles in T and O3.
+
+
+====Solar-J/Cloud-J core subroutines
+      47,517 cld_sub_mod.f90
+      12,256 fjx_cmn_mod.f90
+      36,730 fjx_init_mod.f90
+      46,647 osa_sub_mod.f90
+     119,439 fjx_sub_mod.f90
+
+====Cloud-J sample standalone codes
+       9,222 cj76.f90
+       9,972 cj76flg.f90
+      14,136 cj76ge.f90
+
+====output from the 3 standalone codes
+   1,521,373 cj76.out
+     568,070 cj76flg.out
+     324,401 cj76flg-7.out
+     252,365 cj76ge.out
+
+====/tables  key data sets for Solar-J/Cloud-J
+       1,290 CJ76_inp.dat
+       7,130 atmos_PTClds.dat
+     284,228 atmos_geomip.dat
+     128,459 atmos_h2och4.dat
+     119,690 atmos_std.dat
+       5,192 FJX_j2j.dat
+       6,760 FJX_scat-aer.dat
+      27,051 FJX_scat-cld.dat
+      30,799 FJX_scat-geo.dat
+      36,798 FJX_scat-ssa.dat
+     114,084 FJX_scat-UMa.dat
+      39,303 FJX_spec.dat
+
+
+COMPILE sequence (order can matter because of the dependencies):
+    del *.obj
+    ifort -c fjx_cmn_mod.f90
+    ifort -c fjx_sub_mod.f90
+    ifort -c fjx_init_mod.f90
+    ifort -c cld_sub_mod.f90
+    ifort -c osa_sub_mod.f90
+    ifort    cj76.f90 *.obj
