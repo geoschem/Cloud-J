@@ -4,7 +4,7 @@ This file documents all notable changes to the Cloud-J repository since the init
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - TBD
+## [8.0.0] - 2024-08-29
 ### Added
 - Added M. Prather's new Cloud-J v8 feature of UV absorption by water (source of differences between v7.7 and v8)
 - Added Cloud-J input to specify whether to turn on UV absorption by water
