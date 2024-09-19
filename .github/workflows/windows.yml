@@ -2,6 +2,8 @@ name: Windows
 
 on: 
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -24,9 +26,6 @@ jobs:
           mingw-w64-x86_64-netcdf
           mingw-w64-x86_64-netcdf-fortran
         msystem: MINGW64
-
-    - name: Add MSYS2 to Path
-      run: echo "::add-path::C:\msys64\mingw64\bin"
 
     - name: Configure with CMake
       run: cmake -G "MinGW Makefiles" -B build
