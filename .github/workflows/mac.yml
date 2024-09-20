@@ -34,3 +34,4 @@ jobs:
       
       - name: Run tests
         run: ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose
+        working-directory: build
