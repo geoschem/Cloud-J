@@ -83,6 +83,21 @@ cd cloudj_rundir
 ./cloudj_standalone | tee cloudj.log 2>&1
 ```
 
+
+## How to run the tests
+Cloud-J ensures correctness by testing all changes against known output. This means that anytime that input data
+or an algorithm changes the [reference output](test/expected_output/reference_output.txt) will need to be updated.
+
+To run the tests, compile Cloud-J and then run `make test` or `ctest` from within the build directory.
+
+```
+make test
+```
+
+```
+ctest
+```
+
 ## Debugging
 
 If you wish to build Cloud-J with compiler debug flags on simply run the following command in your build folder prior to the <tt>make</tt> command.

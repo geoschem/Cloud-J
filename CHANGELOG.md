@@ -4,9 +4,10 @@ This file documents all notable changes to the Cloud-J repository since the init
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [8.0.1] - 2024-09-20
+## [8.0.1] - TBD
 ### Added
 - Github actions workflow to build on windows
+- Tests which compare the output to a set of reference output
 
 ### Changed
 - The try_compile.f90 file no longer tries to use netcdf
