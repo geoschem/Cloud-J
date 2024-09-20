@@ -24,15 +24,13 @@ jobs:
           base-devel
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-netcdf
-          mingw-w64-x86_64-netcdf-fortran
         msystem: MINGW64
 
     - name: Add MSYS2 mingw64 to PATH
       run: echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
 
     - name: Configure with CMake
-      run: cmake -G "MinGW Makefiles" -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D NetCDF_DIR=/mingw64/lib/cmake/netCDF/
+      run: cmake -G "MinGW Makefiles" -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: Build the project
       run: cmake --build build

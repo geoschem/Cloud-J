@@ -174,50 +174,11 @@ target_include_directories(CloudJBuildProperties
 # Append Cloud-J's environment variables to CMAKE_PREFIX_PATH
 #-----------------------------------------------------------------------------
 list(APPEND CMAKE_PREFIX_PATH
-    # Possible NetCDF environment variables
-    # $ENV{NetCDF_F_ROOT}     $ENV{NetCDF_C_ROOT}     $ENV{NetCDF_ROOT}
-    # $ENV{NETCDF_F_ROOT}     $ENV{NETCDF_C_ROOT}     $ENV{NETCDF_ROOT}
-    # $ENV{NetCDF_Fortran_ROOT}
-    # $ENV{NETCDF_FORTRAN_ROOT}
-
     # Possible Cloud-J environmnet variables (still needed? -ewl)
     $ENV{GC_F_BIN} 	    $ENV{GC_BIN}
     $ENV{GC_F_INCLUDE} 	    $ENV{GC_INCLUDE}
     $ENV{GC_F_LIB} 	    $ENV{GC_LIB}
 )
-
-#-----------------------------------------------------------------------------
-# Link NetCDF-F to CloudJBuildProperties
-#-----------------------------------------------------------------------------
-find_package(NetCDF REQUIRED)
-
-# find_package(PkgConfig REQUIRED)
-# pkg_check_modules(netcdfc IMPORTED_TARGET REQUIRED netcdf)
-# pkg_check_modules(netcdff IMPORTED_TARGET REQUIRED netcdf-fortran)
-
-# message(STATUS "netcdf: PkgConfig::netcdf")
-# message(STATUS "netcdff: PkgConfig::netcdff")
-
-
-target_include_directories(CloudJBuildProperties
-    INTERFACE ${NetCDF_INCLUDE_DIRS}
-)
-target_link_libraries(CloudJBuildProperties
-    # INTERFACE PkgConfig::netcdf PkgConfig::netcdff
-    INTERFACE ${NetCDF_LIBRARIES}
-)
-
-#-----------------------------------------------------------------------------
-# Use the NC_HAS_COMPRESSION def if nf_def_var_deflate is in netcdf.inc
-#-----------------------------------------------------------------------------
-# if(EXISTS ${NETCDF_F77_INCLUDE_DIR}/netcdf.inc)
-#     file(READ ${NETCDF_F77_INCLUDE_DIR}/netcdf.inc NCINC)
-#     if("${NCINC}" MATCHES ".*nf_def_var_deflate.*")
-#         target_compile_definitions(CloudJBuildProperties
-#             INTERFACE "NC_HAS_COMPRESSION"
-#         )
-#     endif()
-# endif()
 
 #-----------------------------------------------------------------------------
 # Print a description of the source code repo's version
@@ -336,13 +297,13 @@ file(WRITE ${CMAKE_BINARY_DIR}/CloudJBuildProperties.txt
     "CloudJBuildProperties::INTERFACE_INCLUDE_DIRECTORIES:${BT_INCLUDES}\n"
 )
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Try to compile a simple program that uses NetCDF-Fortran and OpenMP
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # if(NOT CLOUDJ_EXTERNAL_CONFIG AND NOT CLOUDJ_TRY_RUN_PASSED)
 
 #     # Format definitions with -D prefix
-#     set(TRY_RUN_LIBRARIES PkgConfig::netcdf PkgConfig::netcdff)
+#     set(TRY_RUN_LIBRARIES "")
 #     set(TRY_RUN_INCLUDE_DIRS "")
 #     set(TRY_RUN_COMPILER_FLAGS "")
 #     set(TRY_RUN_DEFINITIONS "")
