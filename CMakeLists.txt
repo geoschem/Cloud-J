@@ -175,10 +175,10 @@ target_include_directories(CloudJBuildProperties
 #-----------------------------------------------------------------------------
 list(APPEND CMAKE_PREFIX_PATH
     # Possible NetCDF environment variables
-    $ENV{NetCDF_F_ROOT}     $ENV{NetCDF_C_ROOT}     $ENV{NetCDF_ROOT}
-    $ENV{NETCDF_F_ROOT}     $ENV{NETCDF_C_ROOT}     $ENV{NETCDF_ROOT}
-    $ENV{NetCDF_Fortran_ROOT}
-    $ENV{NETCDF_FORTRAN_ROOT}
+    # $ENV{NetCDF_F_ROOT}     $ENV{NetCDF_C_ROOT}     $ENV{NetCDF_ROOT}
+    # $ENV{NETCDF_F_ROOT}     $ENV{NETCDF_C_ROOT}     $ENV{NETCDF_ROOT}
+    # $ENV{NetCDF_Fortran_ROOT}
+    # $ENV{NETCDF_FORTRAN_ROOT}
 
     # Possible Cloud-J environmnet variables (still needed? -ewl)
     $ENV{GC_F_BIN} 	    $ENV{GC_BIN}
@@ -190,24 +190,34 @@ list(APPEND CMAKE_PREFIX_PATH
 # Link NetCDF-F to CloudJBuildProperties
 #-----------------------------------------------------------------------------
 find_package(NetCDF REQUIRED)
+
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(netcdfc IMPORTED_TARGET REQUIRED netcdf)
+# pkg_check_modules(netcdff IMPORTED_TARGET REQUIRED netcdf-fortran)
+
+# message(STATUS "netcdf: PkgConfig::netcdf")
+# message(STATUS "netcdff: PkgConfig::netcdff")
+
+
 target_include_directories(CloudJBuildProperties
-    INTERFACE ${NETCDF_INCLUDE_DIRS}
+    INTERFACE ${NetCDF_INCLUDE_DIRS}
 )
 target_link_libraries(CloudJBuildProperties
-    INTERFACE ${NETCDF_LIBRARIES}
+    # INTERFACE PkgConfig::netcdf PkgConfig::netcdff
+    INTERFACE ${NetCDF_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------
 # Use the NC_HAS_COMPRESSION def if nf_def_var_deflate is in netcdf.inc
 #-----------------------------------------------------------------------------
-if(EXISTS ${NETCDF_F77_INCLUDE_DIR}/netcdf.inc)
-    file(READ ${NETCDF_F77_INCLUDE_DIR}/netcdf.inc NCINC)
-    if("${NCINC}" MATCHES ".*nf_def_var_deflate.*")
-        target_compile_definitions(CloudJBuildProperties
-            INTERFACE "NC_HAS_COMPRESSION"
-        )
-    endif()
-endif()
+# if(EXISTS ${NETCDF_F77_INCLUDE_DIR}/netcdf.inc)
+#     file(READ ${NETCDF_F77_INCLUDE_DIR}/netcdf.inc NCINC)
+#     if("${NCINC}" MATCHES ".*nf_def_var_deflate.*")
+#         target_compile_definitions(CloudJBuildProperties
+#             INTERFACE "NC_HAS_COMPRESSION"
+#         )
+#     endif()
+# endif()
 
 #-----------------------------------------------------------------------------
 # Print a description of the source code repo's version
@@ -329,73 +339,73 @@ file(WRITE ${CMAKE_BINARY_DIR}/CloudJBuildProperties.txt
 #-----------------------------------------------------------------------------
 # Try to compile a simple program that uses NetCDF-Fortran and OpenMP
 #-----------------------------------------------------------------------------
-if(NOT CLOUDJ_EXTERNAL_CONFIG AND NOT CLOUDJ_TRY_RUN_PASSED)
+# if(NOT CLOUDJ_EXTERNAL_CONFIG AND NOT CLOUDJ_TRY_RUN_PASSED)
 
-    # Format definitions with -D prefix
-    set(TRY_RUN_LIBRARIES ${NETCDF_LIBRARIES})
-    set(TRY_RUN_INCLUDE_DIRS ${NETCDF_INCLUDE_DIRS})
-    set(TRY_RUN_COMPILER_FLAGS "")
-    set(TRY_RUN_DEFINITIONS "")
+#     # Format definitions with -D prefix
+#     set(TRY_RUN_LIBRARIES PkgConfig::netcdf PkgConfig::netcdff)
+#     set(TRY_RUN_INCLUDE_DIRS "")
+#     set(TRY_RUN_COMPILER_FLAGS "")
+#     set(TRY_RUN_DEFINITIONS "")
 
-    if(OMP)
-        list(APPEND TRY_RUN_LIBRARIES ${OpenMP_Fortran_LIBRARIES})
-        list(APPEND TRY_RUN_COMPILER_FLAGS ${OpenMP_Fortran_FLAGS})
-    else()
-        list(APPEND TRY_RUN_DEFINITIONS -DNO_OMP)
-    endif()
+#     if(OMP)
+#         list(APPEND TRY_RUN_LIBRARIES ${OpenMP_Fortran_LIBRARIES})
+#         list(APPEND TRY_RUN_COMPILER_FLAGS ${OpenMP_Fortran_FLAGS})
+#     else()
+#         list(APPEND TRY_RUN_DEFINITIONS -DNO_OMP)
+#     endif()
 
-    # Try to compile and run try_compile.F90
-    try_run(RUN_FAILED COMPILED_OK
-        ${CMAKE_CURRENT_BINARY_DIR}/try_compile                  # binary dir
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeScripts/try_compile.F90 # test src file
-        LINK_LIBRARIES ${TRY_RUN_LIBRARIES}
-        CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${TRY_RUN_INCLUDE_DIRS}" "-DCMAKE_Fortran_FLAGS=${TRY_RUN_COMPILER_FLAGS}"
-        COMPILE_DEFINITIONS ${TRY_RUN_DEFINITIONS}
-        COMPILE_OUTPUT_VARIABLE COMPILE_OUTPUT
-        RUN_OUTPUT_VARIABLE RUN_OUTPUT
-    )
+#     # Try to compile and run try_compile.F90
+#     try_run(RUN_FAILED COMPILED_OK
+#         ${CMAKE_CURRENT_BINARY_DIR}/try_compile                  # binary dir
+#         ${CMAKE_CURRENT_SOURCE_DIR}/CMakeScripts/try_compile.F90 # test src file
+#         LINK_LIBRARIES ${TRY_RUN_LIBRARIES}
+#         CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${TRY_RUN_INCLUDE_DIRS}" "-DCMAKE_Fortran_FLAGS=${TRY_RUN_COMPILER_FLAGS}"
+#         COMPILE_DEFINITIONS ${TRY_RUN_DEFINITIONS}
+#         COMPILE_OUTPUT_VARIABLE COMPILE_OUTPUT
+#         RUN_OUTPUT_VARIABLE RUN_OUTPUT
+#     )
 
-    # Display a warning if its compilation failed
-    if(NOT COMPILED_OK)
-        if(OMP)
-            set(CONDITIONAL_AND_OMP " and OpenMP")
-        endif()
-        message(WARNING
-            "Failed to compile a simple program that uses "
-            "NetCDF-Fortran ${CONDITIONAL_AND_OMP}! Could "
-            "your NetCDF installation be broken?\nSee "
-            "\"FailedCompile.txt\" for more info."
-        )
-        file(WRITE ${CMAKE_BINARY_DIR}/FailedCompile.txt
-            "${COMPILE_OUTPUT}"
-        )
-    else()
-        file(REMOVE ${CMAKE_BINARY_DIR}/FailedCompile.txt)
-    endif()
+#     # Display a warning if its compilation failed
+#     if(NOT COMPILED_OK)
+#         if(OMP)
+#             set(CONDITIONAL_AND_OMP " and OpenMP")
+#         endif()
+#         message(WARNING
+#             "Failed to compile a simple program that uses "
+#             "NetCDF-Fortran ${CONDITIONAL_AND_OMP}! Could "
+#             "your NetCDF installation be broken?\nSee "
+#             "\"FailedCompile.txt\" for more info."
+#         )
+#         file(WRITE ${CMAKE_BINARY_DIR}/FailedCompile.txt
+#             "${COMPILE_OUTPUT}"
+#         )
+#     else()
+#         file(REMOVE ${CMAKE_BINARY_DIR}/FailedCompile.txt)
+#     endif()
 
-    # Display a warning if its execution failed
-    if(RUN_FAILED)
-        if(OMP)
-            set(CONDITIONAL_AND_OMP "and OpenMP ")
-        endif()
-        message(WARNING
-            "A simple program that uses NetCDF-Fortran "
-            "${CONDITIONAL_AND_OMP}compiled successfully, "
-            "but its execution failed!\n\nSee "
-            "\"FailedExecution.txt\" for more info."
-        )
-        file(WRITE ${CMAKE_BINARY_DIR}/FailedEasyRun.txt
-            "${COMPILE_OUTPUT}\n${RUN_OUTPUT}"
-        )
-    else()
-        file(REMOVE ${CMAKE_BINARY_DIR}/FailedEasyRun.txt
-            ${CMAKE_BINARY_DIR}/simple_xy.nc
-        )
-        set(GC_TRY_RUN_PASSED TRUE CACHE INTERNAL
-            "try_run passed" FORCE
-        )
-    endif()
-endif()
+#     # Display a warning if its execution failed
+#     if(RUN_FAILED)
+#         if(OMP)
+#             set(CONDITIONAL_AND_OMP "and OpenMP ")
+#         endif()
+#         message(WARNING
+#             "A simple program that uses NetCDF-Fortran "
+#             "${CONDITIONAL_AND_OMP}compiled successfully, "
+#             "but its execution failed!\n\nSee "
+#             "\"FailedExecution.txt\" for more info."
+#         )
+#         file(WRITE ${CMAKE_BINARY_DIR}/FailedEasyRun.txt
+#             "${COMPILE_OUTPUT}\n${RUN_OUTPUT}"
+#         )
+#     else()
+#         file(REMOVE ${CMAKE_BINARY_DIR}/FailedEasyRun.txt
+#             ${CMAKE_BINARY_DIR}/simple_xy.nc
+#         )
+#         set(GC_TRY_RUN_PASSED TRUE CACHE INTERNAL
+#             "try_run passed" FORCE
+#         )
+#     endif()
+# endif()
 
 #-----------------------------------------------------------------------------
 # Print output of environment variable settings
