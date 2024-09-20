@@ -1,4 +1,4 @@
-name: Ubuntu
+name: Windows
 
 on: 
   push:
@@ -13,23 +13,33 @@ concurrency:
 
 jobs:
   gnu:
-    runs-on: ubuntu-24.04
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        gcc_version: [12, 13, 14]
         build_type: [Debug, Release]
-    env:
-      FC: gfortran-${{ matrix.gcc_version }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Cmake
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+          msystem: MINGW64
 
-      - name: Build
+      - name: Add MSYS2 mingw64 to PATH
+        run: echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
+
+      - name: Configure with CMake
+        run: cmake -G "MinGW Makefiles" -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build the project
         run: cmake --build build  --verbose
 
       - name: Run tests

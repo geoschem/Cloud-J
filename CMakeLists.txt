@@ -19,6 +19,11 @@ message("Current status: ${CLDJ_REPO_VERSION}")
 message("=================================================================")
 
 #-----------------------------------------------------------------------------
+# options
+#-----------------------------------------------------------------------------
+option(CLOUDJ_ENABLE_TESTS "Build the tests" ON)
+
+#-----------------------------------------------------------------------------
 # Set policies
 #-----------------------------------------------------------------------------
 cmake_policy(SET CMP0054 NEW)
@@ -174,40 +179,11 @@ target_include_directories(CloudJBuildProperties
 # Append Cloud-J's environment variables to CMAKE_PREFIX_PATH
 #-----------------------------------------------------------------------------
 list(APPEND CMAKE_PREFIX_PATH
-    # Possible NetCDF environment variables
-    $ENV{NetCDF_F_ROOT}     $ENV{NetCDF_C_ROOT}     $ENV{NetCDF_ROOT}
-    $ENV{NETCDF_F_ROOT}     $ENV{NETCDF_C_ROOT}     $ENV{NETCDF_ROOT}
-    $ENV{NetCDF_Fortran_ROOT}
-    $ENV{NETCDF_FORTRAN_ROOT}
-
     # Possible Cloud-J environmnet variables (still needed? -ewl)
     $ENV{GC_F_BIN} 	    $ENV{GC_BIN}
     $ENV{GC_F_INCLUDE} 	    $ENV{GC_INCLUDE}
     $ENV{GC_F_LIB} 	    $ENV{GC_LIB}
 )
-
-#-----------------------------------------------------------------------------
-# Link NetCDF-F to CloudJBuildProperties
-#-----------------------------------------------------------------------------
-find_package(NetCDF REQUIRED)
-target_include_directories(CloudJBuildProperties
-    INTERFACE ${NETCDF_INCLUDE_DIRS}
-)
-target_link_libraries(CloudJBuildProperties
-    INTERFACE ${NETCDF_LIBRARIES}
-)
-
-#-----------------------------------------------------------------------------
-# Use the NC_HAS_COMPRESSION def if nf_def_var_deflate is in netcdf.inc
-#-----------------------------------------------------------------------------
-if(EXISTS ${NETCDF_F77_INCLUDE_DIR}/netcdf.inc)
-    file(READ ${NETCDF_F77_INCLUDE_DIR}/netcdf.inc NCINC)
-    if("${NCINC}" MATCHES ".*nf_def_var_deflate.*")
-        target_compile_definitions(CloudJBuildProperties
-            INTERFACE "NC_HAS_COMPRESSION"
-        )
-    endif()
-endif()
 
 #-----------------------------------------------------------------------------
 # Print a description of the source code repo's version
@@ -326,14 +302,14 @@ file(WRITE ${CMAKE_BINARY_DIR}/CloudJBuildProperties.txt
     "CloudJBuildProperties::INTERFACE_INCLUDE_DIRECTORIES:${BT_INCLUDES}\n"
 )
 
-#-----------------------------------------------------------------------------
-# Try to compile a simple program that uses NetCDF-Fortran and OpenMP
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Try to compile a simple program that uses OpenMP
+# -----------------------------------------------------------------------------
 if(NOT CLOUDJ_EXTERNAL_CONFIG AND NOT CLOUDJ_TRY_RUN_PASSED)
 
     # Format definitions with -D prefix
-    set(TRY_RUN_LIBRARIES ${NETCDF_LIBRARIES})
-    set(TRY_RUN_INCLUDE_DIRS ${NETCDF_INCLUDE_DIRS})
+    set(TRY_RUN_LIBRARIES "")
+    set(TRY_RUN_INCLUDE_DIRS "")
     set(TRY_RUN_COMPILER_FLAGS "")
     set(TRY_RUN_DEFINITIONS "")
 
@@ -362,9 +338,8 @@ if(NOT CLOUDJ_EXTERNAL_CONFIG AND NOT CLOUDJ_TRY_RUN_PASSED)
         endif()
         message(WARNING
             "Failed to compile a simple program that uses "
-            "NetCDF-Fortran ${CONDITIONAL_AND_OMP}! Could "
-            "your NetCDF installation be broken?\nSee "
-            "\"FailedCompile.txt\" for more info."
+            "${CONDITIONAL_AND_OMP}!"
+            "\nSee \"FailedCompile.txt\" for more info."
         )
         file(WRITE ${CMAKE_BINARY_DIR}/FailedCompile.txt
             "${COMPILE_OUTPUT}"
@@ -379,7 +354,7 @@ if(NOT CLOUDJ_EXTERNAL_CONFIG AND NOT CLOUDJ_TRY_RUN_PASSED)
             set(CONDITIONAL_AND_OMP "and OpenMP ")
         endif()
         message(WARNING
-            "A simple program that uses NetCDF-Fortran "
+            "A simple program that uses "
             "${CONDITIONAL_AND_OMP}compiled successfully, "
             "but its execution failed!\n\nSee "
             "\"FailedExecution.txt\" for more info."
@@ -410,3 +385,19 @@ endif()
 # Add source code directory
 #-----------------------------------------------------------------------------
 add_subdirectory(src)
+
+#-----------------------------------------------------------------------------
+# Add test directory
+#-----------------------------------------------------------------------------
+if (CLOUDJ_ENABLE_TESTS)
+    enable_testing()
+
+    add_subdirectory(test)
+
+    #-----------------------------------------------------------------------------
+    # The executable needs the data tables, copy them into the bin directory if tests are enabled
+    #-----------------------------------------------------------------------------
+
+    add_custom_target(copy_table_data ALL ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/tables ${PROJECT_BINARY_DIR}/bin/tables)
+endif()
