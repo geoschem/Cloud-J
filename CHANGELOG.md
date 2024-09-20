@@ -7,13 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [8.0.1] - TBD
 ### Added
 - Github actions workflow to build on windows
-- Tests which compare the output to a set of reference output
+- Tests which compare the output of Cloud-J to some saved reference output.
 
 ### Changed
 - The try_compile.f90 file no longer tries to use netcdf
 
 ### Removed
 - Removed all mentions of netcdf in the cmake files as netcdf was only needed to compile a test program
+- Removed installation of netcdf in Ubuntu and macOS github actions as these are no longer needed.
 
 ## [8.0.0] - 2024-08-29
 ### Added
