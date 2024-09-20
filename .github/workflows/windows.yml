@@ -32,7 +32,7 @@ jobs:
       run: echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
 
     - name: Configure with CMake
-      run: cmake -G "MinGW Makefiles" -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D BUILD_SHARED_LIBS=OFF
+      run: cmake -G "MinGW Makefiles" -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D NetCDF_DIR=/mingw64/lib/cmake/netCDF/
 
     - name: Build the project
       run: cmake --build build
