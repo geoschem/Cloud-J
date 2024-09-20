@@ -12,4 +12,7 @@
         install(TARGETS cloudj_standalone
                 RUNTIME DESTINATION ${RUNDIR}
         )
+        target_link_libraries(cloudj_standalone
+                PRIVATE "-Wl,--stack,10485760"
+        )
 #endif()
