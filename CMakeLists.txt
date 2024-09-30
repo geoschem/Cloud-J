@@ -1,7 +1,7 @@
 # Cloud-J/CMakeLists.txt
 
 cmake_minimum_required(VERSION 3.5)
-project(CLOUDJ VERSION 8.0.0 LANGUAGES Fortran)
+project(CLOUDJ VERSION 8.0.1 LANGUAGES Fortran)
 
 #-----------------------------------------------------------------------------
 # Add CMakeScripts/ to the module path
