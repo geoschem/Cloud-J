@@ -23,8 +23,10 @@ jobs:
       FC: gfortran-${{ matrix.gcc_version }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install netcdf netcdf-fortran
 
       - name: Run Cmake
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
