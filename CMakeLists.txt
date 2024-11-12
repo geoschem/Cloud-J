@@ -179,6 +179,12 @@ target_include_directories(CloudJBuildProperties
 # Append Cloud-J's environment variables to CMAKE_PREFIX_PATH
 #-----------------------------------------------------------------------------
 list(APPEND CMAKE_PREFIX_PATH
+    # Possible NetCDF environment variables
+    $ENV{NetCDF_F_ROOT}     $ENV{NetCDF_C_ROOT}     $ENV{NetCDF_ROOT}
+    $ENV{NETCDF_F_ROOT}     $ENV{NETCDF_C_ROOT}     $ENV{NETCDF_ROOT}
+    $ENV{NetCDF_Fortran_ROOT}
+    $ENV{NETCDF_FORTRAN_ROOT}
+
     # Possible Cloud-J environmnet variables (still needed? -ewl)
     $ENV{GC_F_BIN} 	    $ENV{GC_BIN}
     $ENV{GC_F_INCLUDE} 	    $ENV{GC_INCLUDE}
@@ -331,8 +337,8 @@ file(WRITE ${CMAKE_BINARY_DIR}/CloudJBuildProperties.txt
 if(NOT CLOUDJ_EXTERNAL_CONFIG AND NOT CLOUDJ_TRY_RUN_PASSED)
 
     # Format definitions with -D prefix
-    set(TRY_RUN_LIBRARIES "")
-    set(TRY_RUN_INCLUDE_DIRS "")
+    set(TRY_RUN_LIBRARIES ${NETCDF_LIBRARIES})
+    set(TRY_RUN_INCLUDE_DIRS ${NETCDF_INCLUDE_DIRS})
     set(TRY_RUN_COMPILER_FLAGS "")
     set(TRY_RUN_DEFINITIONS "")
 
