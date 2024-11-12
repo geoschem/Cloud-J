@@ -111,13 +111,7 @@
 !------------------------------------------------------------------------------
 
       ! JVN_ :  max # of J-values
-#ifdef MODEL_GEOSCHEM
-      integer, parameter :: JVN_ = 166
-#elif MODEL_STANDALONE
-      integer, parameter :: JVN_ = 101
-#else
-#error "Invalid model selection: parameters only defined for MODEL_STANDALONE and MODEL_GEOSCHEM. Add parameters for additional models in cldj_cmn_mod.F90."
-#endif
+      integer, parameter :: JVN_ = 200
 
       ! AN_ :  max # of FJX aerosols in layer (needs NDX for each)
 #ifdef MODEL_GEOSCHEM

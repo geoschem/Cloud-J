@@ -1031,7 +1031,11 @@
          if (AMIROOT) write(6,'(a)') CLINE
       do J = 1,JVN_
        read (NUNIT,'(i4,1x,a50,4x,f5.3,2x,a6)') JJ,T_REACT,F_FJX,T_FJX
-       if (JJ .gt. JVN_) exit
+       if (JJ .eq. 9999 ) exit
+       if (JJ .gt. JVN_) then
+          call CLOUDJ_ERROR('JVN_ must be >= number of entries in FJX_j2j.dat!', thisloc, rc)
+          return
+       endif
         JLABEL(JJ) = T_REACT
         JFACTA(JJ) = F_FJX
         JVMAP(JJ) = T_FJX

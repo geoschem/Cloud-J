@@ -4,7 +4,8 @@ This file documents all notable changes to the Cloud-J repository since the init
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [8.0.1] - TBD
+
+## [8.0.2] - TBD
 ### Added
 - Github actions workflow to build on windows
 - Tests which compare the output of Cloud-J to some saved reference output.
@@ -12,9 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - The try_compile.f90 file no longer tries to use netcdf
 
-### Removed
-- Removed all mentions of netcdf in the cmake files as netcdf was only needed to compile a test program
-- Removed installation of netcdf in Ubuntu and macOS github actions as these are no longer needed.
+## [8.0.1] - 2024-09-30
+### Added
+- Added error handling to exit the model if JVN_ is less than number of entries in FJX_j2j.dat
+
+### Changed
+- Updated usage of variable JVN_ to be max # of J-values rather than exact # of J-values
 
 ## [8.0.0] - 2024-08-29
 ### Added
