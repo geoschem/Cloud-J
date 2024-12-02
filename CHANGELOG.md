@@ -10,9 +10,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Github actions workflow to build on windows
 - Tests which compare the output of Cloud-J to some saved reference output.
 
-### Changed
-- The try_compile.f90 file no longer tries to use netcdf
-
 ## [8.0.1] - 2024-09-30
 ### Added
 - Added error handling to exit the model if JVN_ is less than number of entries in FJX_j2j.dat
