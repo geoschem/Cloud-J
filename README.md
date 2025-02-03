@@ -2,6 +2,7 @@
 
 [![Ubuntu](https://github.com/geoschem/Cloud-J/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/geoschem/Cloud-J/actions/workflows/ubuntu.yml)
 [![Mac](https://github.com/geoschem/Cloud-J/actions/workflows/mac.yml/badge.svg)](https://github.com/geoschem/Cloud-J/actions/workflows/mac.yml)
+[![Windows](https://github.com/geoschem/Cloud-J/actions/workflows/windows.yml/badge.svg)](https://github.com/geoschem/Cloud-J/actions/workflows/windows.yml)
 [![License](https://img.shields.io/badge/license-GPLv3-blue)](https://github.com/geoschem/Cloud-J/blob/main/LICENSE)
 
 Cloud-J is a multi-scattering eight-stream radiative transfer model for solar radiation based on Fast-J. It was originally developed by Michael J. Prather (UCI). For information about the origins and history of Cloud-J and its predecessor Fast-J please see the [history document](https://github.com/geoschem/cloud-j/blob/main/docs/History_of_Fast-J_photolysis_code.md) in the docs subdirectory of this repository.
@@ -80,6 +81,21 @@ Execute <tt>cloudj_standalone</tt> to run the model, sending both standard outpu
 ```
 cd cloudj_rundir
 ./cloudj_standalone | tee cloudj.log 2>&1
+```
+
+
+## How to run the tests
+Cloud-J ensures correctness by testing all changes against known output. This means that anytime that input data
+or an algorithm changes the [reference output](test/expected_output/reference_output.txt) will need to be updated.
+
+To run the tests, compile Cloud-J and then run `make test` or `ctest` from within the build directory.
+
+```
+make test
+```
+
+```
+ctest
 ```
 
 ## Debugging

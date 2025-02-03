@@ -19,6 +19,11 @@ message("Current status: ${CLDJ_REPO_VERSION}")
 message("=================================================================")
 
 #-----------------------------------------------------------------------------
+# options
+#-----------------------------------------------------------------------------
+option(CLOUDJ_ENABLE_TESTS "Build the tests" ON)
+
+#-----------------------------------------------------------------------------
 # Set policies
 #-----------------------------------------------------------------------------
 cmake_policy(SET CMP0054 NEW)
@@ -326,9 +331,9 @@ file(WRITE ${CMAKE_BINARY_DIR}/CloudJBuildProperties.txt
     "CloudJBuildProperties::INTERFACE_INCLUDE_DIRECTORIES:${BT_INCLUDES}\n"
 )
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Try to compile a simple program that uses NetCDF-Fortran and OpenMP
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 if(NOT CLOUDJ_EXTERNAL_CONFIG AND NOT CLOUDJ_TRY_RUN_PASSED)
 
     # Format definitions with -D prefix
@@ -410,3 +415,19 @@ endif()
 # Add source code directory
 #-----------------------------------------------------------------------------
 add_subdirectory(src)
+
+#-----------------------------------------------------------------------------
+# Add test directory
+#-----------------------------------------------------------------------------
+if (CLOUDJ_ENABLE_TESTS)
+    enable_testing()
+
+    add_subdirectory(test)
+
+    #-----------------------------------------------------------------------------
+    # The executable needs the data tables, copy them into the bin directory if tests are enabled
+    #-----------------------------------------------------------------------------
+
+    add_custom_target(copy_table_data ALL ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/tables ${PROJECT_BINARY_DIR}/bin/tables)
+endif()
