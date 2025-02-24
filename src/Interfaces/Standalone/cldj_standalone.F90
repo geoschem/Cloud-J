@@ -31,6 +31,10 @@
       real*8,  dimension(L_,JVN_) :: VALJXX
       real*8,  dimension(5,S_)    :: RFL
       real*8,  dimension(NQD_)    :: WTQCA
+      real*8,  dimension(W_+W_r)     :: FSBOT
+      real*8,  dimension(W_+W_r)     :: FJXBOT
+      real*8,  dimension(L1_,W_+W_r) :: FLXD
+      real*8,  dimension(L1_,W_+W_r) :: FJFLX
 
 !-------------local use-----------------------
       integer :: NSZA,MONTH,ILAT
@@ -379,12 +383,16 @@
       SWMSQ(:)= 0.d0
       OD18(:) =0.d0
       WTQCA(:)= 0.d0
+      FSBOT(:)= 0.d0
+      FJXBOT(:)= 0.d0
+      FLXD(:,:)= 0.d0
+      FJFLX(:,:)= 0.d0
 
 !=======================================================================
        call CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,       &
                RRR,OOO,CCC, LWP,IWP,REFFL,REFFI, CLF,CLDCOR,CLDIW,    &
                AERSP,NDXAER,L1U,ANU,JVNU, VALJXX,SKPERD,SWMSQ,OD18,    &
-               IRAN,NICA, JCOUNT,LDARK,WTQCA,RC)
+               IRAN,NICA, JCOUNT,LDARK,WTQCA,FSBOT,FJXBOT,FLXD,FJFLX,RC)
        if ( RC /= CLDJ_SUCCESS ) then
           call CLOUDJ_ERROR_STOP( 'Failure in CLOUD_JX', thisloc )
        endif
