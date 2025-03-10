@@ -6,10 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 ## [8.0.2] - TBD
-### Added
 - Github actions workflow to build on windows
 - Tests which compare the output of Cloud-J to some saved reference output.
-- Added four new output arguments to CLOUD_JX and FAST_JX for use in computing UV flux diagnostics in external models 
+- Added four optional output arguments to CLOUD_JX to retrieve fluxes from FAST_JX: FSBOT, FJXBOT, FJFLX, FLXD
 
 ## [8.0.1] - 2024-09-30
 ### Added

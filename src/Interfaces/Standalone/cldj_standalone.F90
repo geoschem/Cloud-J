@@ -392,7 +392,8 @@
        call CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,       &
                RRR,OOO,CCC, LWP,IWP,REFFL,REFFI, CLF,CLDCOR,CLDIW,    &
                AERSP,NDXAER,L1U,ANU,JVNU, VALJXX,SKPERD,SWMSQ,OD18,    &
-               IRAN,NICA, JCOUNT,LDARK,WTQCA,FSBOT,FJXBOT,FLXD,FJFLX,RC)
+               IRAN,NICA, JCOUNT,LDARK,WTQCA,RC,FSBOT=FSBOT,           &
+               FJXBOT=FJXBOT,FLXD=FLXD,FJFLX=FJFLX)
        if ( RC /= CLDJ_SUCCESS ) then
           call CLOUDJ_ERROR_STOP( 'Failure in CLOUD_JX', thisloc )
        endif

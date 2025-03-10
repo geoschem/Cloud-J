@@ -30,7 +30,7 @@
       SUBROUTINE CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,  &
              RRR,OOO,CCC, LWP,IWP,REFFL,REFFI, CLDF,CLDCOR,CLDIW,      &
              AERSP,NDXAER,L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18,      &
-             IRAN,NICA, JCOUNT,LDARK,WTQCA,FSBOT, FJXBOT, FLXD, FJFLX,RC)
+             IRAN,NICA, JCOUNT,LDARK,WTQCA,RC,FSBOT,FJXBOT,FLXD,FJFLX )
 
 !---Current recommendation for best average J's is
 !     1) cloud decorellation w/ max-overlap blocks:  LNRG = 6 and CLDCOR = 0.33
@@ -128,11 +128,12 @@
       integer, intent(out)                        :: NICA
       integer, intent(out)                        :: JCOUNT
       logical, intent(out)                        :: LDARK
-      real*8,  intent(out), dimension(W_+W_r)     :: FSBOT
-      real*8,  intent(out), dimension(W_+W_r)     :: FJXBOT
-      real*8,  intent(out), dimension(L1U,W_+W_r) :: FLXD
-      real*8,  intent(out), dimension(L1U,W_+W_r) :: FJFLX
       integer, intent(out)                        :: RC
+      real*8,  intent(out), dimension(W_+W_r),     optional :: FSBOT
+      real*8,  intent(out), dimension(W_+W_r),     optional :: FJXBOT
+      real*8,  intent(out), dimension(L1U,W_+W_r), optional :: FLXD
+      real*8,  intent(out), dimension(L1U,W_+W_r), optional :: FJFLX
+
 !-----------------------------------------------------------------------
       character(len=255)          :: thisloc
       logical  LPRTJ0
