@@ -180,6 +180,10 @@
       SWMSQQ  = 0.d0
       OD18    = 0.d0
       OD18Q   = 0.d0
+      FSBOT   = 0.d0
+      FJXBOT  = 0.d0
+      FLXD    = 0.d0
+      FJFLX   = 0.d0
 
 !---CLOUD_JX:   different cloud schemes
 !-----------------------------------------------------------------------

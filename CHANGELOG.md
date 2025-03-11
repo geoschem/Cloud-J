@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 ## [8.0.2] - TBD
+### Added
 - Github actions workflow to build on windows
 - Tests which compare the output of Cloud-J to some saved reference output.
 - Added four optional output arguments to CLOUD_JX and made them required in PHOTO_JX to retrieve direct and diffuse fluxes
