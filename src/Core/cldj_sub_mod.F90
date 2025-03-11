@@ -30,7 +30,8 @@
       SUBROUTINE CLOUD_JX (U0,SZA,RFL,SOLF,LPRTJ,PPP,ZZZ,TTT,HHH,DDD,  &
              RRR,OOO,CCC, LWP,IWP,REFFL,REFFI, CLDF,CLDCOR,CLDIW,      &
              AERSP,NDXAER,L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18,      &
-             IRAN,NICA, JCOUNT,LDARK,WTQCA,RC,FSBOT,FJXBOT,FLXD,FJFLX )
+             IRAN,NICA, JCOUNT,LDARK,WTQCA,RC,                         &
+             DirSfcFlux, DiffSfcFlux, DepFlux, DiffTopFlux            )
 
 !---Current recommendation for best average J's is
 !     1) cloud decorellation w/ max-overlap blocks:  LNRG = 6 and CLDCOR = 0.33
@@ -129,31 +130,35 @@
       integer, intent(out)                        :: JCOUNT
       logical, intent(out)                        :: LDARK
       integer, intent(out)                        :: RC
-      real*8,  intent(out), dimension(W_+W_r),     optional :: FSBOT
-      real*8,  intent(out), dimension(W_+W_r),     optional :: FJXBOT
-      real*8,  intent(out), dimension(L1U,W_+W_r), optional :: FLXD
-      real*8,  intent(out), dimension(L1U,W_+W_r), optional :: FJFLX
+      real*8,  intent(out), dimension(W_+W_r),     optional :: DirSfcFlux
+      real*8,  intent(out), dimension(W_+W_r),     optional :: DiffSfcFlux
+      real*8,  intent(out), dimension(L1U,W_+W_r), optional :: DepFlux
+      real*8,  intent(out), dimension(L1U,W_+W_r), optional :: DiffTopFlux
 
 !-----------------------------------------------------------------------
       character(len=255)          :: thisloc
       logical  LPRTJ0
       integer  I,II,J,K,L,M,N, LTOP, NRG,IRANX, NRANDO
       real*8   CLDFR, XRAN, FSCALE, QCAOD, WTRAN
-      real*8,  dimension(L1U)     :: LWPX,IWPX,REFFLX,REFFIX
-      real*8,  dimension(LWEPAR)  :: CLTL,CLTI, CLT,CLDX
-      integer, dimension(LWEPAR)  :: NCLDF
+      real*8,  dimension(L1U)        :: LWPX, IWPX, REFFLX, REFFIX
+      real*8,  dimension(LWEPAR)     :: CLTL, CLTI,  CLT, CLDX
+      integer, dimension(LWEPAR)     :: NCLDF
       ! # max-verlap groups set at 9
-      integer, dimension(9)       :: GBOT,GTOP,GLVL,GNR,GCMX
-      integer, dimension(9,CBIN_+1) :: GFNR
-      real*8,  dimension(CBIN_)   ::  CFBIN
-      real*8,  dimension(ICA_)    ::    WCOL,OCOL, OCDFS
-      integer, dimension(ICA_)    :: ISORT
-      real*8,  dimension(LWEPAR+1)   :: TCLD,TTCOL,SOLT,TAUG
-      integer, dimension(NQD_)       :: NQ1,NQ2,NDXQS
-      real*8,  dimension(L1U-1,NJXU) ::  VALJXXX
-      real*8,  dimension(S_+2,L1U)  :: SKPERDD
-      real*8,  dimension(6)         :: SWMSQQ
-      real*8,  dimension(L1U)       :: OD18Q
+      integer, dimension(9)          :: GBOT, GTOP, GLVL, GNR, GCMX
+      integer, dimension(9,CBIN_+1)  :: GFNR
+      real*8,  dimension(CBIN_)      :: CFBIN
+      real*8,  dimension(ICA_)       :: WCOL, OCOL,OCDFS
+      integer, dimension(ICA_)       :: ISORT
+      real*8,  dimension(LWEPAR+1)   :: TCLD, TTCOL, SOLT, TAUG
+      integer, dimension(NQD_)       :: NQ1, NQ2, NDXQS
+      real*8,  dimension(L1U-1,NJXU) :: VALJXXX
+      real*8,  dimension(S_+2,L1U)   :: SKPERDD
+      real*8,  dimension(6)          :: SWMSQQ
+      real*8,  dimension(L1U)        :: OD18Q
+      real*8,  dimension(W_+W_r),    :: FSBOT
+      real*8,  dimension(W_+W_r)     :: FJXBOT
+      real*8,  dimension(L1U,W_+W_r) :: FLXD
+      real*8,  dimension(L1U,W_+W_r) :: FJFLX
 
 !-----------------------------------------------------------------------
 
@@ -569,6 +574,12 @@
 !-----------------------------------------------------------------------
 
       endif
+
+      ! Set optional outputs
+      IF ( PRESENT( DirSfcFlux  ) ) DirSfcFlux  = FSBOT
+      IF ( PRESENT( DiffSfcFlux ) ) DiffSfcFlux = FJXBOT
+      IF ( PRESENT( DepFlux     ) ) DepFlux     = FLXD
+      IF ( PRESENT( DiffTopFlux ) ) DiffTopFlux = FJFLX
 
       END SUBROUTINE CLOUD_JX
 

@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [8.0.2] - TBD
 - Github actions workflow to build on windows
 - Tests which compare the output of Cloud-J to some saved reference output.
-- Added four optional output arguments to CLOUD_JX to retrieve fluxes from FAST_JX: FSBOT, FJXBOT, FJFLX, FLXD
+- Added four optional output arguments to CLOUD_JX and made them required in PHOTO_JX to retrieve direct and diffuse fluxes
 
 ## [8.0.1] - 2024-09-30
 ### Added
