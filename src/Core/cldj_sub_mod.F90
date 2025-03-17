@@ -155,7 +155,7 @@
       real*8,  dimension(S_+2,L1U)   :: SKPERDD
       real*8,  dimension(6)          :: SWMSQQ
       real*8,  dimension(L1U)        :: OD18Q
-      real*8,  dimension(W_+W_r),    :: FSBOT
+      real*8,  dimension(W_+W_r)     :: FSBOT
       real*8,  dimension(W_+W_r)     :: FJXBOT
       real*8,  dimension(L1U,W_+W_r) :: FLXD
       real*8,  dimension(L1U,W_+W_r) :: FJFLX
