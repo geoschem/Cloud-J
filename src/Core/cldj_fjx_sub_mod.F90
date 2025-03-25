@@ -119,7 +119,8 @@ MODULE CLDJ_FJX_SUB_MOD
 !-----------------------------------------------------------------------
       subroutine PHOTO_JX (U0,SZA,RFL,SOLF, LPRTJ, PPP,ZZZ,TTT,HHH,    &
                        DDD,RRR,OOO, CCC, LWP,IWP,REFFL,REFFI,AERSP,    &
-                       NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, LDARK,RC)
+                       NDXAER, L1U,ANU,NJXU, VALJXX,SKPERD,SWMSQ,OD18, &
+                       LDARK,FSBOT,FJBOT,FLXD,FJFLX,RC)
 !  PHOTO_JX is the gateway to single column fast-JX calculations:
 !    calc J's for a single column atmosphere (aka Indep Colm Atmos or ICA)
 !    needs P, T, O3, clds, aersls, SZA (not lat or long), albedos, ...
@@ -149,12 +150,16 @@ MODULE CLDJ_FJX_SUB_MOD
       integer, intent(in)                    :: L1U   ! cloud-j input
       integer, intent(in)                    :: NJXU  ! cloud-j input
 ! reports out the JX J-values, upper level program converts to CTM chemistry J's
-      real*8,intent(out), dimension(L1U-1,NJXU):: VALJXX ! cloud-j output
-      real*8,intent(out), dimension(S_+2,L1U)  :: SKPERD ! cloud-j output
-      real*8,  intent(out), dimension(6)       :: SWMSQ  ! cloud-j output
-      real*8,  intent(out), dimension(L1U)     :: OD18   ! cloud-j output
-      logical, intent(out)                     :: LDARK  ! cloud-j output
-      integer, intent(inout)                   :: RC     ! cloud-j output
+      real*8,  intent(out), dimension(L1U-1,NJXU) :: VALJXX
+      real*8,  intent(out), dimension(S_+2,L1U)   :: SKPERD
+      real*8,  intent(out), dimension(6)          :: SWMSQ
+      real*8,  intent(out), dimension(L1U)        :: OD18
+      logical, intent(out)                        :: LDARK
+      real*8,  intent(out), dimension(W_+W_r)     :: FSBOT
+      real*8,  intent(out), dimension(W_+W_r)     :: FJBOT
+      real*8,  intent(out), dimension(L1U,W_+W_r) :: FLXD
+      real*8,  intent(out), dimension(L1U,W_+W_r) :: FJFLX
+      integer, intent(inout)                      :: RC
 
 !-----------------------------------------------------------------------
       character(len=255)  ::  thisloc, errmsg
@@ -164,10 +169,10 @@ MODULE CLDJ_FJX_SUB_MOD
       real*8, dimension(L1_)   :: TTJ,HHJ,DDJ,RRJ,OOJ,CCJ
       integer,dimension(L1_)   :: JXTRA
 !
-      real*8, dimension(W_+W_r)       :: FJTOP,FJBOT,FSBOT,FLXD0
+      real*8, dimension(W_+W_r)       :: FJTOP, FLXD0
       real*8, dimension(5,W_+W_r)     :: FIBOT
-      real*8, dimension(L1_,W_+W_r)   :: AVGF, FJFLX
-      real*8, dimension(L1_,W_+W_r)   :: DTAUX, FLXD
+      real*8, dimension(L1_,W_+W_r)   :: AVGF
+      real*8, dimension(L1_,W_+W_r)   :: DTAUX
       real*8, dimension(8,L1_,W_+W_r) :: POMEGAX
 !
       real*8, dimension(L1_)        ::  DTAU600
