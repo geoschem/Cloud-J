@@ -1,9 +1,18 @@
 # Cloud-J
 
-[![Ubuntu](https://github.com/geoschem/Cloud-J/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/geoschem/Cloud-J/actions/workflows/ubuntu.yml)
-[![Mac](https://github.com/geoschem/Cloud-J/actions/workflows/mac.yml/badge.svg)](https://github.com/geoschem/Cloud-J/actions/workflows/mac.yml)
-[![Windows](https://github.com/geoschem/Cloud-J/actions/workflows/windows.yml/badge.svg)](https://github.com/geoschem/Cloud-J/actions/workflows/windows.yml)
-[![License](https://img.shields.io/badge/license-GPLv3-blue)](https://github.com/geoschem/Cloud-J/blob/main/LICENSE)
+<p>
+  <a href="https://github.com/geoschem/hemco/cloud-j"><img src="https://img.shields.io/github/v/release/geoschem/cloud-j?include_prereleases&label=Latest%20Pre-Release"></a>
+  <a href="https://github.com/geoschem/cloud-j/releases"><img src="https://img.shields.io/github/v/release/geoschem/cloud-j?label=Latest%20Stable%20Release"></a>
+  <a href="https://github.com/geoschem/cloud-j/releases/"><img src="https://img.shields.io/github/release-date/geoschem/cloud-j"></a>
+  <br />
+  <a href="https://doi.org/10.5281/zenodo.13862693"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.13862693.svg" alt="DOI"></a>
+  <a href="https://github.com/geoschem/Cloud-J/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
+  <a href="https://github.com/geoschem/Cloud-J/actions/workflows/ubuntu.yml"><img src="https://github.com/geoschem/Cloud-J/actions/workflows/ubuntu.yml/badge.svg" alt="Ubuntu"></a>
+  <a href="https://github.com/geoschem/Cloud-J/actions/workflows/mac.yml"><img src="https://github.com/geoschem/Cloud-J/actions/workflows/mac.yml/badge.svg" alt="Mac"></a>
+  <a href="https://github.com/geoschem/Cloud-J/actions/workflows/windows.yml"><img src="https://github.com/geoschem/Cloud-J/actions/workflows/windows.yml/badge.svg" alt="Windows"></a>
+</p>
+
+## Description
 
 Cloud-J is a multi-scattering eight-stream radiative transfer model for solar radiation based on Fast-J. It was originally developed by Michael J. Prather (UCI). For information about the origins and history of Cloud-J and its predecessor Fast-J please see the [history document](https://github.com/geoschem/cloud-j/blob/main/docs/History_of_Fast-J_photolysis_code.md) in the docs subdirectory of this repository.
 
