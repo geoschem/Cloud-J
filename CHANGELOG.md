@@ -4,11 +4,10 @@ This file documents all notable changes to the Cloud-J repository since the init
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-## [8.0.2] - TBD
+## [8.0.2] - 2015-03-25
 ### Added
-- Github actions workflow to build on windows
-- Tests which compare the output of Cloud-J to some saved reference output.
+- Added Github actions workflow to build on Windows
+- Added tests which compare the output of Cloud-J to some saved reference output
 - Added four optional output arguments to CLOUD_JX and made them required in PHOTO_JX to retrieve direct and diffuse fluxes
 - Added version and license badges to README
 
