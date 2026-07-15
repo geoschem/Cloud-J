@@ -52,6 +52,7 @@ add_library(CloudJBuildProperties INTERFACE)
 set(CloudJ_Fortran_FLAGS_Intel
    -cpp -w -auto -noalign "SHELL:-convert big_endian" "SHELL:-fp-model source" -mcmodel=medium
    -shared-intel -traceback -DLINUX_IFORT
+   "SHELL:-diag-disable=10448"
    CACHE STRING "Cloud-J compiler flags for all build types with Intel compilers"
 )
 set(CloudJ_Fortran_FLAGS_RELEASE_Intel
