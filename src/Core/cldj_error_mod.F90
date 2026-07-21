@@ -1,3 +1,10 @@
+#ifdef MAPL_ESMF
+#ifdef MAPL3
+#include "MAPL.h"
+#else
+#include "MAPL_Generic.h"
+#endif
+#endif
 MODULE CLDJ_ERROR_MOD
 
   IMPLICIT NONE
@@ -14,9 +21,12 @@ CONTAINS
   !-----------------------------------------------------------------------
   subroutine CLOUDJ_ERROR_STOP( errmsg, loc )
 
-#if defined( MAPL_ESMF )
-#include "MAPL_Generic.h"
+#ifdef MAPL_ESMF
+#ifdef MAPL3
+    USE MAPL, ONLY : MAPL_Assert
+#else
     USE MAPLBase_Mod
+#endif
 #elif defined( MODEL_CESM )
     USE CAM_ABORTUTILS,     ONLY : ENDRUN
 #endif
@@ -54,9 +64,10 @@ CONTAINS
 #if defined( MODEL_CESM )
     USE CAM_ABORTUTILS, ONLY : ENDRUN
 #elif MAPL_ESMF
-#include "MAPL_Generic.h"
     USE ESMF
-    USE MAPLBase_Mod
+#ifdef MAPL3
+    USE MAPL, ONLY : MAPL_Verify
+#endif
 #endif
 
     CHARACTER(LEN=*), INTENT(IN   )  :: errmsg  ! Message to display
@@ -73,7 +84,7 @@ CONTAINS
 #ifdef MAPL_ESMF
     ! Get current thread number
     CALL ESMF_VMGetCurrent(vm, RC=STATUS)
-    CALL ESMF_VmGet( vm, localPET=localPET, __RC__ )
+    CALL ESMF_VmGet( vm, localPET=localPET, _RC )
     WRITE(localPETchar,'(I4.4)') localPET
     msg = 'CLOUDJ_ERROR ['//TRIM(localPETchar)//']: '//TRIM(errmsg) &
          //' --> LOCATION: ' // TRIM(loc)
