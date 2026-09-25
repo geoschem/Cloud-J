@@ -19,6 +19,8 @@
 # Fortran module files
 *.mod
 *.smod
+*.mod0
+*.lst
 
 # Compiled Static libraries
 *.lai
@@ -35,3 +37,44 @@
 build*/
 run*/
 *~
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.venv/
+venv/
+env/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# C/C++ and CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+/Makefile
+compile_commands.json
+Testing/
+CTestTestfile.cmake
+_deps/
+*.gcno
+*.gcda
+*.gcov
+
+# macOS
+.DS_Store
+
+.gemini/
+
+.specify/
+.kiro/
+superpowers/
+.superpowers/
+docs/superpowers/
+specs/

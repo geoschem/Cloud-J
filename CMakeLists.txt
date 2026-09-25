@@ -1,7 +1,7 @@
 # Cloud-J/CMakeLists.txt
 
 cmake_minimum_required(VERSION 3.5)
-project(CLOUDJ VERSION 8.0.2 LANGUAGES Fortran)
+project(CLOUDJ VERSION 8.0.2 LANGUAGES Fortran CXX)
 
 #-----------------------------------------------------------------------------
 # Add CMakeScripts/ to the module path
@@ -23,6 +23,34 @@ message("=================================================================")
 #-----------------------------------------------------------------------------
 option(CLOUDJ_ENABLE_TESTS "Build the tests" ON)
 
+# Add build toggle
+option(CLOUDJ_CPP_PORT "Build C++ header-only port and standalone driver" ON)
+
+if(CLOUDJ_CPP_PORT)
+    # Target C++14 standard
+    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+    option(CLOUDJ_USE_KOKKOS "Enable Kokkos GPU Dual-Backend" OFF)
+    if(CLOUDJ_USE_KOKKOS)
+        find_package(Kokkos REQUIRED)
+        find_package(KokkosKernels REQUIRED)
+        add_definitions(-DCLOUDJ_USE_KOKKOS)
+    endif()
+
+    option(CLOUDJ_USE_PCR "Enable PCR Tridiagonal Solver Backend" OFF)
+    if(CLOUDJ_USE_PCR)
+        add_definitions(-DCLOUDJ_USE_PCR)
+    endif()
+
+    option(CLOUDJ_USE_OPENMP "Enable OpenMP parallelization of the per-wavelength radiative solve inside a single cloud_jx() call (opt-in; do not combine with column-level parallelism in the host model without benchmarking oversubscription)" OFF)
+    if(CLOUDJ_USE_OPENMP)
+        find_package(OpenMP REQUIRED COMPONENTS CXX)
+        add_definitions(-DCLOUDJ_USE_OPENMP)
+    endif()
+endif()
+
 #-----------------------------------------------------------------------------
 # Set policies
 #-----------------------------------------------------------------------------
@@ -43,7 +71,7 @@ add_library(CloudJBuildProperties INTERFACE)
 #---------------------------------------------------------------------
 # Default compiler options
 #
-# CloudJ_Fortran_FLAGS_<COMPILER_ID> : common flags (all build types) 
+# CloudJ_Fortran_FLAGS_<COMPILER_ID> : common flags (all build types)
 # CloudJ_Fortran_FLAGS_<CONFIG>_<COMPILER_ID> : types-specific flags
 #
 # Valid COMPILER_ID: Intel and GNU
@@ -93,7 +121,7 @@ set(CloudJ_Fortran_FLAGS_RELWITHDEBINFO_GNU
    CACHE STRING "Cloud-J compiler flags for build type relwithdebinfo with GNU compilers"
 )
 set(CloudJ_Fortran_FLAGS_DEBUG_GNU
-   -g -gdwarf-2 -gstrict-dwarf -O0 -Wall -Wextra -Wconversion -Warray-temporaries 
+   -g -gdwarf-2 -gstrict-dwarf -O0 -Wall -Wextra -Wconversion -Warray-temporaries
    -fcheck=array-temps -ffpe-trap=invalid,zero,overflow -finit-real=snan -fcheck=bounds -fcheck=pointer
    CACHE STRING "Cloud-J compiler flags for build type debug with GNU compilers"
 )
@@ -139,7 +167,7 @@ target_compile_definitions(CloudJBuildProperties INTERFACE
 #-----------------------------------------------------------------------------
 set(OMP "TRUE" CACHE STRING "Enables/disables Cloud-J built with OpenMP")
 if(${OMP})
-    find_package(OpenMP REQUIRED)
+    find_package(OpenMP COMPONENTS Fortran REQUIRED)
     ###########################################################################
     # NOTE: Newer versions of CMake (maybe > 3.8) prefer OpenMP::OpenMP
     # rather than ${OpenMP_Fortran_FLAGS} to specify compilation options
@@ -298,7 +326,7 @@ if(CLOUDJ_EXTERNAL_CONFIG AND MAPL_ESMF)
         INTERFACE $<LINK_ONLY:MAPL.base>
 	INTERFACE $<LINK_ONLY:MAPL.generic>
     )
-    target_include_directories(CloudJBuildProperties 
+    target_include_directories(CloudJBuildProperties
         INTERFACE $<TARGET_PROPERTY:MAPL.base,INTERFACE_INCLUDE_DIRECTORIES>
 	INTERFACE $<TARGET_PROPERTY:MAPL.generic,INTERFACE_INCLUDE_DIRECTORIES>
     )

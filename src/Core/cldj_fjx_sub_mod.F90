@@ -1,6 +1,6 @@
 MODULE CLDJ_FJX_SUB_MOD
 !------------------------------------------------------------------------------
-!     Originally adapted from 'fjx_sub_mod.f90' for Cloud-J v7.7 (2/2020, mjp) 
+!     Originally adapted from 'fjx_sub_mod.f90' for Cloud-J v7.7 (2/2020, mjp)
 !     Updated from 'fjx_sub_mod.f90'  for Cloud-J v8.0 (4/2023, mjp)
 !------------------------------------------------------------------------------
 !
@@ -40,13 +40,13 @@ MODULE CLDJ_FJX_SUB_MOD
 !     v7.6  (12/2018) CORRECTS the calc of deposition of direct beam (FLXD)
 !         >>>> for conservative atmos, now predicts no spurious atmos
 !absorption.
-!         >>>> error in incident for clear skies:  <0.00% up to 80 sza, 
+!         >>>> error in incident for clear skies:  <0.00% up to 80 sza,
 !+0.04% at 88 sza
 !         >>>> error for cloudy atmos depends on OD & extra layers (ATAU,
 !ATAU0) in top of clouds
-!              ATAU/ATAU0 = 1.10/.010  cld OD=38: +0.15% to +0.49% (sza = 
+!              ATAU/ATAU0 = 1.10/.010  cld OD=38: +0.15% to +0.49% (sza =
 !0-80, 88) = 2x cost
-!              ATAU/ATAU0 = 1.05/.005  cld OD=38: +0.05% to +0.16% (sza = 
+!              ATAU/ATAU0 = 1.05/.005  cld OD=38: +0.05% to +0.16% (sza =
 !0-80, 88) = 3x cost
 !              typical use before was 1.20/.020 which ads 50% more layers
 !with OD=40 (1.5x cost)
@@ -91,7 +91,7 @@ MODULE CLDJ_FJX_SUB_MOD
       PRIVATE :: BLKSLV   ! Called in MIESCT
       PRIVATE :: GEN_ID   ! Called in BLKSLV
       PRIVATE :: JRATET   ! Called in Photo_JX
-      PRIVATE :: X_INTERP ! Called in Photo_JX and JRATET
+      PUBLIC :: X_INTERP ! Called in Photo_JX and JRATET
       PRIVATE :: EXTRAL1  ! Called in Photo_JX
 
       ! Other private subroutines called in Photo_JX
@@ -498,7 +498,7 @@ MODULE CLDJ_FJX_SUB_MOD
          enddo
       enddo   ! end of 'do L = 1,L1U'
 
-! >>> now transform matrix OD(K,L) & SLEG (I,K,L) ==> DTAUX(L,KR) & 
+! >>> now transform matrix OD(K,L) & SLEG (I,K,L) ==> DTAUX(L,KR) &
 ! POMEGAX(I,L,KR)
 !     needed for good caching in the solver
 ! >>> also expand the K=1:S_ wavelengths of OD & SLEG to the KR=1:W_+W_r for the full sub-bins of RRTMG.
@@ -2233,10 +2233,10 @@ MODULE CLDJ_FJX_SUB_MOD
         do K = 1,W_
            call X_interp (TT, QO2TOT, TQQ(1,1),QO2(K,1), TQQ(2,1), QO2(K,2), &
                 TQQ(3,1),QO2(K,3), LQQ(1) )
-           
+
            call X_interp (TT,QO3TOT, TQQ(1,2),QO3(K,1),TQQ(2,2),QO3(K,2), &
-                TQQ(3,2),QO3(K,3), LQQ(2) ) 
-           
+                TQQ(3,2),QO3(K,3), LQQ(2) )
+
            call X_interp (TT,QO31DY, TQQ(1,3),Q1D(K,1),TQQ(2,3),Q1D(K,2), &
                 TQQ(3,3),Q1D(K,3), LQQ(3) )
 
@@ -2310,7 +2310,7 @@ MODULE CLDJ_FJX_SUB_MOD
 !-----------------------------------------------------------------------
 ! v8.0 give column H2O
 ! internal extensive atmosphere print, called from fjx_sub_mod.f90
-        
+
 !-----------------------------------------------------------------------
 !---the CTM has L_ = LU layers and fast-JX adds layer LU+1
 !---the pressure and altitude(Z) are on layer edge (LU+2)
