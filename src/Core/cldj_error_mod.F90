@@ -67,6 +67,8 @@ CONTAINS
     USE ESMF
 #ifdef MAPL3
     USE MAPL, ONLY : MAPL_Verify
+#else
+    USE MAPLBase_Mod
 #endif
 #endif
 
