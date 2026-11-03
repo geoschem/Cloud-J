@@ -294,17 +294,31 @@ endif()
 # For Cloud-J as submodule in MAPL/ESMF superproject
 #-----------------------------------------------------------------------------
 if(CLOUDJ_EXTERNAL_CONFIG AND MAPL_ESMF)
+  if(MAPL3)
+    # MAPL3 (in development)
+    target_link_libraries(CloudJBuildProperties
+        INTERFACE $<LINK_ONLY:MAPL>
+    )
+    target_include_directories(CloudJBuildProperties
+        INTERFACE $<TARGET_PROPERTY:MAPL,INTERFACE_INCLUDE_DIRECTORIES>
+    )
+    target_compile_definitions(CloudJBuildProperties
+        INTERFACE MAPL_ESMF MAPL3
+    )
+  else()
+    # MAPL2
     target_link_libraries(CloudJBuildProperties
         INTERFACE $<LINK_ONLY:MAPL.base>
 	INTERFACE $<LINK_ONLY:MAPL.generic>
     )
-    target_include_directories(CloudJBuildProperties 
+    target_include_directories(CloudJBuildProperties
         INTERFACE $<TARGET_PROPERTY:MAPL.base,INTERFACE_INCLUDE_DIRECTORIES>
 	INTERFACE $<TARGET_PROPERTY:MAPL.generic,INTERFACE_INCLUDE_DIRECTORIES>
     )
     target_compile_definitions(CloudJBuildProperties
         INTERFACE MAPL_ESMF
     )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------
