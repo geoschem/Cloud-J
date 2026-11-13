@@ -5,6 +5,9 @@ This file documents all notable changes to the Cloud-J repository since the init
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] - TBD
+### Added
+- Added MAPL3 support for use in GCHP (in development) behind `MAPL3` preprocessor and CMake switches
+
 ### Changed
 - Changed the format statement in several verbose prints to avoid print errors
 - Replaced the gcc 12 compiler wtih gcc 15 in the MacOS GitHub action
